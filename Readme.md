@@ -1,11 +1,11 @@
 # GET TICKET WEB SCRAPING
 this project made by python GUI. 
 ### Source
-https://www.etix.com/
-https://www.eventbrite.com/
-https://www.frontgate.com/
-https://www.seetickets.us/
-https://www.ticketweb.uk/
-https://www.bigtickets.com/
+https://www.etix.com/<br/>
+https://www.eventbrite.com/<Br/>
+https://www.frontgate.com/<br/>
+https://www.seetickets.us/<br/>
+https://www.ticketweb.uk/<br/>
+https://www.bigtickets.com/<br/>
 ### AUTHOR
 Lionheart
