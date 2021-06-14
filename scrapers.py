@@ -143,8 +143,15 @@ class Scraper(object):
 
         # Check if it's working
         driver.get('https://www.google.com/')
+        time.sleep(5)
         try:
-            driver.find_element_by_xpath('//*[@id="tsf"]/div[2]/div/div[3]/center/input[1]')
+            driver.find_element_by_id("L2AGLb").click()
+            time.sleep(5)
+        except:
+            pass
+        try:
+            driver.find_element_by_css_selector('input[name="q]')
+            # driver.find_element_by_xpath('//*[@id="tsf"]/div[2]/div/div[3]/center/input[1]')
         except:
             driver.quit()
             return self.open_driver()
