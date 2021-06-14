@@ -46,13 +46,14 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         #     self.event_timestamps = pickle.loads(f)
         self.event_timestamps = {}
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
-                              size=wx.Size(1000, 1000), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
-
+                              size=wx.Size(1000, 700), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 
         bSizer2 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer6 = wx.BoxSizer(wx.HORIZONTAL)
+
+        print(">>>>>>>>>>>>>>>>>>>>>the GUI window is opened")
 
         self.m_button_update = wx.Button(self, wx.ID_ANY, u"Quick Check", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_button_update.Bind(wx.EVT_BUTTON, self.update_event)
@@ -105,6 +106,8 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
         bSizer2.Add(bSizer3, 0, wx.ALL, 5)
 
+        print(">>>>>>>>>>>>>>>>>>>>>the Button is setted")
+        
         # List Control
         self.list_ctrl = TestListCtrl(self, size=(-1, 1500),
                                       style=wx.LC_REPORT
@@ -129,6 +132,8 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
         self.Centre(wx.BOTH)
         self.load_data_to_list_ctrl()
+
+        print(">>>>>>>>>>>>>>>>>>>>> the list showed")
 
     # Threading
     def startThread(self, event):
@@ -217,7 +222,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         self.save_event_data()
         self.load_data_to_list_ctrl()
 
-
+    # when click the button, changed the label
     def start(self, event):
         if self.m_button_start.LabelText == "Start":
             self.m_gauge1.Pulse()
@@ -244,7 +249,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     self.shutdown_event.set()
                     break
 
-                print('checking tickets for', value[0])
+                print('<<<<<<<<<<<<<<<<< checking tickets for on Update gui', value[0])
                 checker = check_website(url, self.settings['Proxy'], value[6], value[10])
                 qty, timer = checker.check_ticket_qty()
                 timer_str = "Yes" if timer else "No"
@@ -270,7 +275,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
             for key, value in self.event_data.items():
                 if value[4] == url:
                     data_key = key
-                    print('checking tickets for', value[0], url)
+                    print('>>>>>>>>>>>>>>>>>>>> checking tickets for on update the event', value[0], url)
                     checker = check_website(url, self.settings['Proxy'], value[6], value[10])
                     qty, timer = checker.check_ticket_qty()
                     if timer is None:
@@ -317,6 +322,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
     def fix_ids(self):
         events = {}
+        print("id control")
         i = 1
         for key, value in self.event_data.items():
             events[i] = value
@@ -325,7 +331,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
     def remove_event(self, event):
         selected = self.list_ctrl.GetFirstSelected()
-        print(selected)
+        print(selected+"has removed!!!!!")
         if selected >= 0:
             url = self.list_ctrl.GetItemText(selected, 4)
             data_key = None
@@ -341,6 +347,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
     def add_event(self, event):
         dlg = AddEventDialog(self)
+        #print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+self)
         if dlg.ShowModal() == wx.ID_OK:
             data = dlg.add_event()
             url = data['url']

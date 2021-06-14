@@ -14,6 +14,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from bs4 import BeautifulSoup
 
+from webdriver_manager.chrome import ChromeDriverManager
+
 from anticaptcha import api_key
 
 num_pool = 20
@@ -119,6 +121,7 @@ class Scraper(object):
         );
         """ % (ip, port, user, pwd)
         chrome_options = webdriver.ChromeOptions()
+        #chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
         if headless:
             pass
             # chrome_options.add_argument('--headless')
@@ -133,6 +136,7 @@ class Scraper(object):
             chrome_options.add_argument('--user-agent=%s' % user_agent)
         try:
             driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
+            # driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
         except Exception as E:
             # print('Error ', E)
             return self.open_driver()
