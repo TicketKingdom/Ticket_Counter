@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 
 from anticaptcha import api_key
 
-num_pool = 2
+num_pool = 30
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:

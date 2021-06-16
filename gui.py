@@ -250,6 +250,8 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                 timer_str = "Yes" if timer else "No"
                 evt_data = (value[0], value[1], str(qty), value[3], value[4], value[5], value[6], value[7],
                                         datetime.today().strftime('%Y-%m-%d %H:%M'), timer_str, value[10])
+                print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{qty}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<{evt_data}")
+                time.sleep(10000)
                 self.event_data[key] = evt_data
                 self.save_event_data()
                 self.load_data_to_list_ctrl()
