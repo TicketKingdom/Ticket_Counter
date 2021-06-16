@@ -14,11 +14,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from bs4 import BeautifulSoup
 
-from webdriver_manager.chrome import ChromeDriverManager
-
 from anticaptcha import api_key
 
-num_pool = 20
+num_pool = 2
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -40,12 +38,11 @@ class Scraper(object):
         self.ticket_url = url
         self.ticket_row = row
         self.password = password
-        with open(proxies, 'r') as f:
+        with open("proxies_storm.txt", 'r') as f:
             self.proxies = f.read().split('\n')
 
     def input_password(self, driver):
         pass
-
     def log_message(self, msg):
         pass
 
@@ -121,13 +118,12 @@ class Scraper(object):
         );
         """ % (ip, port, user, pwd)
         chrome_options = webdriver.ChromeOptions()
-        #chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
         if headless:
             pass
             # chrome_options.add_argument('--headless')
+        
         if use_proxy:
             pluginfile = 'proxy_auth_plugin.zip'
-
             with zipfile.ZipFile(pluginfile, 'w') as zp:
                 zp.writestr("manifest.json", manifest_json)
                 zp.writestr("background.js", background_js)
@@ -136,21 +132,19 @@ class Scraper(object):
             chrome_options.add_argument('--user-agent=%s' % user_agent)
         try:
             driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
-            # driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
         except Exception as E:
-            # print('Error ', E)
             return self.open_driver()
 
         # Check if it's working
         driver.get('https://www.google.com/')
-        time.sleep(5)
+        time.sleep(0.5)
         try:
             driver.find_element_by_id("L2AGLb").click()
-            time.sleep(5)
+            time.sleep(0.5)
         except:
             pass
         try:
-            driver.find_element_by_css_selector('input[name="q]')
+            driver.find_element_by_css_selector('input[name="q"]')
             # driver.find_element_by_xpath('//*[@id="tsf"]/div[2]/div/div[3]/center/input[1]')
         except:
             driver.quit()
@@ -163,19 +157,31 @@ class Etix(Scraper):
     def input_password(self, driver):
         if self.password:
             driver.find_element_by_xpath('//*[@placeholder="Password"]').send_keys(self.password)
-
+            # driver.find_element_by_xpath('/html/body/div[2]/div/div[1]/div/a[2]').click()
+    
     def get_qty(self, box_id):
         # qty = 0
         driver = self.open_driver()
+        
+        driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?")
+        time.sleep(3)
+        driver.find_element_by_xpath('/html/body/div[7]/div/a[2]').click()
+        time.sleep(3)
+            
+        # /html/body/div[2]/div/div[1]/div/a[2]
+
         driver.get(self.ticket_url)
-        time.sleep(2)
-        self.input_password(driver)
+
+        print("etrix site opened")
+
+        # self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         sold_out = soup.find('h2', {'class': 'header-message'})
         if sold_out:
             if 'sold out' in sold_out.text.lower():
                 driver.quit()
                 return 0
+
         if soup.find('div', {'class': 'callout error emphasize'}):
             driver.quit()
             print(0, 'Tickets added...')
@@ -202,26 +208,27 @@ class Etix(Scraper):
         opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
         opt.click()
-        if soup.find('div', {'class': 'g-recaptcha'}):
-            client = AnticaptchaClient(api_key)
-            task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
-            try:
-                job = client.createTask(task)
-                print("Waiting to solution by Anticaptcha workers")
-                job.join()
-                # Receive response
-                response = job.get_solution_response()
-            except:
-                print(0, 'Tickets added....')
-                driver.quit()
-                return 0
-            print("Received solution", response)
-            driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-            driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
-            time.sleep(1)
+        
+        # if soup.find('div', {'class': 'g-recaptcha'}):
+        #     client = AnticaptchaClient(api_key)
+        #     task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+        #     try:
+        #         job = client.createTask(task)
+        #         print("Waiting to solution by Anticaptcha workers")
+        #         job.join()
+        #         # Receive response
+        #         response = job.get_solution_response()
+        #     except:
+        #         print(0, 'Tickets added....')
+        #         driver.quit()
+        #         return 0
+        #     print("Received solution", response)
+        #     driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+        #     driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
+        #     time.sleep(1)
 
         try:
-            driver.find_element_by_xpath('//button[@type="submit"]').click()
+            driver.find_element_by_xpath('/html/body/div[2]/div/div[4]/form/div[2]/button').click()
         except:
             print(0, 'Tickets added....')
             driver.quit()
@@ -230,7 +237,9 @@ class Etix(Scraper):
         time.sleep(0.5)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-        error = soup.find('div', {'class': 'callout error emphasize'})
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        time.sleep(10000)
+        error = soup.find('div', {'class': 'callout'})
         if error:
             if 'Tickets Currently Not Available' in error.text:
                 print(0, 'Tickets added...')
@@ -274,12 +283,20 @@ class Etix(Scraper):
 
     def check_ticket_qty(self):
         driver = self.open_driver()
+        # cookie processing
+        driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?")
+        time.sleep(3)
+        driver.find_element_by_xpath('/html/body/div[7]/div/a[2]').click()
+        time.sleep(3)
+
         if '?method=switchSelectionMethod&selection_method=byBest' not in self.ticket_url:
             if '?' in self.ticket_url:
                 self.ticket_url += "&method=switchSelectionMethod&selection_method=byBest"
             else:
                 self.ticket_url += '?method=switchSelectionMethod&selection_method=byBest'
         driver.get(self.ticket_url)
+        time.sleep(5)
+        
         if self.wait_for_element(driver, 'view'):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
 
@@ -294,16 +311,17 @@ class Etix(Scraper):
                 if 'sold out' in sold_out.text.lower():
                     driver.quit()
                     return 0
-
             # CHECK CAPTCHA
             # if soup.find('div', {'class': 'g-recaptcha'}):
             #     print('Captcha')
             #     driver.quit()
             #     return 'Captcha', False
+            
             driver.quit()
             qty = 0
             timer_run_out = False
             oldtime = time.time()
+            
             while True:
                 if time.time() - oldtime >= 600:
                     timer_run_out = True
@@ -469,7 +487,6 @@ class Eventbrite(Scraper):
 
     def check_ticket_qty(self):
         driver = self.open_driver()
-
         self.drivers = []
 
         if '?' in self.ticket_url:
@@ -509,10 +526,6 @@ class Eventbrite(Scraper):
                     driver.quit()
                     print('No tickets available')
                     return '-', False
-
-
-
-
         driver.quit()
 
         timer_run_out = False
