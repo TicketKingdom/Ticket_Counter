@@ -164,15 +164,14 @@ class Etix(Scraper):
         driver = self.open_driver()
         
         driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?")
-        time.sleep(3)
         driver.find_element_by_xpath('/html/body/div[7]/div/a[2]').click()
-        time.sleep(3)
+        time.sleep(1)
             
         # /html/body/div[2]/div/div[1]/div/a[2]
 
         driver.get(self.ticket_url)
 
-        print("etrix site opened")
+        # print("etrix site opened")
 
         # self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -237,8 +236,6 @@ class Etix(Scraper):
         time.sleep(0.5)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        time.sleep(10000)
         error = soup.find('div', {'class': 'callout'})
         if error:
             if 'Tickets Currently Not Available' in error.text:
@@ -285,9 +282,7 @@ class Etix(Scraper):
         driver = self.open_driver()
         # cookie processing
         driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?")
-        time.sleep(3)
         driver.find_element_by_xpath('/html/body/div[7]/div/a[2]').click()
-        time.sleep(3)
 
         if '?method=switchSelectionMethod&selection_method=byBest' not in self.ticket_url:
             if '?' in self.ticket_url:
@@ -295,7 +290,6 @@ class Etix(Scraper):
             else:
                 self.ticket_url += '?method=switchSelectionMethod&selection_method=byBest'
         driver.get(self.ticket_url)
-        time.sleep(5)
         
         if self.wait_for_element(driver, 'view'):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
