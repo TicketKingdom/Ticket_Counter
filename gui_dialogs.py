@@ -470,10 +470,10 @@ class EditEventDialog(wx.Dialog):
         bSizer6 = wx.BoxSizer(wx.VERTICAL)
 
         self.m_button1 = wx.Button(self, wx.ID_OK, u"Add", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer6.Add(self.m_button1, 0, wx.ALIGN_CENTER | wx.ALL | wx.EXPAND, 5)
+        bSizer6.Add(self.m_button1, 0, wx.ALL, 5)
 
         self.m_button2 = wx.Button(self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer6.Add(self.m_button2, 0, wx.ALIGN_CENTER | wx.ALL | wx.EXPAND, 5)
+        bSizer6.Add(self.m_button2, 0, wx.ALL, 5)
 
         bSizer5.Add(bSizer6, 1, wx.EXPAND, 5)
 
