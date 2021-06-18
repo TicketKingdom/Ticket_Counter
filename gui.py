@@ -344,6 +344,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
     def add_event(self, event):
         dlg = AddEventDialog(self)
+        # print("add event button clickentd")
         if dlg.ShowModal() == wx.ID_OK:
             data = dlg.add_event()
             url = data['url']

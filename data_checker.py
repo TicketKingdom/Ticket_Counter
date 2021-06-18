@@ -3,7 +3,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from dateutil import parser
-
+import time 
 
 def get_event_name_and_date(url):
     if 'eventbrite.' in url:
@@ -55,7 +55,8 @@ def check_ticketfly(url):
 
 def check_etix(url):
     soup = make_request(url)
-    name = soup.find('h2', {'itemprop': 'name'}).text.strip()
+    # print(f">>>>>>>>{soup}")
+    name = soup.find('h1', {'itemprop': 'name'}).text.strip()
     date = soup.find('div', {'class': 'time'})
     date = date.find('meta', {'itemprop': 'startDate'})['content']
     # print(date)

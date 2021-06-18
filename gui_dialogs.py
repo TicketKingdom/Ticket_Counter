@@ -1,4 +1,5 @@
 import pickle
+from time import time
 
 import wx
 import wx.xrc
@@ -21,7 +22,7 @@ class SettingsDialog(wx.Dialog):
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 
         bSizer1 = wx.BoxSizer(wx.VERTICAL)
-
+ 
         bSizer2 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer11 = wx.BoxSizer(wx.HORIZONTAL)
@@ -153,6 +154,7 @@ class AddEventDialog(wx.Dialog):
 
         bSizer2 = wx.BoxSizer(wx.VERTICAL)
 
+
         fgSizer1 = wx.FlexGridSizer(0, 2, 0, 0)
         fgSizer1.SetFlexibleDirection(wx.BOTH)
         fgSizer1.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
@@ -216,6 +218,7 @@ class AddEventDialog(wx.Dialog):
         self.m_add_sec_button.Bind(wx.EVT_BUTTON, self.add_seconds)
         fgSizer4a.Add(self.m_add_sec_button, 0, wx.ALL, 5)
 
+
         m_comboBox1Choices = [u"1 hour", u"12 hours", u"1 day", u"2 days", u"3 days", u"4 days", u"5 days", u"7 days",
                               u"14 days", u"30 days"]
         self.m_comboBox1 = wx.ComboBox(self, wx.ID_ANY, u"Select...", wx.DefaultPosition, wx.DefaultSize,
@@ -274,14 +277,15 @@ class AddEventDialog(wx.Dialog):
 
         bSizer5.Add(bSizer2, 1, wx.EXPAND, 5)
 
-        bSizer6 = wx.BoxSizer(wx.VERTICAL)
+        bSizer6 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.m_button1 = wx.Button(self, wx.ID_OK, u"Add", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer6.Add(self.m_button1, 0, wx.ALIGN_CENTER | wx.ALL | wx.EXPAND, 5)
+        bSizer6.Add(self.m_button1, 0, wx.ALIGN_CENTER , 1000)
 
         self.m_button2 = wx.Button(self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer6.Add(self.m_button2, 0, wx.ALIGN_CENTER | wx.ALL | wx.EXPAND, 5)
+        bSizer6.Add(self.m_button2, 0, wx.ALIGN_CENTER, 1000)
 
+        # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         bSizer5.Add(bSizer6, 1, wx.EXPAND, 5)
 
         bSizer1.Add(bSizer5, 1, wx.EXPAND, 5)

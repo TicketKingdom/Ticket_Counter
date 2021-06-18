@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 
 from anticaptcha import api_key
 
-num_pool = 30
+num_pool = 2
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -160,19 +160,13 @@ class Etix(Scraper):
             # driver.find_element_by_xpath('/html/body/div[2]/div/div[1]/div/a[2]').click()
     
     def get_qty(self, box_id):
-        # qty = 0
         driver = self.open_driver()
-        
-        driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?")
+        driver.get("https://www.etix.com/ticket/online/?")
+        # driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?") //get url from inialt route
         driver.find_element_by_xpath('/html/body/div[7]/div/a[2]').click()
-        time.sleep(1)
+        time.sleep(0.5)
             
-        # /html/body/div[2]/div/div[1]/div/a[2]
-
         driver.get(self.ticket_url)
-
-        # print("etrix site opened")
-
         # self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         sold_out = soup.find('h2', {'class': 'header-message'})
@@ -181,7 +175,7 @@ class Etix(Scraper):
                 driver.quit()
                 return 0
 
-        if soup.find('div', {'class': 'callout error emphasize'}):
+        if soup.find('div', {'class': 'callout'}):
             driver.quit()
             print(0, 'Tickets added...')
             return 0
@@ -281,7 +275,8 @@ class Etix(Scraper):
     def check_ticket_qty(self):
         driver = self.open_driver()
         # cookie processing
-        driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?")
+        # driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?")
+        driver.get("https://www.etix.com/ticket/online/?")
         driver.find_element_by_xpath('/html/body/div[7]/div/a[2]').click()
 
         if '?method=switchSelectionMethod&selection_method=byBest' not in self.ticket_url:
