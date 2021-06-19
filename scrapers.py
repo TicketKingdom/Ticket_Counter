@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 
 from anticaptcha import api_key
 
-num_pool = 20
+num_pool = 2
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -345,7 +345,7 @@ class Etix(Scraper):
 
 
 class Eventbrite(Scraper):
-
+    # print("111111111111111111111111111111")
     def input_password(self, driver):
         if self.password:
             driver.find_element_by_xpath('//*[@data-automation="order-box-enter-promo"]').click()
@@ -358,8 +358,9 @@ class Eventbrite(Scraper):
         driver = self.open_driver(headless=True)
         self.drivers.append(driver)
         driver.get(self.ticket_url)
-        time.sleep(3)
-        self.input_password(driver)
+        print(f"urls:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{self.ticket_url}")
+        time.sleep(3000000)
+        # self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(_id))[-1]
@@ -484,8 +485,9 @@ class Eventbrite(Scraper):
         if '#tickets' not in self.ticket_url:
             self.ticket_url += '#tickets'
         driver.get(self.ticket_url)
-        time.sleep(3)
-        self.input_password(driver)
+        # self.input_password(driver)
+        print(f"urls:>>>>>>>>>>>>>>>>>{self.ticket_url}")
+        time.sleep(3000)
 
 
         _id = driver.find_element_by_tag_name('body').get_attribute('data-event-id')
