@@ -182,7 +182,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
 
 
-
         else:
             for key, data in self.event_data.items():
                 if data[column_idx] == '-':
@@ -248,10 +247,11 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                 checker = check_website(url, self.settings['Proxy'], value[6], value[10])
                 qty, timer = checker.check_ticket_qty()
                 timer_str = "Yes" if timer else "No"
+                print(f">>>>>>>>>>>>>>>>>>{qty}<<<<<<<<<<<<<<<<<<{timer}")
                 evt_data = (value[0], value[1], str(qty), value[3], value[4], value[5], value[6], value[7],
                                         datetime.today().strftime('%Y-%m-%d %H:%M'), timer_str, value[10])
-                print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{qty}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<{evt_data}")
-                time.sleep(10000)
+                
+                time.sleep(0.5)
                 self.event_data[key] = evt_data
                 self.save_event_data()
                 self.load_data_to_list_ctrl()

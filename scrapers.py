@@ -155,17 +155,16 @@ class Etix(Scraper):
     def input_password(self, driver):
         if self.password:
             driver.find_element_by_xpath('//*[@placeholder="Password"]').send_keys(self.password)
-            # driver.find_element_by_xpath('/html/body/div[2]/div/div[1]/div/a[2]').click()
     
     def get_qty(self, box_id):
         driver = self.open_driver()
+        # etrix first step
+        # allow cookies
         # driver.get("https://www.etix.com/ticket/online/?")
         # driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?") //get url from inialt route
             
         driver.get(self.ticket_url)
-        # driver.find_element_by_xpath('//*[@id="allow_cookies"]').click()
         # self.input_password(driver)
-        time.sleep(0.5)
         
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         sold_out = soup.find('h2', {'class': 'header-message'})
@@ -176,32 +175,32 @@ class Etix(Scraper):
 
         if soup.find('div', {'class': 'callout error emphasize'}):
             driver.quit()
-            print(0, 'Tickets added...')
+            print(0, '1Tickets added...')
             return 0
 
         try:
             id = soup.find('form', {'name': 'frmPickTicket'}).find_all('select')[int(self.ticket_row) - 1]['id']
             tab_click = False
-            time.sleep(0.5)
         except:
             tab_click = True
             try:
                 driver.find_element_by_xpath('//*[@id="ticket-type"]/li[2]/a').click()
             except:
                 driver.quit()
-                print(0, 'Tickets added...')
+                print(0, '2Tickets added...')
                 return 0
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             try:
                 id = soup.find('form', {'name': 'frmPickTicket'}).find_all('select')[int(self.ticket_row) - 1]['id']
             except:
-                print(0, 'Tickets added...')
+                print(0, '3Tickets added...')
                 return 0
 
         opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
+        # print(f"<<<<<<<<<<<<<<<<<<<<<<<<<{opt_qty}")
         opt.click()
-        time.sleep(0.5)
+        # time.sleep(20000)
         
         # if soup.find('div', {'class': 'g-recaptcha'}):
         #     client = AnticaptchaClient(api_key)
@@ -222,9 +221,14 @@ class Etix(Scraper):
         #     time.sleep(1)
 
         try:
-            driver.find_element_by_xpath('//*[@id="view"]/div[5]/form/div[2]/button').click()
+            driver.find_element_by_id("allow_cookies").click()
+            time.sleep(0.5)
+            driver.find_element_by_name("addSeatBtn").click()
+            # driver.find_element_by_xpath('//*[@id="view"]/div[5]/form/div[2]/button').click()
+            # print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+            # time.sleep(2)
         except:
-            print(0, 'Tickets added....')
+            print(0, '4Tickets added....')
             driver.quit()
             return 0
 
@@ -232,7 +236,7 @@ class Etix(Scraper):
         error = soup.find('div', {'class': 'callout'})
         if error:
             if 'Tickets Currently Not Available' in error.text:
-                print(0, 'Tickets added...')
+                print(0, '5Tickets added...')
                 driver.quit()
                 return 0
         error = soup.find('div', {'class': 'validationError error'})
@@ -267,7 +271,7 @@ class Etix(Scraper):
                     break
 
         driver.quit()
-        print(opt_qty, 'Tickets added')
+        print(opt_qty, '0Tickets added')
         return opt_qty  # driver
 
     def check_ticket_qty(self):
