@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 
 from anticaptcha import api_key
 
-num_pool = 2
+num_pool = 20
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -137,7 +137,6 @@ class Scraper(object):
 
         # Check if it's working
         driver.get('https://www.google.com/')
-        time.sleep(0.5)
         try:
             driver.find_element_by_id("L2AGLb").click()
             time.sleep(0.5)
@@ -145,7 +144,6 @@ class Scraper(object):
             pass
         try:
             driver.find_element_by_css_selector('input[name="q"]')
-            # driver.find_element_by_xpath('//*[@id="tsf"]/div[2]/div/div[3]/center/input[1]')
         except:
             driver.quit()
             return self.open_driver()
@@ -161,13 +159,14 @@ class Etix(Scraper):
     
     def get_qty(self, box_id):
         driver = self.open_driver()
-        driver.get("https://www.etix.com/ticket/online/?")
+        # driver.get("https://www.etix.com/ticket/online/?")
         # driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?") //get url from inialt route
-        driver.find_element_by_xpath('/html/body/div[7]/div/a[2]').click()
-        time.sleep(0.5)
             
         driver.get(self.ticket_url)
+        # driver.find_element_by_xpath('//*[@id="allow_cookies"]').click()
         # self.input_password(driver)
+        time.sleep(0.5)
+        
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         sold_out = soup.find('h2', {'class': 'header-message'})
         if sold_out:
@@ -175,7 +174,7 @@ class Etix(Scraper):
                 driver.quit()
                 return 0
 
-        if soup.find('div', {'class': 'callout'}):
+        if soup.find('div', {'class': 'callout error emphasize'}):
             driver.quit()
             print(0, 'Tickets added...')
             return 0
@@ -183,6 +182,7 @@ class Etix(Scraper):
         try:
             id = soup.find('form', {'name': 'frmPickTicket'}).find_all('select')[int(self.ticket_row) - 1]['id']
             tab_click = False
+            time.sleep(0.5)
         except:
             tab_click = True
             try:
@@ -201,6 +201,7 @@ class Etix(Scraper):
         opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
         opt.click()
+        time.sleep(0.5)
         
         # if soup.find('div', {'class': 'g-recaptcha'}):
         #     client = AnticaptchaClient(api_key)
@@ -221,15 +222,13 @@ class Etix(Scraper):
         #     time.sleep(1)
 
         try:
-            driver.find_element_by_xpath('/html/body/div[2]/div/div[4]/form/div[2]/button').click()
+            driver.find_element_by_xpath('//*[@id="view"]/div[5]/form/div[2]/button').click()
         except:
             print(0, 'Tickets added....')
             driver.quit()
             return 0
 
-        time.sleep(0.5)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-
         error = soup.find('div', {'class': 'callout'})
         if error:
             if 'Tickets Currently Not Available' in error.text:
@@ -256,8 +255,7 @@ class Etix(Scraper):
                     driver.quit()
                     return 0
                 opt.click()
-                driver.find_element_by_xpath('//button[@type="submit"]').click()
-                time.sleep(0.5)
+                driver.find_element_by_xpath('//*[@id="view"]/div[5]/form/div[2]/button').click()
                 soup = BeautifulSoup(driver.page_source, 'html.parser')
                 error = soup.find('div', {'class': 'validationError error'})
                 if error:
@@ -276,8 +274,8 @@ class Etix(Scraper):
         driver = self.open_driver()
         # cookie processing
         # driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?")
-        driver.get("https://www.etix.com/ticket/online/?")
-        driver.find_element_by_xpath('/html/body/div[7]/div/a[2]').click()
+        # driver.get("https://www.etix.com/ticket/online/?")
+        # driver.find_element_by_xpath('/html/body/div[7]/div/a[2]').click()
 
         if '?method=switchSelectionMethod&selection_method=byBest' not in self.ticket_url:
             if '?' in self.ticket_url:
@@ -324,7 +322,6 @@ class Etix(Scraper):
                 print('Total QTY:', qty)
                 if loop_qty == 0:
                     break
-                time.sleep(3)
 
             # with Pool(8) as p:
             #     r = p.map(self.get_qty, list(range(20)))
@@ -380,7 +377,7 @@ class Eventbrite(Scraper):
                 return 0
             opt.click()
         time.sleep(1)
-
+        # //*[@id="view"]/div[5]/form/div[2]/button
         try:
             driver.find_element_by_xpath('//*[@type="submit"]').click()
         except:
