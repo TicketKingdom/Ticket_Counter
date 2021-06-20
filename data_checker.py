@@ -28,15 +28,20 @@ def make_request(url):
 
 def check_eventbrite(url):
     soup = make_request(url)
-    name = soup.find('h1', {'class': 'text-body-large'}).text.strip()
-    # print(f"name:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{name}")
-    # time.sleep(10000)
+    try:
+        name = soup.find('h1', {'class': 'text-body-large'}).text.strip()
+    except:
+        name = soup.find('h1', {'class': 'listing-hero-title'}).text.strip()
+    
     try:
         date = soup.find('div', {'class': 'event-details__data'}).find('meta')['content']
     except TypeError:
         date = soup.find('time', {'class': 'clrfix'}).find('p').text.strip()
     date = date.replace('–',' ').strip()
+    date = date.replace('-',' ').strip()
     date = parser.parse(date).strftime('%Y-%m-%d')
+    # print(f"name:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{date}")
+    # time.sleep(10000)
     loc = [x.find_next('div', {'class': 'event-details__data'}) for x in soup.find_all('h3', {'class': 'label-primary l-mar-bot-2'}) if 'Location' in x.text][0]
     loc = loc.find_all('p')
     venue, loc = loc[0].text.strip(), loc[2].text.strip()
