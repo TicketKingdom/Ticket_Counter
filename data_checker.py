@@ -28,7 +28,7 @@ def make_request(url):
 
 def check_eventbrite(url):
     soup = make_request(url)
-    name = soup.find('h1', {'class': 'listing-hero-title'}).text.strip()
+    name = soup.find('h1', {'class': 'text-body-large'}).text.strip()
     # print(f"name:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{name}")
     # time.sleep(10000)
     try:

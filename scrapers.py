@@ -593,8 +593,6 @@ class FrontGate(Scraper):
     def check_new_style(self, driver):
         pass
 
-
-
     def check_ticket_qty(self):
         driver = self.open_driver()
         self.input_password(driver)
