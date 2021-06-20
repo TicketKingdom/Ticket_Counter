@@ -345,7 +345,6 @@ class Etix(Scraper):
 
 
 class Eventbrite(Scraper):
-    # print("111111111111111111111111111111")
     def input_password(self, driver):
         if self.password:
             driver.find_element_by_xpath('//*[@data-automation="order-box-enter-promo"]').click()
@@ -358,8 +357,8 @@ class Eventbrite(Scraper):
         driver = self.open_driver(headless=True)
         self.drivers.append(driver)
         driver.get(self.ticket_url)
-        print(f"urls:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{self.ticket_url}")
-        time.sleep(3000000)
+        # print(f"urls:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{self.ticket_url}")
+        # time.sleep(3000000)
         # self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
@@ -426,7 +425,6 @@ class Eventbrite(Scraper):
         driver.switch_to.frame(iframe)
         #self.input_password(driver)
 
-
         try:
             opt = driver.find_elements_by_class_name('tiered-ticket-display-content-root')[int(self.ticket_row)-1]
             opt = opt.find_elements_by_tag_name('option')[-1]
@@ -486,9 +484,6 @@ class Eventbrite(Scraper):
             self.ticket_url += '#tickets'
         driver.get(self.ticket_url)
         # self.input_password(driver)
-        print(f"urls:>>>>>>>>>>>>>>>>>{self.ticket_url}")
-        time.sleep(3000)
-
 
         _id = driver.find_element_by_tag_name('body').get_attribute('data-event-id')
         xpath = '//*[@id="eventbrite-widget-modal-{}"]'.format(_id)
@@ -500,7 +495,6 @@ class Eventbrite(Scraper):
             new_style = False
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-
         if not new_style:
             try:
                 _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
@@ -544,7 +538,6 @@ class Eventbrite(Scraper):
             if loop_qty == 0:
                 break
             time.sleep(3)
-
 
         print('total qty', qty)
         return qty, timer_run_out
