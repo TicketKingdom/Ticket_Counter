@@ -65,7 +65,6 @@ def check_ticketfly(url):
 
 def check_etix(url):
     soup = make_request(url)
-    # print(f">>>>>>>>{soup}")
     name = soup.find('h1', {'itemprop': 'name'}).text.strip()
     date = soup.find('div', {'class': 'time'})
     date = date.find('meta', {'itemprop': 'startDate'})['content']

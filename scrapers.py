@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 
 from anticaptcha import api_key
 
-num_pool = 2
+num_pool = 20
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -158,8 +158,7 @@ class Etix(Scraper):
     
     def get_qty(self, box_id):
         driver = self.open_driver()
-        # etrix first step
-        # allow cookies
+        # etrix first step and allow cookies
         # driver.get("https://www.etix.com/ticket/online/?")
         # driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?") //get url from inialt route
             
@@ -181,6 +180,7 @@ class Etix(Scraper):
         try:
             id = soup.find('form', {'name': 'frmPickTicket'}).find_all('select')[int(self.ticket_row) - 1]['id']
             tab_click = False
+
         except:
             tab_click = True
             try:
@@ -198,8 +198,8 @@ class Etix(Scraper):
 
         opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
-        # print(f"<<<<<<<<<<<<<<<<<<<<<<<<<{opt_qty}")
         opt.click()
+        # print(f"<<<<<<<<<<<<<<<<<<<<<<<<<{opt_qty}")
         # time.sleep(20000)
         
         # if soup.find('div', {'class': 'g-recaptcha'}):
@@ -224,9 +224,6 @@ class Etix(Scraper):
             driver.find_element_by_id("allow_cookies").click()
             time.sleep(0.5)
             driver.find_element_by_name("addSeatBtn").click()
-            # driver.find_element_by_xpath('//*[@id="view"]/div[5]/form/div[2]/button').click()
-            # print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-            # time.sleep(2)
         except:
             print(0, '4Tickets added....')
             driver.quit()
@@ -271,16 +268,12 @@ class Etix(Scraper):
                     break
 
         driver.quit()
-        print(opt_qty, '0Tickets added')
+        print(opt_qty, 'Tickets added')
         return opt_qty  # driver
 
     def check_ticket_qty(self):
         driver = self.open_driver()
-        # cookie processing
-        # driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?")
-        # driver.get("https://www.etix.com/ticket/online/?")
-        # driver.find_element_by_xpath('/html/body/div[7]/div/a[2]').click()
-
+        
         if '?method=switchSelectionMethod&selection_method=byBest' not in self.ticket_url:
             if '?' in self.ticket_url:
                 self.ticket_url += "&method=switchSelectionMethod&selection_method=byBest"
@@ -381,7 +374,6 @@ class Eventbrite(Scraper):
                 return 0
             opt.click()
         time.sleep(1)
-        # //*[@id="view"]/div[5]/form/div[2]/button
         try:
             driver.find_element_by_xpath('//*[@type="submit"]').click()
         except:
@@ -412,7 +404,7 @@ class Eventbrite(Scraper):
         driver = self.open_driver(headless=True)
         self.drivers.append(driver)
         driver.get(self.ticket_url)
-        time.sleep(3)
+        time.sleep(0.5)
         main_id = driver.find_element_by_tag_name('body').get_attribute('data-event-id')
         xpath = '//*[@id="eventbrite-widget-modal-{}"]'.format(main_id)
         try:
@@ -430,7 +422,10 @@ class Eventbrite(Scraper):
             opt = opt.find_elements_by_tag_name('option')[-1]
         except IndexError:
             try:
-                opt = driver.find_elements_by_class_name('eds-card-list__item')[int(self.ticket_row)-1]
+                opt = driver.find_element_by_id(_id)
+                # opt = driver.find_element()
+                # print(opt.text())
+                # time.sleep(30000)
                 opt = opt.find_elements_by_tag_name('option')[-1]
             except IndexError:
                 print('0 Tickets added', 'idx')
@@ -508,6 +503,8 @@ class Eventbrite(Scraper):
             except IndexError:
                 try:
                     _id = soup.find_all('select', {'name': 'ticket-quantity-selector'})[int(self.ticket_row) - 1]['data-automation']
+                    # print(f"<<<<<<<<<<<<<<<<{_id}")
+                    # time.sleep(3000)
                 except IndexError:
                     driver.quit()
                     print('No tickets available')
