@@ -157,15 +157,11 @@ class Etix(Scraper):
             driver.find_element_by_xpath('//*[@placeholder="Password"]').send_keys(self.password)
     
     def get_qty(self, box_id):
-        driver = self.open_driver()
-        # etrix first step and allow cookies
-        # driver.get("https://www.etix.com/ticket/online/?")
-        # driver.get("https://" + "/".join(self.ticket_url.split("?")[0].split("/")[2:5]) + "?") //get url from inialt route
-            
+        driver = self.open_driver()            
         driver.get(self.ticket_url)
         # self.input_password(driver)
-        # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         time.sleep(2)
+        
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         sold_out = soup.find('h2', {'class': 'header-message'})
         if sold_out:
