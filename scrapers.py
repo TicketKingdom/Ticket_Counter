@@ -164,7 +164,8 @@ class Etix(Scraper):
             
         driver.get(self.ticket_url)
         # self.input_password(driver)
-        
+        # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        time.sleep(2)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         sold_out = soup.find('h2', {'class': 'header-message'})
         if sold_out:
@@ -224,6 +225,13 @@ class Etix(Scraper):
             driver.find_element_by_id("allow_cookies").click()
             time.sleep(0.5)
             driver.find_element_by_name("addSeatBtn").click()
+            # print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{driver.text()}")
+            # try:
+            #     driver.find_element_by_class_name("errorBox")
+            # except:
+            #     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            #     driver.quit()
+            #     return 0
         except:
             print(0, '4Tickets added....')
             driver.quit()
@@ -490,6 +498,8 @@ class Eventbrite(Scraper):
             new_style = False
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+        # print(f">>>>>>>>>>>>>>>>>>>{soup}")
+        # time.sleep(3000)
         if not new_style:
             try:
                 _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
@@ -512,11 +522,11 @@ class Eventbrite(Scraper):
         driver.quit()
 
         timer_run_out = False
-        num_pool = 20
+        num_pool = 16
         lst = [_id for x in range(num_pool)]
         qty = 0
         oldtime = time.time()
-
+        # print(f">>>>>>>>>>>{lst}")
         if new_style:
             func = self.get_qty_new
         else:
