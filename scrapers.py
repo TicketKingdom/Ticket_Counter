@@ -157,19 +157,33 @@ class Etix(Scraper):
             driver.find_element_by_xpath('//*[@placeholder="Password"]').send_keys(self.password)
     
     def get_qty(self, box_id):
+        # print(box_id)
+        # time.sleep(2000)
         driver = self.open_driver()            
         driver.get(self.ticket_url)
         # self.input_password(driver)
-        time.sleep(2)
+        # time.sleep(2)
         
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         sold_out = soup.find('h2', {'class': 'header-message'})
         if sold_out:
+            # sold_out  ticktes
             if 'sold out' in sold_out.text.lower():
                 driver.quit()
                 return 0
 
+        if soup.find('p', {'class': 'callout error'}):
+            driver.quit()
+            print('session expried')
+            return 0
+
+        if soup.find('//*[@id="view"]/div[3]'):
+            driver.quit()
+            print('Tickets is ended')
+            return 0
+
         if soup.find('div', {'class': 'callout error emphasize'}):
+            # ????
             driver.quit()
             print(0, '1Tickets added...')
             return 0
@@ -196,8 +210,6 @@ class Etix(Scraper):
         opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
         opt.click()
-        # print(f"<<<<<<<<<<<<<<<<<<<<<<<<<{opt_qty}")
-        # time.sleep(20000)
         
         # if soup.find('div', {'class': 'g-recaptcha'}):
         #     client = AnticaptchaClient(api_key)
@@ -221,13 +233,12 @@ class Etix(Scraper):
             driver.find_element_by_id("allow_cookies").click()
             time.sleep(0.5)
             driver.find_element_by_name("addSeatBtn").click()
-            # print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{driver.text()}")
-            # try:
-            #     driver.find_element_by_class_name("errorBox")
-            # except:
-            #     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            #     driver.quit()
-            #     return 0
+            time.sleep(0.5)
+            new_soup = BeautifulSoup(driver.page_source, 'html.parser')
+            if new_soup.find('div', {'class': 'validationError error'}):
+                driver.quit()
+                print('amount miss selected')
+                return 0 
         except:
             print(0, '4Tickets added....')
             driver.quit()
