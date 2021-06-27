@@ -362,13 +362,15 @@ class Eventbrite(Scraper):
 
 
     def get_qty(self, _id):
+        print('eventbrite type1')
         driver = self.open_driver(headless=True)
         self.drivers.append(driver)
         driver.get(self.ticket_url)
-        # print(f"urls:>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{self.ticket_url}")
-        # time.sleep(3000000)
-        # self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+        if soup.find('span', {'class':'ticket-status eds-text-color--ui-600 eds-text-bm ticket-status--no-wrap eds-text--right'}):
+            print('tickets is unavaliable!!')
+            driver.quit()
+            return 0
         try:
             opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(_id))[-1]
         except IndexError:
@@ -391,6 +393,12 @@ class Eventbrite(Scraper):
         time.sleep(1)
         try:
             driver.find_element_by_xpath('//*[@type="submit"]').click()
+            time.sleep(0.5)
+            new_soup = BeautifulSoup(driver.page_source, 'html.parser')
+            if new_soup.find('div', {'class':'eds-notification-bar__content-child'}):
+                print('tickets is sold out cause of scrap!!!')
+                driver.quit()
+                return 0
         except:
             print('0 Tickets added')
             driver.quit()
@@ -416,12 +424,14 @@ class Eventbrite(Scraper):
         return opt_qty
 
     def get_qty_new(self, _id):
+        print('eventbrite type2')
         driver = self.open_driver(headless=True)
         self.drivers.append(driver)
         driver.get(self.ticket_url)
         time.sleep(0.5)
         main_id = driver.find_element_by_tag_name('body').get_attribute('data-event-id')
         xpath = '//*[@id="eventbrite-widget-modal-{}"]'.format(main_id)
+        
         try:
             iframe = driver.find_element_by_xpath(xpath)
         except:
@@ -505,8 +515,10 @@ class Eventbrite(Scraper):
             new_style = False
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        # print(f">>>>>>>>>>>>>>>>>>>{soup}")
-        # time.sleep(3000)
+        if soup.find('span', {'class':'micro-ticket-box__status js-micro-ticket-box-status l-pad-hor-2 hide-small hide-medium'}):
+            driver.quit()
+            print('tickets is Unavailable')
+            return 0
         if not new_style:
             try:
                 _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
@@ -520,8 +532,6 @@ class Eventbrite(Scraper):
             except IndexError:
                 try:
                     _id = soup.find_all('select', {'name': 'ticket-quantity-selector'})[int(self.ticket_row) - 1]['data-automation']
-                    # print(f"<<<<<<<<<<<<<<<<{_id}")
-                    # time.sleep(3000)
                 except IndexError:
                     driver.quit()
                     print('No tickets available')
@@ -529,16 +539,14 @@ class Eventbrite(Scraper):
         driver.quit()
 
         timer_run_out = False
-        num_pool = 16
+        # num_pool = 20
         lst = [_id for x in range(num_pool)]
         qty = 0
         oldtime = time.time()
-        # print(f">>>>>>>>>>>{lst}")
         if new_style:
             func = self.get_qty_new
         else:
             func = self.get_qty
-
         while True:
             if time.time() - oldtime >= 480:
                 break
@@ -547,11 +555,14 @@ class Eventbrite(Scraper):
                 r = p.map(func, lst)
                 for q in r:
                     loop_qty += q
+                    if q==0:
+                        print("the tickets is solded out by scrap")
+                        break
             qty += loop_qty
             print('Total QTY:', qty)
             if loop_qty == 0:
                 break
-            time.sleep(3)
+            time.sleep(2)
 
         print('total qty', qty)
         return qty, timer_run_out
