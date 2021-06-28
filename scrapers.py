@@ -157,8 +157,6 @@ class Etix(Scraper):
             driver.find_element_by_xpath('//*[@placeholder="Password"]').send_keys(self.password)
     
     def get_qty(self, box_id):
-        # print(box_id)
-        # time.sleep(2000)
         driver = self.open_driver()            
         driver.get(self.ticket_url)
         # self.input_password(driver)
@@ -211,23 +209,23 @@ class Etix(Scraper):
         opt_qty = int(opt.get_attribute('value'))
         opt.click()
         
-        # if soup.find('div', {'class': 'g-recaptcha'}):
-        #     client = AnticaptchaClient(api_key)
-        #     task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
-        #     try:
-        #         job = client.createTask(task)
-        #         print("Waiting to solution by Anticaptcha workers")
-        #         job.join()
-        #         # Receive response
-        #         response = job.get_solution_response()
-        #     except:
-        #         print(0, 'Tickets added....')
-        #         driver.quit()
-        #         return 0
-        #     print("Received solution", response)
-        #     driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-        #     driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
-        #     time.sleep(1)
+        if soup.find('div', {'class': 'g-recaptcha'}):
+            client = AnticaptchaClient(api_key)
+            task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+            try:
+                job = client.createTask(task)
+                print("Waiting to solution by Anticaptcha workers")
+                job.join()
+                # Receive response
+                response = job.get_solution_response()
+            except:
+                print(0, 'Tickets added....')
+                driver.quit()
+                return 0
+            print("Received solution", response)
+            driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+            driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
+            time.sleep(1)
 
         try:
             driver.find_element_by_id("allow_cookies").click()
@@ -556,7 +554,7 @@ class Eventbrite(Scraper):
                 for q in r:
                     loop_qty += q
                     if q==0:
-                        print("the tickets is solded out by scrap")
+                        print("the tickets is sold out by scrap")
                         break
             qty += loop_qty
             print('Total QTY:', qty)
