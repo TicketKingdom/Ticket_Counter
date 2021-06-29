@@ -349,7 +349,6 @@ class Etix(Scraper):
             #     driver.quit()
             return qty, timer_run_out
 
-
 class Eventbrite(Scraper):
     def input_password(self, driver):
         if self.password:
@@ -565,7 +564,6 @@ class Eventbrite(Scraper):
         print('total qty', qty)
         return qty, timer_run_out
 
-
 class FrontGate(Scraper):
 
     def input_password(self, driver):
@@ -577,7 +575,7 @@ class FrontGate(Scraper):
     def get_qty(self, max_amount):
         qty = 0
         driver = self.open_driver()
-        self.input_password(driver)
+        # self.input_password(driver)
         driver.get(self.ticket_url)
 
         for i in range(max_amount):
@@ -606,9 +604,11 @@ class FrontGate(Scraper):
             driver.find_element_by_id('div-btn-modal-submit').click()
 
 
-        if self.wait_for_element(driver, '/html/body/div[10]/div/div/div[1]/div[2]/h2', By.XPATH):
+        if self.wait_for_element(driver, '//*[@id="cart-success-header"]/h2', By.XPATH):
             qty = max_amount
 
+        # print(f"HI????????{max_amount}")
+        time.sleep(10)
         driver.quit()
         print(qty, 'Tickets added')
         return qty
@@ -618,18 +618,14 @@ class FrontGate(Scraper):
 
     def check_ticket_qty(self):
         driver = self.open_driver()
-        self.input_password(driver)
+        # self.input_password(driver)
         driver.get(self.ticket_url)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         ticket = soup.find('form', {'id': 'cart_tickets_form'}).find_all('div', {'class': 'ticket-price-section'})[
             int(self.ticket_row) - 1]
         spinner = ticket.find('div', {'class': 'number-spinner'})
 
-
         #driver.switch_to.frame(iframe)
-
-
-
         try:
             max_amount = spinner.find('input')['data-quantityarray']
         except:
@@ -638,10 +634,9 @@ class FrontGate(Scraper):
             return '-', False
         max_amount = ast.literal_eval(max_amount)[-1]
         driver.quit()
-
-
+        
         timer_run_out = False
-        num_pool = 20
+        num_pool = 2
         lst = [max_amount for x in range(num_pool)]
         qty = 0
         oldtime = time.time()
@@ -654,6 +649,9 @@ class FrontGate(Scraper):
                 r = p.map(self.get_qty, lst)
                 for q in r:
                     loop_qty += q
+                    if q==0:
+                        print("the tickets is sold out by scrap")
+                        break
             qty += loop_qty
             print('Total QTY:', qty)
             if loop_qty == 0:
