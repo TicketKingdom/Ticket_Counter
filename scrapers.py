@@ -603,12 +603,13 @@ class FrontGate(Scraper):
             time.sleep(1)
             driver.find_element_by_id('div-btn-modal-submit').click()
 
+        time.sleep(2)
 
         if self.wait_for_element(driver, '//*[@id="cart-success-header"]/h2', By.XPATH):
-            qty = max_amount
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            real_amount = soup.find('span', {'class': 'cartTotal badge'}).decode_contents()
+            qty = int(real_amount)
 
-        # print(f"HI????????{max_amount}")
-        time.sleep(10)
         driver.quit()
         print(qty, 'Tickets added')
         return qty
@@ -636,7 +637,7 @@ class FrontGate(Scraper):
         driver.quit()
         
         timer_run_out = False
-        num_pool = 2
+        num_pool = 20
         lst = [max_amount for x in range(num_pool)]
         qty = 0
         oldtime = time.time()
@@ -656,7 +657,7 @@ class FrontGate(Scraper):
             print('Total QTY:', qty)
             if loop_qty == 0:
                 break
-            time.sleep(3)
+            time.sleep(2)
 
         print('total qty', qty)
         return qty, timer_run_out
