@@ -443,7 +443,8 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
             msg = "Event Name: {}\nEvent URL: {}\nEvent Date: {}\nTicket Quantity: {}\n".format(
                 event[0], event[4], event[1], event[2]
             )
-            self.send_email(msg, sub)
+            if int(event[2]) >= 1000 and int(event[2]) < 5000:
+                self.send_email(msg, sub)
 
     def send_email(self, message, subject, retry=0):
         server = smtplib.SMTP('smtp.gmail.com', 587)

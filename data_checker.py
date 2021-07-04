@@ -16,6 +16,8 @@ def get_event_name_and_date(url):
         return check_frontgate(url)
     elif 'ticketweb.' in url:
         return check_ticketweb(url)
+    elif 'seetickets.us' in url:  
+        return check_seetickets(url)
 
 
 def make_request(url):
@@ -100,6 +102,19 @@ def check_ticketweb(url):
     venue = soup.find('a', {'href': '#', 'data-ng-click': "visible()", 'class': 'theme-title'})
     adr = venue.find_next('span').find_next('span').text.strip()
     venue = venue.text.strip()
+    name = name + " " + venue + " " + adr
+
+    return name, date
+
+def check_seetickets(url):
+    soup = make_request(url)
+    name = soup.find('h1', {'class': 'event-h2'}).text.strip()
+    date = soup.find('time', {'itemprop': 'startDate'})['datetime']
+    date = parser.parse(date).strftime('%Y-%m-%d')
+    venue = soup.find('p', {'class': 'float-r'}).find_next('h5').decode_contents()
+    adr = soup.find('input', {'type':'hidden', 'id':'locationaddress'})['value']
+    # print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{adr}")
+    # time.sleep(3000)
     name = name + " " + venue + " " + adr
 
     return name, date

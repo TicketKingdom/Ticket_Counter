@@ -240,7 +240,7 @@ class AddEventDialog(wx.Dialog):
         self.m_staticText8.Wrap(-1)
         fgSizer5.Add(self.m_staticText8, 0, wx.ALL, 5)
 
-        self.m_textCtrl8 = wx.TextCtrl(self, wx.ID_ANY, u'1000', wx.DefaultPosition, wx.Size(120, -1), 0)
+        self.m_textCtrl8 = wx.TextCtrl(self, wx.ID_ANY, u'5000', wx.DefaultPosition, wx.Size(120, -1), 0)
         fgSizer5.Add(self.m_textCtrl8, 0, wx.ALL, 5)
 
         bSizer2.Add(fgSizer5, 1, wx.EXPAND, 5)
