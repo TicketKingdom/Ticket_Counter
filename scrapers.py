@@ -31,6 +31,9 @@ def check_website(url, proxies, row, password, log=None):
         return FrontGate(url, proxies, row, log, password)
     elif '.ticketweb.' in url:
         return TicketWeb(url, proxies, row, log, password)
+    elif 'seetickets.us' in url:  
+        return SeeTickets(url, proxies, row, log, password)
+
 
 
 class Scraper(object):
@@ -45,6 +48,7 @@ class Scraper(object):
 
     def input_password(self, driver):
         pass
+
     def log_message(self, msg):
         pass
 
@@ -999,6 +1003,98 @@ class TicketFly(Scraper):
 
         print('total qty', qty)
         return qty, timer_run_out
+
+class SeeTickets(Scraper):
+    # def input_password(self, driver):
+    #     if self.password:
+    #         driver.find_element_by_xpath('//*[@data-automation="order-box-enter-promo"]').click()
+    #         driver.find_element_by_id('promo-access-code-input').send_keys(self.password)
+    #         driver.find_element_by_xpath('//*[@type="submit"]').click()
+    #         time.sleep(2)
+
+    def get_qty(self, _id):
+        driver = self.open_driver()
+        driver.get(self.ticket_url) 
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        try:
+            id = soup.find('form', {'name': 'eventview'}).find_all('select')[int(self.ticket_row) - 1]['id']
+        except:
+            # can't find the select tag
+            driver.quit()
+            print(0, 'Tickets added...')
+            return 0
+        
+        #click the max value and get value
+        opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
+        opt_qty = int(opt.get_attribute('value'))
+        opt.click()
+
+        #click checkout
+        try:
+            driver.find_element_by_xpath('//*[@id="checkoutbnt"]').click()
+        except:
+            print(0, 'Tickets added....')
+            driver.quit()
+            return 0  
+            
+        if self.wait_for_element(driver, 'loginsignup_pageV3'):
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            time.sleep(3)
+            next_url = 'https://'+self.ticket_url.split('/')[2]+'/'+soup.find('a', {'class':'checkout-btn btn'})['href']
+            driver.get(next_url)  
+            try:
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                try_agian = soup.find('div',{'id':'purchasebutton'})
+                if try_agian:
+                    if 'TRY AGAIN' in try_agian.text:
+                        print('can\'t check out')
+                        driver.quit()
+                        return 0
+            except:
+                print('This is not current style')
+                driver.quit()
+                return 0
+        opt_qty = int(soup.find('div',{'class':'search-num-icon float-r'}).decode_contents())
+        driver.quit()
+        print(opt_qty, 'Tickets added')
+        return opt_qty
+
+    def check_ticket_qty(self):
+        driver = self.open_driver()
+        driver.get(self.ticket_url)
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        try:
+            id = soup.find('form', {'name': 'eventview'}).find_all('select')[int(self.ticket_row) - 1]['id']
+        except:
+            # can't find the select tag
+            driver.quit()
+            print(0, 'Tickets added...')
+            return 0
+        
+        driver.quit()
+        qty = 0
+        timer_run_out = False
+        oldtime = time.time()
+        while True:
+            if time.time() - oldtime >= 600:
+                timer_run_out = True
+                break
+            loop_qty = 0
+            with Pool(num_pool) as p:
+                r = p.map(self.get_qty, list(range(10)))
+                for q in r:
+                    loop_qty += q
+            qty += loop_qty
+            print('Total QTY:', qty)
+            if loop_qty == 0:
+                break
+        
+        return qty, timer_run_out
+
 
 # if __name__ == "__main__":
 #     proxies = r'D:\Programming\Work\Freelancer2\carrcocarr\low_price_warning\proxies.txt'
