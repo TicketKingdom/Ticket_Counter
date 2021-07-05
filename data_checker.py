@@ -8,8 +8,8 @@ import time
 def get_event_name_and_date(url):
     if 'eventbrite.' in url:
         return check_eventbrite(url)
-    elif 'ticketfly.' in url:
-        return check_ticketfly(url)
+    elif 'bigtickets.' in url:
+        return check_bigticket(url)
     elif 'etix.' in url:
         return check_etix(url)
     elif 'frontgatetickets.' in url:
@@ -34,7 +34,6 @@ def check_eventbrite(url):
         name = soup.find('h1', {'class': 'text-body-large'}).text.strip()
     except:
         name = soup.find('h1', {'class': 'listing-hero-title'}).text.strip()
-    
     try:
         date = soup.find('div', {'class': 'event-details__data'}).find('meta')['content']
     except TypeError:
@@ -55,13 +54,21 @@ def check_eventbrite(url):
 
 
 
-def check_ticketfly(url):
+def check_bigticket(url):
     soup = make_request(url)
-    name = soup.find('div', {'class': 'event-name'}).text.strip()
-    date = soup.find('meta', {'itemprop': 'startDate'})['content']
-    venue = soup.find('p', {'class': 'venue'})['title']
-    loc = soup.find('span', {'itemprop': 'addressLocality'}).text.strip()
-    name = name + " {} {}".format(venue, loc)
+    try:
+        name = soup.find('div', {'class': 'event-titles'}).find_next('h1').decode_contents()
+        date = soup.find('div', {'class': 'event-titles'}).find_next('h4').decode_contents().split('<')[0]
+        date = parser.parse(date).strftime('%Y-%m-%d')
+        venue = soup.find('a', {'title': 'View on Google Maps', 'class':'tab-link'}).decode_contents().split('<br>')[0].replace('\n', '').replace('\t', '')
+        loc = soup.find('a', {'title': 'View on Google Maps', 'class':'tab-link'}).decode_contents().split('<br>')[1].replace('\n', '').replace('\t', '')
+        name = name + " {} {}".format(venue, loc)
+    except:
+        name = soup.find('div', {'class': 'event-info'}).find_next('h1').decode_contents()
+        date = soup.find('span', {'class': 'event-dates'}).decode_contents().split('|')[0]
+        date = parser.parse(date).strftime('%Y-%m-%d')
+        venue = soup.find('span', {'class': 'event-city'}).decode_contents()
+        name = name + " {} ".format(venue)
     return name, date
 
 
