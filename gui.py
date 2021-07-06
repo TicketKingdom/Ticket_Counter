@@ -275,7 +275,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     print('checking tickets for', value[0], url)
                     checker = check_website(url, self.settings['Proxy'], value[6], value[10])
                     qty, timer = checker.check_ticket_qty()
-                    # print(f">>>>>>>>>>>{qty}:::::::::{timer}")
                     if timer is None:
                         timer_str = '-'
                     else:

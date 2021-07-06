@@ -25,8 +25,8 @@ def check_website(url, proxies, row, password, log=None):
         return Etix(url, proxies, row, log, password)
     elif '.eventbrite.' in url:
         return Eventbrite(url, proxies, row, log, password)
-    elif '.ticketfly.' in url:
-        return TicketFly(url, proxies, row, log, password)
+    elif '.bigtickets.' in url:
+        return BigTicket(url, proxies, row, log, password)
     elif '.frontgatetickets.' in url:
         return FrontGate(url, proxies, row, log, password)
     elif '.ticketweb.' in url:
@@ -819,167 +819,84 @@ class TicketWeb(Scraper):
         print('total qty', qty)
         return qty, timer_run_out
 
-class TicketFly(Scraper):
+class BigTicket(Scraper):
 
-    def input_password(self, driver):
-        if self.password:
-            driver.find_element_by_id('promoCode').send_keys(self.password)
-            driver.find_element_by_id('applyPromoCode').click()
+    # def input_password(self, driver):
+    #     if self.password:
+    #         driver.find_element_by_id('promoCode').send_keys(self.password)
+    #         driver.find_element_by_id('applyPromoCode').click()
 
-    def get_qty(self, max_amount):
-        if max_amount == 0:
-            print('0 Tickets added')
-            return 0
+    def get_qty(self):
         driver = self.open_driver()
-        try:
-            driver.get(self.ticket_url)
-        except:
-            driver.quit()
-            return self.get_qty(max_amount)
-        self.input_password(driver)
-        if not self.wait_for_element(driver, 'productsDiv'):
-            driver.quit()
-            return self.get_qty(max_amount)
+        driver.get(self.ticket_url) 
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        info = soup.find('section', {'class': 'info'})
-        if info:
-            if 'Off Sale' in info.text:
-                print('0 Tickets added')
-                driver.quit()
-                return 0
-        product = soup.find('div', {'name': 'product-{}'.format(int(self.ticket_row)-1)})
-        if product is None:
-            driver.quit()
-            return self.get_qty(max_amount)
-        sold_out = product.find('span', {'class': 'sold-out'})
-        if sold_out:
-            if 'None Available' in sold_out.text:
-                print('0 Tickets added')
-                driver.quit()
-                return 0
+        # try:
+        buy_now = soup.find('button', {'class': 'btn btn-primary btn-lg btn-sticky-panel'})
+        if 'BUY NOW' in buy_now.text:
+            print("Asdfasdf")
+            WebDriverWait(driver, 20).until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "btn-sticky-panel")))
+            buynow = driver.find_element_by_class_name('btn-sticky-panel')
+            time.sleep(2)
+            buynow.click()
+              # except:
+        #     # can't find the select tag
+        #     driver.quit()
+        #     print(0, 'Tickets added...')
+        #     return 0
+        time.sleep(200)
+        #click the max value and get value
+        # opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
+        # opt_qty = int(opt.get_attribute('value'))
+        # opt.click()
 
+        #click checkout
         try:
-            inpt = driver.find_element_by_name('productRequestForms[{}].quantity'.format(int(self.ticket_row)-1))
+            driver.find_element_by_xpath('//*[@id="checkoutbnt"]').click()
         except:
+            print(0, 'Tickets added....')
             driver.quit()
-            return self.get_qty(max_amount)
-        max_amount = int(inpt.get_attribute('max'))
-
-
-        i = 0
-        while True:
-            if i > 10:
-                break
-
-
-            for i in range(max_amount):
-                try:
-                    driver.find_element_by_xpath(
-                        '//*[@id="productsDiv"]/div[{}]/div[3]/p/button[2]'.format(self.ticket_row)).click()
-                except:
-                    driver.find_element_by_xpath(
-                            '//*[@id="productsDiv"]/div[{}]/div[2]/p/button[2]'.format(self.ticket_row)).click()
-
-
-                # prds.find_elements_by_xpath("//button[contains(text(), '+')]")[int(self.ticket_row)-1].click()
-            if 'true' in re.search('enableCaptcha: (true|false),', str(soup)).group(0):
-
-                driver.find_element_by_id('bestSeats').click()
-                client = AnticaptchaClient(api_key)
+            return 0  
+            
+        if self.wait_for_element(driver, 'loginsignup_pageV3'):
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            time.sleep(3)
+            next_url = 'https://'+self.ticket_url.split('/')[2]+'/'+soup.find('a', {'class':'checkout-btn btn'})['href']
+            driver.get(next_url)  
+            try:
                 soup = BeautifulSoup(driver.page_source, 'html.parser')
-                iframe = soup.find('iframe')['src'].replace('https://www.google.com/recaptcha/api2/anchor?ar=1&k=','')
-                site_key = iframe[:iframe.find('&')]
-                site_key = '6LfKUB0UAAAAALUrUue3Jsb5skcZD1UCpFQxwr9e'
-                try:
-                    task = NoCaptchaTaskProxylessTask(self.ticket_url, site_key)
-                    job = client.createTask(task)
-                    print("Waiting to solution by Anticaptcha workers")
-                    job.join()
-                    # Receive response
-                    response = job.get_solution_response()
-                    print("Received solution", response)
-                    # Inject response in webpage
-                    driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-                    # Wait a moment to execute the script (just in case).
-                    time.sleep(1)
-                    # Press submit button
-                    driver.find_element_by_id('securityCheck').click()
-                except Exception as e:
-                    print(e)
-                    print('0 Tickets added')
-                    driver.quit()
-                    return 0
-            else:
-                driver.find_element_by_id('bestSeats').click()
-            time.sleep(1.5)
-
-
-
-            error = soup.find('section', {'class': 'error'})
-            if error:
-                if "We're sorry, but there aren't enough available" in error.text:
-                    max_amount -= 1
-                    i += 1
-                    continue
-                    # driver.quit()
-                    # return self.get_qty(max_amount - 1)
-            break
-
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        try:
-            qty = soup.find('div', {'class': 'ticket-qty'}).text.strip()
-        except AttributeError:
-            print('0 Tickets added')
-            driver.quit()
-            return 0
-        qty = int(qty.split('x')[0].strip())
-        print(qty, 'Tickets added')
+                try_agian = soup.find('div',{'id':'purchasebutton'})
+                if try_agian:
+                    if 'TRY AGAIN' in try_agian.text:
+                        print('can\'t check out')
+                        driver.quit()
+                        return 0
+            except:
+                print('This is not current style')
+                driver.quit()
+                return 0
+        opt_qty = int(soup.find('div',{'class':'search-num-icon float-r'}).decode_contents())
         driver.quit()
-        return qty
+        print(opt_qty, 'Tickets added')
+        return opt_qty
 
     def check_ticket_qty(self):
         driver = self.open_driver()
-        if '?' in self.ticket_url:
-            self.ticket_url = self.ticket_url[:self.ticket_url.find('?')]
         driver.get(self.ticket_url)
-        self.input_password(driver)
         time.sleep(1)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        info = soup.find('section', {'class': 'info'})
-        if info:
-            if 'Off Sale' in info.text:
-                print('Sold out')
-                driver.quit()
-                return 'Off Sale', None
-
-        #if 'true' in re.search('enableCaptcha: (true|false),', str(soup)).group(0):
-            # print("CAPTCHA EVENT - can't retrieve quantity...")
-            # driver.quit()
-            # return "CAPTCHA", None
-
-
-
-
-        ticket_row = soup.find('div', {'class': 'product-{}'.format(int(self.ticket_row)-1)})
-        sold_out = ticket_row.find('span', {'class': 'sold-out'})
-        if sold_out:
-            if 'None Available' in sold_out.text:
-                print('No tickets available')
+        try:
+            no_seat = soup.find('div',{'class':'seats-ui-primary'})
+            if 'No Map Seats Available.' in no_seat.text:
+                print('no seat on this tickets')
                 driver.quit()
                 return '-'
-
-        max_amount = soup.find('div', {'id': 'productsDiv'}).find('span', {'class': 'quantity-warning'}).text.strip()
-        max_amount = int(max_amount.split(' ')[0].strip())
+        except:
+            pass
+        
         driver.quit()
-
-
-        timer_run_out = False
-        num_pool = 20
-        lst = [max_amount for x in range(num_pool)]
         qty = 0
+        timer_run_out = False
         oldtime = time.time()
         while True:
             if time.time() - oldtime >= 600:
@@ -987,21 +904,14 @@ class TicketFly(Scraper):
                 break
             loop_qty = 0
             with Pool(num_pool) as p:
-                r = p.map(self.get_qty, lst)
-                not_zeros = 0
+                r = p.map(self.get_qty, list(range(10)))
                 for q in r:
-                    if q != 0:
-                        not_zeros +=1
                     loop_qty += q
             qty += loop_qty
             print('Total QTY:', qty)
-            if not_zeros == 1:
-                break
             if loop_qty == 0:
                 break
-            time.sleep(3)
-
-        print('total qty', qty)
+        
         return qty, timer_run_out
 
 class SeeTickets(Scraper):
