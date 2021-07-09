@@ -66,7 +66,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         self.m_gauge1.SetValue(0)
         bSizer6.Add(self.m_gauge1, 0, wx.ALL, 5)
 
-        self.m_comboBox10 = wx.ComboBox(self, wx.ID_ANY, u"Capmonster", wx.DefaultPosition, wx.Size(120, 25), [u'Anticaptcha'], 0)
+        self.m_comboBox10 = wx.ComboBox(self, wx.ID_ANY, u"Capmonster", wx.DefaultPosition, wx.Size(120, 25), [u'Capmonster', u'Anticaptcha'], 0)
         bSizer6.Add(self.m_comboBox10, 0, wx.ALL, 5)
 
         self.m_comboBox1 = wx.ComboBox(self, wx.ID_ANY, u"Sort Column...", wx.DefaultPosition, wx.Size(120, 25), [u'Date', u'Added on', u'Last Check', 'Quantity'], 0)

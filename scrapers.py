@@ -52,7 +52,7 @@ class Scraper(object):
     def log_message(self, msg):
         pass
 
-    def check_ticket_qty(self):
+    def check_ticket_qty(self, cap):
         pass
 
     def wait_for_element(self, driver, element, type=By.ID):
@@ -162,11 +162,10 @@ class Etix(Scraper):
         if self.password:
             driver.find_element_by_xpath('//*[@placeholder="Password"]').send_keys(self.password)
     
-    def get_qty(self, cap):
+    def get_qty(self, box_id):
         driver = self.open_driver()            
         driver.get(self.ticket_url)
         # self.input_password(driver)
-        print(cap)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         sold_out = soup.find('h2', {'class': 'header-message'})
         if sold_out:
@@ -214,21 +213,7 @@ class Etix(Scraper):
         opt.click()
         
         if soup.find('div', {'class': 'g-recaptcha'}):
-            ## solve this anticapcha
-            # client = AnticaptchaClient(api_key)
-            # task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
-            # try:
-            #     job = client.createTask(task)
-            #     print("Waiting to solution by Anticaptcha workers")
-            #     job.join()
-            #     # Receive response
-            #     response = job.get_solution_response()
-            # except:
-            #     print(0, 'Tickets added....')
-            #     driver.quit()
-            #     return 0
-            
-            # solve this capmonster
+          if self.cap == "Capmonster":# solve this capmonster
             capmonster = NoCaptchaTaskProxyless(client_key=capmonster_api_key)
             taskId = capmonster.createTask(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
             print("Waiting to solution by capmonster workers")
@@ -238,10 +223,24 @@ class Etix(Scraper):
                 print(0, 'Tickets added....')
                 driver.quit()
                 return 0
-            print("Received solution", response)
-            driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-            driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
-            time.sleep(1)
+          else:
+            # solve this anticapcha
+            client = AnticaptchaClient(api_key)
+            task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+            try:
+                job = client.createTask(task)
+                print("Waiting to solution by Anticaptcha workers")
+                job.join()
+                # Receive response
+                response = job.get_solution_response()
+            except:
+                print(0, 'Tickets added....')
+                driver.quit()
+                return 0
+          print("Received solution", response)
+          driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+          driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
+          time.sleep(1)
 
         try:
             driver.find_element_by_id("allow_cookies").click()
@@ -301,6 +300,7 @@ class Etix(Scraper):
         return opt_qty  # driver
 
     def check_ticket_qty(self, cap):
+        self.cap = cap
         driver = self.open_driver()
         if '?method=switchSelectionMethod&selection_method=byBest' not in self.ticket_url:
             if '?' in self.ticket_url:
@@ -335,7 +335,7 @@ class Etix(Scraper):
                     break
                 loop_qty = 0
                 with Pool(num_pool) as p:
-                    r = p.map(self.get_qty(cap), list(range(20)))
+                    r = p.map(self.get_qty, list(range(20)))
                     for q in r:
                         loop_qty += q
                         if q==0:
@@ -355,7 +355,6 @@ class Eventbrite(Scraper):
             driver.find_element_by_id('promo-access-code-input').send_keys(self.password)
             driver.find_element_by_xpath('//*[@type="submit"]').click()
             time.sleep(2)
-
 
     def get_qty(self, _id):
         print('eventbrite type1')
@@ -500,7 +499,8 @@ class Eventbrite(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self):
+    def check_ticket_qty(self, cap):
+        print(cap)
         driver = self.open_driver()
         self.drivers = []
 
@@ -605,22 +605,9 @@ class FrontGate(Scraper):
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         captcha = soup.find('div', {'id': 'google_captcha'})
-        # # using anti_captcha
-        # if captcha:
-        #     driver.execute_script('document.getElementById("div-btn-modal-submit").removeAttribute("disabled")')
-        #     client = AnticaptchaClient(api_key)
-        #     task = NoCaptchaTaskProxylessTask(self.ticket_url, '6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU')
-        #     job = client.createTask(task)
-        #     print("Waiting to solution by Anticaptcha workers")
-        #     job.join()
-        #     response = job.get_solution_response()
-        #     print("Received solution", response)
-        #     driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-        #     time.sleep(1)
-        #     driver.find_element_by_id('div-btn-modal-submit').click()
-        
-        # using capmonster
         if captcha:
+          if self.cap=="Capmonster":
+            # using capmonster
             driver.execute_script('document.getElementById("div-btn-modal-submit").removeAttribute("disabled")')
             capmonster = NoCaptchaTaskProxyless(client_key=capmonster_api_key)
             taskId = capmonster.createTask(website_key='6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU', website_url=self.ticket_url)
@@ -630,6 +617,20 @@ class FrontGate(Scraper):
             driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
             time.sleep(1)
             driver.find_element_by_id('div-btn-modal-submit').click()
+          else:
+            # using anti_captcha
+            driver.execute_script('document.getElementById("div-btn-modal-submit").removeAttribute("disabled")')
+            client = AnticaptchaClient(api_key)
+            task = NoCaptchaTaskProxylessTask(self.ticket_url, '6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU')
+            job = client.createTask(task)
+            print("Waiting to solution by Anticaptcha workers")
+            job.join()
+            response = job.get_solution_response()
+            print("Received solution", response)
+            driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+            time.sleep(1)
+            driver.find_element_by_id('div-btn-modal-submit').click()
+        
         
         time.sleep(1)
 
@@ -647,7 +648,9 @@ class FrontGate(Scraper):
     def check_new_style(self, driver):
         pass
 
-    def check_ticket_qty(self):
+    def check_ticket_qty(self, cap):
+        print(cap)
+        self.cap = cap
         driver = self.open_driver()
         # self.input_password(driver)
         driver.get(self.ticket_url)
@@ -727,6 +730,17 @@ class TicketWeb(Scraper):
 
         captcha = soup.find('div', {'class': 'g-recaptcha'})
         if captcha:
+          if self.cap == 'Capmonster':
+            capmonster = NoCaptchaTaskProxyless(client_key=capmonster_api_key)
+            taskId = capmonster.createTask(website_key='6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv', website_url=self.ticket_url)
+            print("Waiting to solution by capmonster workers")
+            try:
+                response = capmonster.joinTaskResult(taskId=taskId)
+            except:
+                print(0, 'Tickets added....')
+                driver.quit()
+                return 0
+          else:
             site_key = '6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv'
             client = AnticaptchaClient(api_key)
             task = NoCaptchaTaskProxylessTask(self.ticket_url, site_key)
@@ -735,9 +749,9 @@ class TicketWeb(Scraper):
             job.join()
             # Receive response
             response = job.get_solution_response()
-            print("Received solution", response)
-            driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-            time.sleep(2)
+        print("Received solution", response)
+        driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+        time.sleep(2)
 
 
         driver.find_element_by_id('edp_checkout_btn').click()
@@ -761,10 +775,11 @@ class TicketWeb(Scraper):
         return qty
 
 
-    def check_ticket_qty(self):
+    def check_ticket_qty(self, cap):
+        print(cap)
         if '?' in self.ticket_url:
             self.ticket_url = self.ticket_url[:self.ticket_url.find('?')]
-
+        self.cap = cap
         driver = self.open_driver()
         driver.get(self.ticket_url)
         # self.input_password(driver)
@@ -787,9 +802,11 @@ class TicketWeb(Scraper):
             if 'Sorry, there are currently no tickets  available through TicketWeb.' in no_tickets_available.text.strip():
                 driver.quit()
                 print('It can not get the tickets cause of no_tickets_available')
+                return '-'
             if 'This event is sold out' in no_tickets_available.text.strip():
                 driver.quit()
                 print('It can not get the tickets cause of sold_out')
+                return '-'
         
         driver.quit()
         num_pool=2
@@ -891,7 +908,8 @@ class BigTicket(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self):
+    def check_ticket_qty(self, cap):
+        print(cap)
         driver = self.open_driver()
         driver.get(self.ticket_url)
         time.sleep(1)
@@ -994,7 +1012,7 @@ class SeeTickets(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self):
+    def check_ticket_qty(self, cap):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 
