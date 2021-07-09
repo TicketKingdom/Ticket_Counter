@@ -66,6 +66,9 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         self.m_gauge1.SetValue(0)
         bSizer6.Add(self.m_gauge1, 0, wx.ALL, 5)
 
+        self.m_comboBox10 = wx.ComboBox(self, wx.ID_ANY, u"Capmonster", wx.DefaultPosition, wx.Size(120, 25), [u'Anticaptcha'], 0)
+        bSizer6.Add(self.m_comboBox10, 0, wx.ALL, 5)
+
         self.m_comboBox1 = wx.ComboBox(self, wx.ID_ANY, u"Sort Column...", wx.DefaultPosition, wx.Size(120, 25), [u'Date', u'Added on', u'Last Check', 'Quantity'], 0)
         bSizer6.Add(self.m_comboBox1, 0, wx.ALL, 5)
 
@@ -265,6 +268,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
     def update_event_action(self):
         # self.m_button_update.Disable()
         self.shutdown_event = threading.Event()
+        captch_way = self.m_comboBox10.GetValue()
         selected = self.list_ctrl.GetFirstSelected()
         if selected >= 0:
             url = self.list_ctrl.GetItemText(selected, 4)
@@ -274,7 +278,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     data_key = key
                     print('checking tickets for', value[0], url)
                     checker = check_website(url, self.settings['Proxy'], value[6], value[10])
-                    qty, timer = checker.check_ticket_qty()
+                    qty, timer = checker.check_ticket_qty(captch_way)
                     if timer is None:
                         timer_str = '-'
                     else:

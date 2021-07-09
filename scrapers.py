@@ -162,11 +162,11 @@ class Etix(Scraper):
         if self.password:
             driver.find_element_by_xpath('//*[@placeholder="Password"]').send_keys(self.password)
     
-    def get_qty(self, box_id):
+    def get_qty(self, cap):
         driver = self.open_driver()            
         driver.get(self.ticket_url)
         # self.input_password(driver)
-        
+        print(cap)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         sold_out = soup.find('h2', {'class': 'header-message'})
         if sold_out:
@@ -300,9 +300,8 @@ class Etix(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty  # driver
 
-    def check_ticket_qty(self):
+    def check_ticket_qty(self, cap):
         driver = self.open_driver()
-        
         if '?method=switchSelectionMethod&selection_method=byBest' not in self.ticket_url:
             if '?' in self.ticket_url:
                 self.ticket_url += "&method=switchSelectionMethod&selection_method=byBest"
@@ -336,7 +335,7 @@ class Etix(Scraper):
                     break
                 loop_qty = 0
                 with Pool(num_pool) as p:
-                    r = p.map(self.get_qty, list(range(20)))
+                    r = p.map(self.get_qty(cap), list(range(20)))
                     for q in r:
                         loop_qty += q
                         if q==0:
@@ -821,61 +820,73 @@ class TicketWeb(Scraper):
 
 class BigTicket(Scraper):
 
-    # def input_password(self, driver):
-    #     if self.password:
-    #         driver.find_element_by_id('promoCode').send_keys(self.password)
-    #         driver.find_element_by_id('applyPromoCode').click()
-
-    def get_qty(self):
+    def get_qty(self, max_amount):
         driver = self.open_driver()
         driver.get(self.ticket_url) 
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        # try:
-        buy_now = soup.find('button', {'class': 'btn btn-primary btn-lg btn-sticky-panel'})
-        if 'BUY NOW' in buy_now.text:
-            print("Asdfasdf")
-            WebDriverWait(driver, 20).until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "btn-sticky-panel")))
-            buynow = driver.find_element_by_class_name('btn-sticky-panel')
-            time.sleep(2)
-            buynow.click()
-              # except:
-        #     # can't find the select tag
-        #     driver.quit()
-        #     print(0, 'Tickets added...')
-        #     return 0
-        time.sleep(200)
+        try:
+            buy_now = soup.find('button', {'class': 'btn btn-primary btn-lg btn-sticky-panel'})
+            if 'BUY NOW' in buy_now.text:
+                print("enter the buy now area")
+                buy_button_elements = driver.find_element_by_class_name('btn-sticky-panel')
+                driver.execute_script("arguments[0].click();", buy_button_elements)
+                time.sleep(0.5)
+        except Exception as e:
+            print(e)
+            # can't find the select tag
+            driver.quit()
+            print(0, 'Tickets added...')
+            return 0
+        
         #click the max value and get value
-        # opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
-        # opt_qty = int(opt.get_attribute('value'))
-        # opt.click()
-
+        time.sleep(3)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        try: 
+            if 'The maximum number of attendees for this event has been reached' in soup.find('form', {'name': 'EventForm'}).decode_contents():
+                print("Ticket's number is maximum")
+                driver.quit()
+                return 0
+            select_name = soup.find('form', {'name': 'EventForm'}).find_all('select')[int(self.ticket_row) - 1]['name']
+            opt = driver.find_elements_by_xpath('//*[@name="{}"]/option'.format(select_name))[-1]
+            opt_qty = int(opt.get_attribute('value'))
+            opt.click()
+        except Exception as e:
+            print("Can't find the row")
+            driver.quit()
+            return '-'
         #click checkout
         try:
-            driver.find_element_by_xpath('//*[@id="checkoutbnt"]').click()
-        except:
+            check_out = driver.find_element_by_class_name('btn-submit')
+            driver.execute_script("arguments[0].click();", check_out)
+            try:
+                time.sleep(0.5)
+                driver.find_element_by_xpath('//*[@id="modal-liability-waiver"]/div/div/div[3]/div/a[1]').click()
+                driver.find_element_by_xpath('//*[@id="formCarousel"]/div/div[1]/div[1]/a[2]').click()
+            except Exception as e:
+                pass
+        except Exception as e:
             print(0, 'Tickets added....')
             driver.quit()
             return 0  
-            
-        if self.wait_for_element(driver, 'loginsignup_pageV3'):
-            soup = BeautifulSoup(driver.page_source, 'html.parser')
-            time.sleep(3)
-            next_url = 'https://'+self.ticket_url.split('/')[2]+'/'+soup.find('a', {'class':'checkout-btn btn'})['href']
-            driver.get(next_url)  
-            try:
-                soup = BeautifulSoup(driver.page_source, 'html.parser')
-                try_agian = soup.find('div',{'id':'purchasebutton'})
-                if try_agian:
-                    if 'TRY AGAIN' in try_agian.text:
-                        print('can\'t check out')
-                        driver.quit()
-                        return 0
-            except:
-                print('This is not current style')
-                driver.quit()
-                return 0
-        opt_qty = int(soup.find('div',{'class':'search-num-icon float-r'}).decode_contents())
+
+        time.sleep(0.5)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        real_amount = 0
+        try:
+            show_counter = soup.find('div', {'class' : 'countdown-timer-clock'})
+            if show_counter:
+                try:
+                    real_amount = soup.find('div' , {'class' : 'ticket-qty info'}).decode_contents() 
+                except:
+                    real_amount = soup.find('div' , {'class' : 'wrap ticket-number text-align-center'}).find_next('span').decode_contents() 
+        except Exception as e:
+            print(e)
+            print('This is not current style')
+            driver.quit()
+            return 0
+        real_amount = real_amount.replace('\n', '').replace('×', '').replace('  ', '')
+        opt_qty = int( real_amount )
         driver.quit()
         print(opt_qty, 'Tickets added')
         return opt_qty
@@ -904,7 +915,7 @@ class BigTicket(Scraper):
                 break
             loop_qty = 0
             with Pool(num_pool) as p:
-                r = p.map(self.get_qty, list(range(10)))
+                r = p.map(self.get_qty, list(range(num_pool)))
                 for q in r:
                     loop_qty += q
             qty += loop_qty
@@ -942,13 +953,25 @@ class SeeTickets(Scraper):
         opt.click()
 
         #click checkout
+        try: 
+            add_To_cart = driver.find_element_by_xpath('//*[@id="addtocartbnt"]')
+            driver.execute_script("arguments[0].click();", add_To_cart)
+        except Exception as e:
+            print(e)
+            pass
+        time.sleep(3)
         try:
             driver.find_element_by_xpath('//*[@id="checkoutbnt"]').click()
         except:
-            print(0, 'Tickets added....')
-            driver.quit()
-            return 0  
-            
+            try:
+                checkout = driver.find_elements_by_xpath('//*[@id="checkoutbnt"]')
+                for x in range(0, len(checkout)):
+                    driver.execute_script("arguments[0].click();", checkout[x])
+            except Exception as e:
+                print(0, 'Tickets added....')
+                driver.quit()
+                return 0  
+
         if self.wait_for_element(driver, 'loginsignup_pageV3'):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             time.sleep(3)
