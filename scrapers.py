@@ -252,6 +252,10 @@ class Etix(Scraper):
                 driver.quit()
                 print('amount miss selected')
                 return 0 
+            if new_soup.find('div', {'class': 'callout error'}):
+                driver.quit()
+                print('you due to the high volume of requests for the same seats')
+                return 0 
         except:
             print(0, '4Tickets added....')
             driver.quit()
@@ -269,7 +273,6 @@ class Etix(Scraper):
         num_of_options = len(driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id)))
         if error:
             error_txt = error.text.strip()
-
             index = 1
             while True:
                 # TODO Localize if error
@@ -295,6 +298,9 @@ class Etix(Scraper):
                 else:
                     break
 
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        opt_qty = len(soup.find('table', {'class':'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
+        
         driver.quit()
         print(opt_qty, 'Tickets added')
         return opt_qty  # driver
@@ -339,8 +345,9 @@ class Etix(Scraper):
                     for q in r:
                         loop_qty += q
                         if q==0:
-                            print("the tickets is sold out by scrap")
-                            break
+                            next_cycle = False
+                    if next_cycle ==False:
+                        break
                 qty += loop_qty
                 print('Total QTY:', qty)
                 if loop_qty == 0:
@@ -417,12 +424,6 @@ class Eventbrite(Scraper):
         self.drivers.append(driver)
         driver.get(self.ticket_url)
         time.sleep(0.5)
-        # soup = BeautifulSoup(driver.page_source, 'html.parser')
-        
-        # if soup.find('span', {'class':'ticket-status eds-text-color--ui-600 eds-text-bm ticket-status--no-wrap eds-text--right'}):
-        #     print('tickets is unavaliable1')
-        #     driver.quit()
-        #     return 0
 
         main_id = driver.find_element_by_tag_name('body').get_attribute('data-event-id')
         xpath = '//*[@id="eventbrite-widget-modal-{}"]'.format(main_id)
@@ -470,10 +471,14 @@ class Eventbrite(Scraper):
                 print('0 Tickets added', 'idx')
                 driver.quit()
                 return 0
-        # except:
-        #     print("asdfasdf")
-        #     time.sleep(30000)
+        
         opt_qty = int(opt.get_attribute('value'))
+        
+        if opt_qty == 1:
+            print('this thread is ignored cause of ticket number is 1')
+            driver.quit()
+            return 0
+        
         opt.click()
 
         try:
@@ -568,8 +573,9 @@ class Eventbrite(Scraper):
                 for q in r:
                     loop_qty += q
                     if q==0:
-                        print("the tickets is sold out by scrap")
-                        break
+                        next_cycle = False
+                if next_cycle == False:
+                    break
             qty += loop_qty
             print('Total QTY:', qty)
             if loop_qty == 0:
