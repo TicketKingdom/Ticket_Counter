@@ -65,7 +65,7 @@ class Scraper(object):
         finally:
             return True
     #TODO
-    def open_driver(self, use_proxy=False,
+    def open_driver(self, use_proxy=True,
                     user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36.',
                     headless=False):
         random_proxy = random.choice(self.proxies)
@@ -160,12 +160,12 @@ class Etix(Scraper):
 
     def input_password(self, driver):
         if self.password:
-            driver.find_element_by_xpath('//*[@placeholder="Password"]').send_keys(self.password)
+            driver.find_elements_by_xpath('//*[@placeholder="Password"]')[int(self.ticket_row) - 1].send_keys(self.password)
     
     def get_qty(self, box_id):
         driver = self.open_driver()            
         driver.get(self.ticket_url)
-        # self.input_password(driver)
+        self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         sold_out = soup.find('h2', {'class': 'header-message'})
         if sold_out:
@@ -240,7 +240,7 @@ class Etix(Scraper):
           print("Received solution", response)
           driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
           driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
-          time.sleep(1)
+          time.sleep(3)
 
         try:
             driver.find_element_by_id("allow_cookies").click()
@@ -297,7 +297,7 @@ class Etix(Scraper):
                     continue
                 else:
                     break
-
+        time.sleep(3)           
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         opt_qty = len(soup.find('table', {'class':'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
         
@@ -334,7 +334,7 @@ class Etix(Scraper):
             qty = 0
             timer_run_out = False
             oldtime = time.time()
-            
+            next_cycle = True
             while True:
                 if time.time() - oldtime >= 600:
                     timer_run_out = True
@@ -346,10 +346,11 @@ class Etix(Scraper):
                         loop_qty += q
                         if q==0:
                             next_cycle = False
-                    if next_cycle ==False:
-                        break
+
                 qty += loop_qty
                 print('Total QTY:', qty)
+                if next_cycle ==False:
+                        break
                 if loop_qty == 0:
                     break
 
@@ -358,16 +359,17 @@ class Etix(Scraper):
 class Eventbrite(Scraper):
     def input_password(self, driver):
         if self.password:
-            driver.find_element_by_xpath('//*[@data-automation="order-box-enter-promo"]').click()
-            driver.find_element_by_id('promo-access-code-input').send_keys(self.password)
-            driver.find_element_by_xpath('//*[@type="submit"]').click()
-            time.sleep(2)
+            driver.find_element_by_xpath('//*[@data-automation="promo-code-form-link"]').click()
+            driver.find_element_by_id('promo-code-field').send_keys(self.password)
+            time.sleep(0.5)
+            driver.find_element_by_xpath('//span[@class="eds-field-styled__aside eds-field-styled__aside-suffix"]/button').click()
 
     def get_qty(self, _id):
         print('eventbrite type1')
         driver = self.open_driver(headless=True)
         self.drivers.append(driver)
         driver.get(self.ticket_url)
+        self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('span', {'class':'ticket-status eds-text-color--ui-600 eds-text-bm ticket-status--no-wrap eds-text--right'}):
             print('tickets is unavaliable1')
@@ -433,22 +435,24 @@ class Eventbrite(Scraper):
             print('0 Tickets added')
             driver.quit()
             return 0
-
+            
         driver.switch_to.frame(iframe)
-        #self.input_password(driver)
+        
         page_content = BeautifulSoup(driver.page_source, 'html.parser')
         if page_content.find('div', {'class':'eds-text-hs eds-text-color--grey-800 eds-l-pad-top-2 eds-text--center'}):
             print('unvisable iframe')
             driver.quit()
             return 0
+
+        self.input_password(driver)
         
+        page_content = BeautifulSoup(driver.page_source, 'html.parser')
         one_row = page_content.find('span', {'class':'ticket-status eds-text-color--ui-600 eds-text-bm ticket-status--no-wrap eds-text--right'})
         if one_row:
             if 'Unavailable' in one_row.text.strip():
                 driver.quit()
                 print('tickets is Unavaiable')
                 return 0
-
         try:
             opt = driver.find_elements_by_class_name('tiered-ticket-display-content-root')[int(self.ticket_row)-1]
             try:
@@ -459,8 +463,8 @@ class Eventbrite(Scraper):
                 return 0
         except IndexError:
             try:
-                opt = driver.find_element_by_id(_id)
-                # time.sleep(30000)
+                time.sleep(3)
+                opt = driver.find_elements_by_class_name('eds-card-list__item')[int(self.ticket_row)-1]
                 try:
                     opt = opt.find_elements_by_tag_name('option')[-1]
                 except:
@@ -473,7 +477,6 @@ class Eventbrite(Scraper):
                 return 0
         
         opt_qty = int(opt.get_attribute('value'))
-        
         if opt_qty == 1:
             print('this thread is ignored cause of ticket number is 1')
             driver.quit()
@@ -505,7 +508,6 @@ class Eventbrite(Scraper):
         return opt_qty
 
     def check_ticket_qty(self, cap):
-        print(cap)
         driver = self.open_driver()
         self.drivers = []
 
@@ -514,16 +516,16 @@ class Eventbrite(Scraper):
         if '#tickets' not in self.ticket_url:
             self.ticket_url += '#tickets'
         driver.get(self.ticket_url)
-        # self.input_password(driver)
 
         _id = driver.find_element_by_tag_name('body').get_attribute('data-event-id')
         xpath = '//*[@id="eventbrite-widget-modal-{}"]'.format(_id)
+        
         try:
             iframe = driver.find_element_by_xpath(xpath)
             driver.switch_to.frame(iframe)
+            self.input_password(driver)
             new_style = True
             print('eventbrite type2')
-
         except selenium.common.exceptions.NoSuchElementException:
             new_style = False
             print('eventbrite type1')
@@ -536,20 +538,25 @@ class Eventbrite(Scraper):
         if not new_style:
             try:
                 _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
-            except IndexError:
+            except Exception as e:
+                print(e)
+                time.sleep(3000)
                 driver.quit()
                 print('No tickets available')
                 return '-', False
         else:
             try:
-                _id = soup.find_all('div', {'class': 'tiered-ticket-quantity-select eds-g-cell eds-text-color--grey-800 eds-ticket-card-content__quantity-selector'})[int(self.ticket_row) - 1]['data-automation']
+                _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
             except IndexError:
                 try:
                     _id = soup.find_all('select', {'name': 'ticket-quantity-selector'})[int(self.ticket_row) - 1]['data-automation']
-                except IndexError:
-                    driver.quit()
-                    print('No tickets available')
-                    return '-', False
+                except Exception as e:
+                    try:
+                        _id = soup.find_all('div', {'class': 'tiered-ticket-quantity-select eds-g-cell eds-text-color--grey-800 eds-ticket-card-content__quantity-selector'})[int(self.ticket_row) - 1]['data-automation']
+                    except:
+                        driver.quit()
+                        print('No tickets available')
+                        return '-', False
         driver.quit()
 
         timer_run_out = False
@@ -557,6 +564,8 @@ class Eventbrite(Scraper):
         lst = [_id for x in range(num_pool)]
         qty = 0
         oldtime = time.time()
+        next_cycle = True
+
         if new_style:
             func = self.get_qty_new
         else:
@@ -574,10 +583,11 @@ class Eventbrite(Scraper):
                     loop_qty += q
                     if q==0:
                         next_cycle = False
-                if next_cycle == False:
-                    break
+                
             qty += loop_qty
             print('Total QTY:', qty)
+            if next_cycle == False:
+                break
             if loop_qty == 0:
                 break
             time.sleep(2)
@@ -596,7 +606,7 @@ class FrontGate(Scraper):
     def get_qty(self, max_amount):
         qty = 0
         driver = self.open_driver()
-        # self.input_password(driver)
+        self.input_password(driver)
         driver.get(self.ticket_url)
 
         for i in range(max_amount):
@@ -639,6 +649,17 @@ class FrontGate(Scraper):
         
         
         time.sleep(1)
+        
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        try:
+            error_box = soup.find('div', {'class':'div-add-cart-message'})
+            
+            if 'Unable to cart' in error_box.text.strip():
+                print('amount miss selected')
+                driver.quit()
+                return 0
+        except:
+            pass
 
         if self.wait_for_element(driver, '//*[@id="cart-success-header"]/h2', By.XPATH):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -658,7 +679,7 @@ class FrontGate(Scraper):
         print(cap)
         self.cap = cap
         driver = self.open_driver()
-        # self.input_password(driver)
+        self.input_password(driver)
         driver.get(self.ticket_url)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         ticket = soup.find('form', {'id': 'cart_tickets_form'}).find_all('div', {'class': 'ticket-price-section'})[
@@ -670,7 +691,7 @@ class FrontGate(Scraper):
             max_amount = spinner.find('input')['data-quantityarray']
         except:
             driver.quit()
-            print("No tickets available")
+            print("unavailable or sold out")
             return '-', False
         max_amount = ast.literal_eval(max_amount)[-1]
         driver.quit()
