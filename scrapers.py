@@ -314,7 +314,11 @@ class Etix(Scraper):
             else:
                 self.ticket_url += '?method=switchSelectionMethod&selection_method=byBest'
         driver.get(self.ticket_url)
-        
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        if 'Public Onsale Begins:' in soup.text.strip():
+            print('this tickets has special date')
+            driver.quit()
+            return '-', False
         if self.wait_for_element(driver, 'view'):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
 
@@ -451,8 +455,12 @@ class Eventbrite(Scraper):
         if one_row:
             if 'Unavailable' in one_row.text.strip():
                 driver.quit()
-                print('tickets is Unavaiable')
-                return 0
+                print('tickets is Unavaiable or sold out')
+                return '-', False
+            if 'Sales ended' in one_row.text.strip():
+                driver.quit()
+                print('tickets is Unavaiable or sold out')
+                return '-', False
         try:
             opt = driver.find_elements_by_class_name('tiered-ticket-display-content-root')[int(self.ticket_row)-1]
             try:
@@ -679,8 +687,17 @@ class FrontGate(Scraper):
         print(cap)
         self.cap = cap
         driver = self.open_driver()
-        self.input_password(driver)
         driver.get(self.ticket_url)
+        try: 
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            has_date = soup.find('div',{'class':'onSaleDate'})
+            if 'On Sale' in has_date.text.strip():
+                print('this tickets has special sale data')
+                driver.quit()
+                return '-', False
+        except:
+            pass
+        self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         ticket = soup.find('form', {'id': 'cart_tickets_form'}).find_all('div', {'class': 'ticket-price-section'})[
             int(self.ticket_row) - 1]
