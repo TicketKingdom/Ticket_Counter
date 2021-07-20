@@ -277,8 +277,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                 if value[4] == url:
                     data_key = key
                     print('checking tickets for', value[0], url)
-                    print(value[10]);
-                    # time.sleep(1000)
                     checker = check_website(url, self.settings['Proxy'], value[6], value[10])
                     qty, timer = checker.check_ticket_qty(captch_way)
                     if timer is None:

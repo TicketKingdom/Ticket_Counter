@@ -33,8 +33,8 @@ def check_website(url, proxies, row, password, log=None):
         return TicketWeb(url, proxies, row, log, password)
     elif 'seetickets.us' in url:  
         return SeeTickets(url, proxies, row, log, password)
-
-
+    elif 'showclix.' in url:  
+        return Showclix(url, proxies, row, log, password)
 
 class Scraper(object):
 
@@ -65,7 +65,7 @@ class Scraper(object):
         finally:
             return True
     #TODO
-    def open_driver(self, use_proxy=True,
+    def open_driver(self, use_proxy=False,
                     user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36.',
                     headless=False):
         random_proxy = random.choice(self.proxies)
@@ -134,6 +134,7 @@ class Scraper(object):
                 zp.writestr("manifest.json", manifest_json)
                 zp.writestr("background.js", background_js)
             chrome_options.add_extension(pluginfile)
+            time.sleep(2)
         if user_agent:
             chrome_options.add_argument('--user-agent=%s' % user_agent)
         try:
@@ -247,6 +248,36 @@ class Etix(Scraper):
             time.sleep(0.5)
             driver.find_element_by_name("addSeatBtn").click()
             time.sleep(0.5)
+            # new_soup = BeautifulSoup(driver.page_source, 'html.parser')
+            # if new_soup.find('iframe' , {'title':'recaptcha challenge'}):
+            #     if self.cap == "Capmonster":# solve this capmonster
+            #         capmonster = NoCaptchaTaskProxyless(client_key=capmonster_api_key)
+            #         taskId = capmonster.createTask(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+            #         print("Waiting to solution by capmonster workers")
+            #         try:
+            #             response = capmonster.joinTaskResult(taskId=taskId)
+            #         except:
+            #             print(0, 'Tickets added....')
+            #             driver.quit()
+            #             return 0
+            #     else:
+            #         # solve this anticapcha
+            #         client = AnticaptchaClient(api_key)
+            #         task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+            #         try:
+            #             job = client.createTask(task)
+            #             print("Waiting to solution by Anticaptcha workers")
+            #             job.join()
+            #             # Receive response
+            #             response = job.get_solution_response()
+            #         except:
+            #             print(0, 'Tickets added....')
+            #             driver.quit()
+            #             return 0
+            #     print("Received solution", response)
+            #     print('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<b')
+            #     time.sleep(3000)
+            
             new_soup = BeautifulSoup(driver.page_source, 'html.parser')
             if new_soup.find('div', {'class': 'validationError error'}):
                 driver.quit()
@@ -256,7 +287,9 @@ class Etix(Scraper):
                 driver.quit()
                 print('you due to the high volume of requests for the same seats')
                 return 0 
-        except:
+        
+        except Exception as e:
+            print(e)
             print(0, '4Tickets added....')
             driver.quit()
             return 0
@@ -289,6 +322,7 @@ class Etix(Scraper):
                 opt.click()
                 driver.find_element_by_xpath('//*[@id="view"]/div[5]/form/div[2]/button').click()
                 soup = BeautifulSoup(driver.page_source, 'html.parser')
+                
                 error = soup.find('div', {'class': 'validationError error'})
                 if error:
                     if num_of_options == index:
@@ -853,7 +887,7 @@ class TicketWeb(Scraper):
                 return '-'
         
         driver.quit()
-        num_pool=2
+        num_pool=10
         lst = [x for x in range(num_pool)]
         qty = 0
         oldtime = time.time()
@@ -995,7 +1029,7 @@ class SeeTickets(Scraper):
     #         driver.find_element_by_xpath('//*[@type="submit"]').click()
     #         time.sleep(2)
 
-    def get_qty(self, _id):
+    def get_qty(self, box_id):
         driver = self.open_driver()
         driver.get(self.ticket_url) 
 
@@ -1013,7 +1047,6 @@ class SeeTickets(Scraper):
         opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
         opt.click()
-
         #click checkout
         try: 
             add_To_cart = driver.find_element_by_xpath('//*[@id="addtocartbnt"]')
@@ -1090,6 +1123,148 @@ class SeeTickets(Scraper):
         
         return qty, timer_run_out
 
+class Showclix(Scraper):
+    def input_password(self, driver):
+        if self.password:
+            driver.find_element_by_id('promoCode').send_keys(self.password)
+            driver.find_element_by_id('applyPromoCode').click()
+
+    def get_qty(self, box_id):
+        driver = self.open_driver()
+        driver.get(self.ticket_url)
+        time.sleep(2)
+        # self.input_password(driver)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        try:
+            id = soup.find('form', {'id': 'ticket-form'}).find_all('select')[int(self.ticket_row) - 1]['id']
+        except:
+            try:
+                driver.find_element_by_xpath('//*[@id="{}"]/option]').click()
+            except:
+                driver.quit()
+                print(0, 'Tickets added...')
+                return 0
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            try:
+                id = soup.find('form', {'name': 'frmPickTicket'}).find_all('select')[int(self.ticket_row) - 1]['id']
+            except:
+                print(0, 'Tickets added...')
+                return 0
+        try:
+            opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
+        except:
+            print('tickets is sold out or unavaible cause of scrap')
+            driver.quit()
+            return 0
+        opt_qty = int(opt.get_attribute('value'))
+        opt.click()
+        # if soup.find('div', {'class': 'g-recaptcha'}):
+        #     client = AnticaptchaClient(api_key)
+        #     task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+        #     try:
+        #         job = client.createTask(task)
+        #         print("Waiting to solution by Anticaptcha workers")
+        #         job.join()
+        #         # Receive response
+        #         response = job.get_solution_response()
+        #     except:
+        #         print(0, 'Tickets added....')
+        #         driver.quit()
+        #         return 0
+        #     print("Received solution", response)
+        #     driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+        #     driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
+        #     time.sleep(1)
+
+        try:
+            driver.find_element_by_xpath('//input[@type="submit"]').click()
+        except:
+            print(0, 'Tickets added....')
+            driver.quit()
+            return 0
+        # time.sleep(3000)
+        time.sleep(0.5)
+        
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        alert = soup.find('li', {'role': 'alert'})
+        if alert:
+            if 'Unable to reserve' in alert.text:
+                print('amount is misselected')
+                driver.quit()
+                return 0
+            if 'Your reservation has been cleared' in alert.test:
+                print('Your reservation has been cleared')
+                driver.quit()
+                return 0
+        # error = soup.find('div', {'class': 'validationError error'})
+        
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        real_amount = soup.find('td',{'class': 'qty-td'}).text.strip()
+        opt_qty = int(real_amount)
+
+        driver.quit()
+        print(opt_qty, 'Tickets added')
+        return opt_qty  # driver
+
+    def check_ticket_qty(self, cap):
+        print(cap)
+        driver = self.open_driver()
+        driver.get(self.ticket_url)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        # sold_out or any event
+
+        try:
+            id = soup.find('form', {'id': 'ticket-form'}).find_all('select')[int(self.ticket_row) - 1]['id']
+            tab_click = False
+        except:
+            tab_click = True
+            try:
+                driver.find_element_by_xpath('//*[@id={id}]').click()
+            except:
+                print('tickets is sold out cause of scrap')
+                driver.quit()
+                return '-', False
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            try:
+                id = soup.find('form', {'name': 'frmPickTicket'}).find_all('select')[int(self.ticket_row) - 1]['id']
+            except:
+                print(0, 'Tickets added...')
+                return 0
+
+        opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
+        if opt.get_attribute('value')=="Sold Out":
+            print('tickets is sold out cause of scrap')
+            driver.quit()
+            return '-', False
+
+        # max_amount = soup.find('div', {'id': 'productsDiv'}).find('span', {'class': 'quantity-warning'}).text.strip()
+        # max_amount = int(max_amount.split(' ')[0].strip())
+        driver.quit()
+
+        timer_run_out = False
+        num_pool = 20
+        qty = 0
+        timer_run_out = False
+        oldtime = time.time()
+        while True:
+            if time.time() - oldtime >= 600:
+                timer_run_out = True
+                break
+            loop_qty = 0
+            with Pool(num_pool) as p:
+                r = p.map(self.get_qty, list(range(20)))
+                for q in r:
+                    loop_qty += q
+            qty += loop_qty
+            print('Total QTY:', qty)
+            if loop_qty == 0:
+                break
+        time.sleep(3)
+
+        print('total qty', qty)
+        return qty, timer_run_out 
 
 # if __name__ == "__main__":
 #     proxies = r'D:\Programming\Work\Freelancer2\carrcocarr\low_price_warning\proxies.txt'

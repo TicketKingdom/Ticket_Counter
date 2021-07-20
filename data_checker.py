@@ -18,6 +18,8 @@ def get_event_name_and_date(url):
         return check_ticketweb(url)
     elif 'seetickets.us' in url:  
         return check_seetickets(url)
+    elif 'showclix.' in url:  
+        return check_showclix(url)
 
 
 def make_request(url):
@@ -40,8 +42,6 @@ def check_eventbrite(url):
         date = soup.find('time', {'class': 'clrfix'}).find('p').text.strip()
     if len(date)<2:
         date = str(soup.select("#event-page > main > div.js-hidden-when-expired.event-listing.event-listing--has-image > div.g-grid.g-grid--page-margin-manual > div > section.listing-info.clrfix > div.listing-info__body.l-sm-pad-vert-0.l-sm-pad-vert-6.clrfix.g-group.g-group--page-margin-reset > div > div > div.g-cell.g-cell-12-12.g-cell-md-4-12.g-offset-md-1-12.g-cell--no-gutters.l-lg-pad-left-6 > div > div:nth-child(4) > meta:nth-child(1)")).split('\"')[1]
-    # print(str(date).split('\"')[1])
-    # time.sleep(10000)
     date = date.replace('–',' ').strip()
     if date.find('-')>0:
         date = date.replace('-',' ').strip()
@@ -126,6 +126,15 @@ def check_seetickets(url):
 
     return name, date
 
+def check_showclix(url):
+    soup = make_request(url)
+    name = soup.find('h1', {'class':'showtitle'}).text.strip()
+    date = soup.find('div', {'class':'event_date'}).text.strip()
+    date = parser.parse(date.split('-')[0]).strftime('%Y-%m-%d')
+    venue = soup.find('span', {'class':'venuename'}).text.strip()
+    adr = soup.find('span', {'class':'venuename'}).find_next('span').find_next('span').text.strip()
+    name = name + " " + venue + " " + adr
+    return name, date
 #
 # for url in ['https://basscanyonfestival.frontgatetickets.com/event/i8co6kruzz405we8',
 #             'https://www.ticketfly.com/purchase/event/1803134/tfly',
