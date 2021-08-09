@@ -413,6 +413,12 @@ class Eventbrite(Scraper):
             print('tickets is unavaliable1')
             driver.quit()
             return 0
+
+        if soup.find('span', {'class':'micro-ticket-box__status js-micro-ticket-box-status l-pad-hor-2 hide-small hide-medium'}):
+            print('tickets is unavaliable1 casue of scrap')
+            driver.quit()
+            return 0
+        
         try:
             opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(_id))[-1]
         except IndexError:
@@ -470,7 +476,7 @@ class Eventbrite(Scraper):
         try:
             iframe = driver.find_element_by_xpath(xpath)
         except:
-            print('0 Tickets added')
+            print('0 Tickets added and can\'t open the iframe')
             driver.quit()
             return 0
             
@@ -489,12 +495,12 @@ class Eventbrite(Scraper):
         if one_row:
             if 'Unavailable' in one_row.text.strip():
                 driver.quit()
-                print('tickets is Unavaiable or sold out')
-                return '-', False
+                print('tickets is Unavaiable or sold out1')
+                return 0
             if 'Sales ended' in one_row.text.strip():
                 driver.quit()
-                print('tickets is Unavaiable or sold out')
-                return '-', False
+                print('tickets is Unavaiable or sold out2')
+                return 0
         try:
             opt = driver.find_elements_by_class_name('tiered-ticket-display-content-root')[int(self.ticket_row)-1]
             try:
@@ -576,7 +582,7 @@ class Eventbrite(Scraper):
         if soup.find('span', {'class':'micro-ticket-box__status js-micro-ticket-box-status l-pad-hor-2 hide-small hide-medium'}):
             driver.quit()
             print('tickets is Unavailable')
-            return 0
+            return '-', False
         if not new_style:
             try:
                 _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
@@ -1047,6 +1053,7 @@ class SeeTickets(Scraper):
         opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
         opt.click()
+        print('max value clicked')
         #click checkout
         try: 
             add_To_cart = driver.find_element_by_xpath('//*[@id="addtocartbnt"]')
