@@ -116,6 +116,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                                             | wx.LC_REPORT
                                       )
         self.list_ctrl.InsertColumn(0, "Event Name")
+        self.list_ctrl.SetColumnWidth(0, 400)
         self.list_ctrl.InsertColumn(1, "Date", wx.LIST_FORMAT_RIGHT)
         self.list_ctrl.InsertColumn(2, "Quantity")
         self.list_ctrl.InsertColumn(3, "Interval")

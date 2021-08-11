@@ -408,6 +408,7 @@ class Eventbrite(Scraper):
         self.drivers.append(driver)
         driver.get(self.ticket_url)
         self.input_password(driver)
+        
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('span', {'class':'ticket-status eds-text-color--ui-600 eds-text-bm ticket-status--no-wrap eds-text--right'}):
             print('tickets is unavaliable1')
@@ -425,7 +426,9 @@ class Eventbrite(Scraper):
             print('0 Tickets added')
             driver.quit()
             return 0
+        
         opt_qty = int(opt.get_attribute('value'))
+        # time.sleep(3000)
         try:
             opt.click()
         except:
@@ -438,20 +441,18 @@ class Eventbrite(Scraper):
                 driver.quit()
                 return 0
             opt.click()
-        time.sleep(1)
         try:
             driver.find_element_by_xpath('//*[@type="submit"]').click()
             time.sleep(0.5)
             new_soup = BeautifulSoup(driver.page_source, 'html.parser')
             if new_soup.find('div', {'class':'eds-notification-bar__content-child'}):
-                print('tickets is sold out cause of scrap!!!')
+                print('tickets is sold out cause of scrap!!! or The tickets you selected are no longer available!!')
                 driver.quit()
                 return 0
         except:
             print('0 Tickets added')
             driver.quit()
             return 0
-        time.sleep(1)
 
         opt_qty = 0
         if self.wait_for_element(driver, 'time_left'):
@@ -491,24 +492,33 @@ class Eventbrite(Scraper):
         self.input_password(driver)
         
         page_content = BeautifulSoup(driver.page_source, 'html.parser')
-        one_row = page_content.find('span', {'class':'ticket-status eds-text-color--ui-600 eds-text-bm ticket-status--no-wrap eds-text--right'})
-        if one_row:
-            if 'Unavailable' in one_row.text.strip():
+        if self.opt_len > len(page_content.find_all('select')):
+                print('0 Tickets added', '+++++this ticket row is sold out')
                 driver.quit()
-                print('tickets is Unavaiable or sold out1')
                 return 0
-            if 'Sales ended' in one_row.text.strip():
-                driver.quit()
-                print('tickets is Unavaiable or sold out2')
-                return 0
+
+        # one_row = page_content.find('span', {'class':'ticket-status eds-text-color--ui-600 eds-text-bm ticket-status--no-wrap eds-text--right'})
+        # if one_row:
+        #     if 'Unavailable' in one_row.text.strip():
+        #         driver.quit()
+        #         print('tickets is Unavaiable or sold out1')
+        #         return 0
+        #     if 'Sales ended' in one_row.text.strip():
+        #         driver.quit()
+        #         print('tickets is Unavaiable or sold out2')
+        #         return 0
+        
+        time.sleep(2)
+        
         try:
             opt = driver.find_elements_by_class_name('tiered-ticket-display-content-root')[int(self.ticket_row)-1]
-            try:
-                opt = opt.find_elements_by_tag_name('option')[-1]
-            except:
-                print('0 Tickets added', 'unvisable button and tickets')
-                driver.quit()
-                return 0
+            # try:
+            #     opt = opt.find_elements_by_tag_name('option')[-1]
+            # except:
+            #     print('0 Tickets added', 'unvisable button and tickets')
+            #     driver.quit()
+            #     return 0
+
         except IndexError:
             try:
                 time.sleep(3)
@@ -525,6 +535,8 @@ class Eventbrite(Scraper):
                 return 0
         
         opt_qty = int(opt.get_attribute('value'))
+        # print(f'>>>>>>>>>>>>>>>{opt_qty}')
+        # time.sleep(3000)
         if opt_qty == 1:
             print('this thread is ignored cause of ticket number is 1')
             driver.quit()
@@ -539,6 +551,7 @@ class Eventbrite(Scraper):
             driver.quit()
             return 0
 
+        time.sleep(2)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         alert = soup.find('div', {'class': 'eds-notification-bar__content'})
         if alert:
@@ -546,11 +559,20 @@ class Eventbrite(Scraper):
                 print('0 Tickets added', 'show the read alert')
                 driver.quit()
                 return 0
-            if 'The seats you selected aren\'t available next to each other.' in alert.txt:
+
+            if 'The seats you selected aren\'t available next to each other.' in alert.text:
                 print('0 Tickets added', 'show the read alert')
                 driver.quit()
-                return 0                
+                return 0      
 
+            if 'Your requested ticket quantity exceeds the number provided by your promotional code.' in alert.text:
+                print('you request many tickets using promo code')
+                driver.quit()
+                return 0
+        else:
+            pass       
+        # print(f'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{opt_qty}')
+        # time.sleep(3000)
         driver.quit()
         print(opt_qty, 'Tickets added')
         return opt_qty
@@ -579,6 +601,8 @@ class Eventbrite(Scraper):
             print('eventbrite type1')
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+        length = len(soup.find_all('select'))
+        self.opt_len = length
         if soup.find('span', {'class':'micro-ticket-box__status js-micro-ticket-box-status l-pad-hor-2 hide-small hide-medium'}):
             driver.quit()
             print('tickets is Unavailable')
@@ -588,7 +612,6 @@ class Eventbrite(Scraper):
                 _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
             except Exception as e:
                 print(e)
-                time.sleep(3000)
                 driver.quit()
                 print('No tickets available')
                 return '-', False
@@ -608,7 +631,7 @@ class Eventbrite(Scraper):
         driver.quit()
 
         timer_run_out = False
-        # num_pool = 20
+        num_pool = 10
         lst = [_id for x in range(num_pool)]
         qty = 0
         oldtime = time.time()
@@ -695,8 +718,13 @@ class FrontGate(Scraper):
             time.sleep(1)
             driver.find_element_by_id('div-btn-modal-submit').click()
         
-        
         time.sleep(1)
+        print('click the add tickets')
+        try:
+            driver.find_element_by_class_name('eds-btn eds-btn--button eds-btn--fill').click()
+        except:
+            pass
+        time.sleep(30000)
         
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
@@ -708,6 +736,7 @@ class FrontGate(Scraper):
                 return 0
         except:
             pass
+
 
         if self.wait_for_element(driver, '//*[@id="cart-success-header"]/h2', By.XPATH):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -839,6 +868,13 @@ class TicketWeb(Scraper):
 
 
         driver.find_element_by_id('edp_checkout_btn').click()
+        time.sleep(1)
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        if soup.find('div', {'class' : 'error-message theme-mod-bd theme-error-color ng-scope'}):
+            print('the tickets amount is limited')
+            driver.quit()
+            return 0
 
         if self.wait_for_element(driver, '/html/body/div[1]/header/div/div/ul/li/p[2]', By.XPATH):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
