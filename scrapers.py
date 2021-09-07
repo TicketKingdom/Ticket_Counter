@@ -287,7 +287,6 @@ class Etix(Scraper):
                 driver.quit()
                 print('you due to the high volume of requests for the same seats')
                 return 0 
-
         
         except Exception as e:
             print(e)
