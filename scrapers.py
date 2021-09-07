@@ -724,8 +724,7 @@ class FrontGate(Scraper):
             driver.find_element_by_class_name('eds-btn eds-btn--button eds-btn--fill').click()
         except:
             pass
-        time.sleep(30000)
-        
+        time.sleep(3)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             error_box = soup.find('div', {'class':'div-add-cart-message'})
@@ -737,8 +736,7 @@ class FrontGate(Scraper):
         except:
             pass
 
-
-        if self.wait_for_element(driver, '//*[@id="cart-success-header"]/h2', By.XPATH):
+        if self.wait_for_element(driver, '//*[@id="cart-success-header"/h2]', By.XPATH):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             real_amount = soup.find('span', {'class': 'cartTotal badge'}).decode_contents()
             qty = int(real_amount)
@@ -1074,6 +1072,8 @@ class SeeTickets(Scraper):
     def get_qty(self, box_id):
         driver = self.open_driver()
         driver.get(self.ticket_url) 
+        
+        time.sleep(5)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
@@ -1089,30 +1089,36 @@ class SeeTickets(Scraper):
         opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
         opt.click()
-        print('max value clicked')
+        if self.wait_for_element(driver, 'container'):
         #click checkout
-        try: 
-            add_To_cart = driver.find_element_by_xpath('//*[@id="addtocartbnt"]')
-            driver.execute_script("arguments[0].click();", add_To_cart)
-        except Exception as e:
-            print(e)
-            pass
-        time.sleep(3)
-        try:
-            driver.find_element_by_xpath('//*[@id="checkoutbnt"]').click()
-        except:
-            try:
-                checkout = driver.find_elements_by_xpath('//*[@id="checkoutbnt"]')
-                for x in range(0, len(checkout)):
-                    driver.execute_script("arguments[0].click();", checkout[x])
+            try: 
+                add_To_cart = driver.find_element_by_xpath('//*[@id="addtocartbnt"]')
+                driver.execute_script("arguments[0].click();", add_To_cart)
             except Exception as e:
-                print(0, 'Tickets added....')
-                driver.quit()
-                return 0  
-
+                print(e)
+                pass
+            time.sleep(4)
+            try:
+                driver.find_element_by_xpath('//*[@id="checkoutbnt"]').click()
+            except:
+                try:
+                    checkout = driver.find_elements_by_xpath('//*[@id="checkoutbnt"]')
+                    for x in range(0, len(checkout)):
+                        driver.execute_script("arguments[0].click();", checkout[x])
+                except Exception as e:
+                    print(0, 'Tickets added....')
+                    driver.quit()
+                    return 0  
+        time.sleep(4)
+        
+        try:
+            driver.find_element_by_xpath('//*[@id="skipbutton"]').click()
+        except:
+            pass
+        time.sleep(4)
         if self.wait_for_element(driver, 'loginsignup_pageV3'):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
-            time.sleep(3)
+            time.sleep(6)
             next_url = 'https://'+self.ticket_url.split('/')[2]+'/'+soup.find('a', {'class':'checkout-btn btn'})['href']
             driver.get(next_url)  
             try:

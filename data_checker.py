@@ -89,7 +89,10 @@ def check_etix(url):
 
 def check_frontgate(url):
     soup = make_request(url)
-    name = soup.find('meta', {'property': 'og:title'})['content']
+    try:
+        name = soup.find('meta', {'property': 'og:title'})['content']
+    except:
+        name = soup.find('meta', {'property':'og:site_name'})['content']
     date = soup.find('div', {'class': 'date'}).text.strip().split('-')[0]
     date = date.split('\n')[0]
     date = parser.parse(date).strftime('%Y-%m-%d')
