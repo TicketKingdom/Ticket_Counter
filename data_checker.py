@@ -25,9 +25,13 @@ def get_event_name_and_date(url):
 def make_request(url):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0 Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0.'}
+    #url = "https://www.ticketweb.com/event/frank-turner-austin-meade-fete-music-hall-tickets/11271945?pl=fete"
     r = requests.get(url, headers=headers)
+    time.sleep(6)
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    print(r.status_code)
     if r.status_code == 200:
-        return BeautifulSoup(r.content, 'html.parser')
+       return BeautifulSoup(r.content, 'html.parser')
     print(r.status_code, url)
 
 def check_eventbrite(url):
@@ -106,7 +110,11 @@ def check_frontgate(url):
 
 def check_ticketweb(url):
     soup = make_request(url)
+    print("***************************")
+    print(soup)
     name = soup.find('h1', {'class': 'title'}).find('span', {'class': 'big'}).text.strip()
+    # name = soup.find('h1', {'class': 'title'})
+   
     date = soup.find('div', {'class': 'info-item info-time'}).find('h4').text.strip()
     date = parser.parse(date).strftime('%Y-%m-%d')
     venue = soup.find('a', {'href': '#', 'data-ng-click': "visible()", 'class': 'theme-title'})

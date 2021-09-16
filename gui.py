@@ -385,7 +385,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         #     pickle.dump({}, f)
         with open('data.pickle', 'rb') as f:
             self.event_data = pickle.load(f)
-
+        
 
     def save_event_data(self):
         with open('data.pickle', 'wb') as f:
@@ -394,7 +394,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
     def load_data_to_list_ctrl(self):
         self.list_ctrl.DeleteAllItems()
         self.load_event_data()
-
+        
         for x in list(self.event_data.keys()):
             self.list_ctrl.InsertItem(10000, '')
 
@@ -489,9 +489,9 @@ class MasterList(object):
 
     def add_to_list(self, event, retry=0):
         if self.sheet:
-
             try:
                 row = len(self.sheet.get_all_values())+1
+                # row = len(self.sheet.get_all_values())
             except:
                 if retry == 10:
                     return
@@ -500,9 +500,15 @@ class MasterList(object):
                 time.sleep(1)
                 return self.add_to_list(event, retry)
             print('Adding event to Google sheet...')
+            # print(event)
+            # print(row)
+            # self.sheet.insert_row(event, row, valueInputOption='RAW')
             for idx, val in enumerate(event, 1):
-                self.sheet.update_cell(row, idx, val)
 
+                # print(idx)
+                # print(val)
+                self.sheet.update_cell(row, idx, val)
+                      
     def update_list(self, event):
         print('Updating event on Google sheet...')
         if self.sheet:

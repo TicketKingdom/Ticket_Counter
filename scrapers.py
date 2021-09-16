@@ -161,16 +161,25 @@ class Etix(Scraper):
 
     def input_password(self, driver):
         if self.password:
-            driver.find_elements_by_xpath('//*[@placeholder="Password"]')[int(self.ticket_row) - 1].send_keys(self.password)
+           
+                pwd_num = len(driver.find_elements_by_xpath('//*[@placeholder="Password"]'))
+                max_ticket_row = len(driver.find_elements_by_xpath('//*[@class="ticket-info"]'))
+                main_pwd_no = int(self.ticket_row) - max_ticket_row + pwd_num
+                
+                driver.find_elements_by_xpath('//*[@placeholder="Password"]')[main_pwd_no - 1].send_keys(self.password)
+                #driver.find_elements_by_xpath('//*[@placeholder="Password"]')[int(pwd_num) - 1].send_keys(self.password)
     
     def get_qty(self, box_id):
         driver = self.open_driver()            
         driver.get(self.ticket_url)
         self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+        
         sold_out = soup.find('h2', {'class': 'header-message'})
+        
         if sold_out:
             # sold_out  ticktes
+           
             if 'sold out' in sold_out.text.lower():
                 driver.quit()
                 return 0
@@ -211,6 +220,7 @@ class Etix(Scraper):
 
         opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
+       
         opt.click()
         
         if soup.find('div', {'class': 'g-recaptcha'}):
@@ -360,13 +370,15 @@ class Etix(Scraper):
             if 'Tickets Currently Not Available' in view:
                 print('no tickets available')
                 driver.quit()
-                return 0
-
+                return 0, False
+           
             sold_out = soup.find('h2', {'class': 'header-message'})
             if sold_out:
+               
                 if 'sold out' in sold_out.text.lower():
+                    
                     driver.quit()
-                    return 0
+                    return 0, False
                         
             driver.quit()
             qty = 0
@@ -679,7 +691,7 @@ class FrontGate(Scraper):
         driver = self.open_driver()
         self.input_password(driver)
         driver.get(self.ticket_url)
-
+        print("start get qty")
         for i in range(max_amount):
             try:
                 driver.find_element_by_xpath('//*[@id="cart_tickets_form"]/div[1]/div[{}]/div/div[4]/div[1]/button[2]'.format(self.ticket_row)).click()
@@ -687,7 +699,7 @@ class FrontGate(Scraper):
                 driver.quit()
                 print(qty, 'Tickets added')
                 return qty
-
+        
         driver.find_element_by_id('btn-add-cart').click()
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -755,6 +767,7 @@ class FrontGate(Scraper):
         self.cap = cap
         driver = self.open_driver()
         driver.get(self.ticket_url)
+        
         try: 
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             has_date = soup.find('div',{'class':'onSaleDate'})
@@ -764,6 +777,9 @@ class FrontGate(Scraper):
                 return '-', False
         except:
             pass
+
+        
+
         self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         ticket = soup.find('form', {'id': 'cart_tickets_form'}).find_all('div', {'class': 'ticket-price-section'})[
@@ -1115,12 +1131,19 @@ class SeeTickets(Scraper):
             driver.find_element_by_xpath('//*[@id="skipbutton"]').click()
         except:
             pass
-        time.sleep(4)
+        time.sleep(6)
         if self.wait_for_element(driver, 'loginsignup_pageV3'):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             time.sleep(6)
-            next_url = 'https://'+self.ticket_url.split('/')[2]+'/'+soup.find('a', {'class':'checkout-btn btn'})['href']
-            driver.get(next_url)  
+            try:
+                next_href = soup.find('a', {'class':'checkout-btn btn'})['href']
+                if next_href:
+                   next_url = 'https://'+self.ticket_url.split('/')[2]+'/'+soup.find('a', {'class':'checkout-btn btn'})['href']
+                   driver.get(next_url)  
+            except:
+                print('no ticket')
+                driver.quit()
+                return 0
             try:
                 soup = BeautifulSoup(driver.page_source, 'html.parser')
                 try_agian = soup.find('div',{'id':'purchasebutton'})
@@ -1247,7 +1270,7 @@ class Showclix(Scraper):
                 driver.quit()
                 return 0
         # error = soup.find('div', {'class': 'validationError error'})
-        
+        time.sleep(5)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         real_amount = soup.find('td',{'class': 'qty-td'}).text.strip()
         opt_qty = int(real_amount)
