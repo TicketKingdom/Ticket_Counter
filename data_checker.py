@@ -62,14 +62,21 @@ def check_bigticket(url):
     soup = make_request(url)
     try:
         name = soup.find('div', {'class': 'event-titles'}).find_next('h1').decode_contents()
-        date = soup.find('div', {'class': 'event-titles'}).find_next('h4').decode_contents().split('<')[0]
+        # date = soup.find('div', {'class': 'event-titles'}).find_next('h4').decode_contents().split('<')[0]
+        date = soup.find('div', {'class': 'event-titles'}).find_next('strong').decode_contents().split('on')[1]
+        
+        date = date.split('.')[0]
+        
         date = parser.parse(date).strftime('%Y-%m-%d')
-        venue = soup.find('a', {'title': 'View on Google Maps', 'class':'tab-link'}).decode_contents().split('<br>')[0].replace('\n', '').replace('\t', '')
-        loc = soup.find('a', {'title': 'View on Google Maps', 'class':'tab-link'}).decode_contents().split('<br>')[1].replace('\n', '').replace('\t', '')
-        name = name + " {} {}".format(venue, loc)
+
+        # venue = soup.find('a', {'title': 'View on Google Maps', 'class':'tab-link'}).decode_contents().split('<br>')[0].replace('\n', '').replace('\t', '')
+        # loc = soup.find('a', {'title': 'View on Google Maps', 'class':'tab-link'}).decode_contents().split('<br>')[1].replace('\n', '').replace('\t', '')
+        # name = name + " {} {}".format(venue, loc)
+        
     except:
         name = soup.find('div', {'class': 'event-info'}).find_next('h1').decode_contents()
         date = soup.find('span', {'class': 'event-dates'}).decode_contents().split('|')[0]
+        
         date = parser.parse(date).strftime('%Y-%m-%d')
         venue = soup.find('span', {'class': 'event-city'}).decode_contents()
         name = name + " {} ".format(venue)
