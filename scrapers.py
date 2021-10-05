@@ -592,6 +592,8 @@ class Eventbrite(Scraper):
     def check_ticket_qty(self, cap):
         driver = self.open_driver()
         self.drivers = []
+        qty = 0
+        
 
         if '?' in self.ticket_url:
             self.ticket_url = self.ticket_url[:self.ticket_url.find('?')]
@@ -615,18 +617,24 @@ class Eventbrite(Scraper):
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         length = len(soup.find_all('select'))
         self.opt_len = length
+       
         if soup.find('span', {'class':'micro-ticket-box__status js-micro-ticket-box-status l-pad-hor-2 hide-small hide-medium'}):
             driver.quit()
             print('tickets is Unavailable')
             return '-', False
+            
+        
         if not new_style:
             try:
+                
+
                 _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
             except Exception as e:
+                
                 print(e)
                 driver.quit()
                 print('No tickets available')
-                return '-', False
+                return qty, False
         else:
             try:
                 _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
@@ -637,15 +645,16 @@ class Eventbrite(Scraper):
                     try:
                         _id = soup.find_all('div', {'class': 'tiered-ticket-quantity-select eds-g-cell eds-text-color--grey-800 eds-ticket-card-content__quantity-selector'})[int(self.ticket_row) - 1]['data-automation']
                     except:
+                        
                         driver.quit()
                         print('No tickets available')
-                        return '-', False
+                        return qty, False
         driver.quit()
 
         timer_run_out = False
         num_pool = 10
         lst = [_id for x in range(num_pool)]
-        qty = 0
+       
         oldtime = time.time()
         next_cycle = True
 
@@ -691,7 +700,7 @@ class FrontGate(Scraper):
         driver = self.open_driver()
         self.input_password(driver)
         driver.get(self.ticket_url)
-        print("start get qty")
+        
         for i in range(max_amount):
             try:
                 driver.find_element_by_xpath('//*[@id="cart_tickets_form"]/div[1]/div[{}]/div/div[4]/div[1]/button[2]'.format(self.ticket_row)).click()
@@ -808,11 +817,12 @@ class FrontGate(Scraper):
             loop_qty = 0
             with Pool(num_pool) as p:
                 r = p.map(self.get_qty, lst)
+                print(r)
                 for q in r:
                     loop_qty += q
-                    if q==0:
-                        print("the tickets is sold out by scrap")
-                        break
+                    # if q==0:
+                    #     print("the tickets is sold out by scrap")
+                    #     break
             qty += loop_qty
             print('Total QTY:', qty)
             if loop_qty == 0:
@@ -976,6 +986,7 @@ class BigTicket(Scraper):
         driver.get(self.ticket_url) 
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+       
         try:
             buy_now = soup.find('button', {'class': 'btn btn-primary btn-lg btn-sticky-panel'})
             if 'BUY NOW' in buy_now.text:
@@ -983,12 +994,15 @@ class BigTicket(Scraper):
                 buy_button_elements = driver.find_element_by_class_name('btn-sticky-panel')
                 driver.execute_script("arguments[0].click();", buy_button_elements)
                 time.sleep(0.5)
+            
         except Exception as e:
-            print(e)
-            # can't find the select tag
-            driver.quit()
-            print(0, 'Tickets added...')
-            return 0
+                print(e)
+                
+               
+                # can't find the select tag
+                # driver.quit()
+                # print(0, 'Tickets added...')
+                # return 0
         
         #click the max value and get value
         time.sleep(3)
@@ -998,8 +1012,11 @@ class BigTicket(Scraper):
                 print("Ticket's number is maximum")
                 driver.quit()
                 return 0
+            
             select_name = soup.find('form', {'name': 'EventForm'}).find_all('select')[int(self.ticket_row) - 1]['name']
+            
             opt = driver.find_elements_by_xpath('//*[@name="{}"]/option'.format(select_name))[-1]
+           
             opt_qty = int(opt.get_attribute('value'))
             opt.click()
         except Exception as e:
@@ -1069,8 +1086,9 @@ class BigTicket(Scraper):
             with Pool(num_pool) as p:
                 r = p.map(self.get_qty, list(range(num_pool)))
                 for q in r:
-                    loop_qty += q
-            qty += loop_qty
+                    if q != '-':
+                      loop_qty += int(q)
+            qty += int(loop_qty)
             print('Total QTY:', qty)
             if loop_qty == 0:
                 break
