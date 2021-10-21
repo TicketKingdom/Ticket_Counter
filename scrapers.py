@@ -626,8 +626,6 @@ class Eventbrite(Scraper):
         
         if not new_style:
             try:
-                
-
                 _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
             except Exception as e:
                 
@@ -1039,6 +1037,40 @@ class BigTicket(Scraper):
             return 0  
 
         time.sleep(0.5)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        if soup.find('div', {'class': 'g-recaptcha'}):
+          if self.cap == "Capmonster":# solve this capmonster
+            capmonster = NoCaptchaTaskProxyless(client_key=capmonster_api_key)
+            taskId = capmonster.createTask(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+            print("Waiting to solution by capmonster workers")
+            try:
+                response = capmonster.joinTaskResult(taskId=taskId)
+            except:
+                print(0, 'Tickets added....')
+                driver.quit()
+                return 0
+          else:
+            # solve this anticapcha
+            client = AnticaptchaClient(api_key)
+            task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+            try:
+                job = client.createTask(task)
+                print("Waiting to solution by Anticaptcha workers")
+                job.join()
+                # Receive response
+                response = job.get_solution_response()
+            except:
+                print(0, 'Tickets added....')
+                driver.quit()
+                return 0
+          print("Received solution", response)
+          driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+        #   driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
+          driver.find_element_by_class_name('btn btn-primary btn-submit').click()
+          time.sleep(3)
+
+
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         real_amount = 0
         try:
