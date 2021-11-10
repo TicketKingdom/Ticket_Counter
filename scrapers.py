@@ -294,6 +294,10 @@ class Etix(Scraper):
             driver.quit()
             print('you due to the high volume of requests for the same seats or session expired')
             return 0
+        if new_soup.find('p', {'class': 'callout error'}):
+            driver.quit()
+            print('you due to the high volume of requests for the same seats or session expired')
+            return 0
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         error = soup.find('div', {'class': 'callout'})
