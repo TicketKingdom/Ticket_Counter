@@ -23,7 +23,7 @@ from scrapers import check_website
 
 
 ###########################################################################
- 
+
 
 class TestListCtrl(wx.ListCtrl):
 
@@ -38,7 +38,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
     def __init__(self, parent):
         self.event_data = {}
-        #self.save_event_data() # When you want to create new data file
+        # self.save_event_data() # When you want to create new data file
         with open('settings.pickle', 'rb') as f:
             self.settings = pickle.load(f)
         self.master = MasterList(self.settings['MasterURL'])
@@ -46,7 +46,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         #     self.event_timestamps = pickle.loads(f)
         self.event_timestamps = {}
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
-                              size=wx.Size(1000, 1000), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
+                          size=wx.Size(1000, 1000), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
 
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 
@@ -54,29 +54,36 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
         bSizer6 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_button_update = wx.Button(self, wx.ID_ANY, u"Quick Check", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button_update = wx.Button(
+            self, wx.ID_ANY, u"Quick Check", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_button_update.Bind(wx.EVT_BUTTON, self.update_event)
         bSizer6.Add(self.m_button_update, 0, wx.ALL, 5)
 
-        self.m_button_start = wx.Button(self, wx.ID_ANY, u"Start", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button_start = wx.Button(
+            self, wx.ID_ANY, u"Start", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_button_start.Bind(wx.EVT_BUTTON, self.start)
         bSizer6.Add(self.m_button_start, 0, wx.ALL, 5)
 
-        self.m_gauge1 = wx.Gauge(self, wx.ID_ANY, 100, wx.DefaultPosition, wx.Size(300, 25), wx.GA_HORIZONTAL)
+        self.m_gauge1 = wx.Gauge(
+            self, wx.ID_ANY, 100, wx.DefaultPosition, wx.Size(300, 25), wx.GA_HORIZONTAL)
         self.m_gauge1.SetValue(0)
         bSizer6.Add(self.m_gauge1, 0, wx.ALL, 5)
 
-        self.m_comboBox10 = wx.ComboBox(self, wx.ID_ANY, u"Capmonster", wx.DefaultPosition, wx.Size(120, 25), [u'Capmonster', u'Anticaptcha'], 0)
+        self.m_comboBox10 = wx.ComboBox(self, wx.ID_ANY, u"Capmonster", wx.DefaultPosition, wx.Size(
+            120, 25), [u'Capmonster', u'Anticaptcha'], 0)
         bSizer6.Add(self.m_comboBox10, 0, wx.ALL, 5)
 
-        self.m_comboBox1 = wx.ComboBox(self, wx.ID_ANY, u"Sort Column...", wx.DefaultPosition, wx.Size(120, 25), [u'Date', u'Added on', u'Last Check', 'Quantity'], 0)
+        self.m_comboBox1 = wx.ComboBox(self, wx.ID_ANY, u"Sort Column...", wx.DefaultPosition, wx.Size(
+            120, 25), [u'Date', u'Added on', u'Last Check', 'Quantity'], 0)
         bSizer6.Add(self.m_comboBox1, 0, wx.ALL, 5)
 
-        self.m_button_sort_up = wx.Button(self, wx.ID_ANY, u"↑", wx.DefaultPosition, wx.Size(25,25), 0)
+        self.m_button_sort_up = wx.Button(
+            self, wx.ID_ANY, u"↑", wx.DefaultPosition, wx.Size(25, 25), 0)
         self.m_button_sort_up.Bind(wx.EVT_BUTTON, self.sort_up)
         bSizer6.Add(self.m_button_sort_up, 0, wx.ALL, 5)
 
-        self.m_button_sort_down = wx.Button(self, wx.ID_ANY, u"↓", wx.DefaultPosition, wx.Size(25,25), 0)
+        self.m_button_sort_down = wx.Button(
+            self, wx.ID_ANY, u"↓", wx.DefaultPosition, wx.Size(25, 25), 0)
         self.m_button_sort_down.Bind(wx.EVT_BUTTON, self.sort_down)
         bSizer6.Add(self.m_button_sort_down, 0, wx.ALL, 5)
 
@@ -86,23 +93,28 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
         # Buttons
 
-        self.m_button_add = wx.Button(self, wx.ID_ANY, u"Add Event", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button_add = wx.Button(
+            self, wx.ID_ANY, u"Add Event", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_button_add.Bind(wx.EVT_BUTTON, self.add_event)
         bSizer3.Add(self.m_button_add, 0, wx.ALL, 5)
 
-        self.m_button_edit = wx.Button(self, wx.ID_ANY, u"Edit Event", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button_edit = wx.Button(
+            self, wx.ID_ANY, u"Edit Event", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_button_edit.Bind(wx.EVT_BUTTON, self.edit_event)
         bSizer3.Add(self.m_button_edit, 0, wx.ALL, 5)
 
-        self.m_button_remove = wx.Button(self, wx.ID_ANY, u"Remove Event", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button_remove = wx.Button(
+            self, wx.ID_ANY, u"Remove Event", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_button_remove.Bind(wx.EVT_BUTTON, self.remove_event)
         bSizer3.Add(self.m_button_remove, 0, wx.ALL, 5)
 
-        self.m_button_settings = wx.Button(self, wx.ID_ANY, u"Settings", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button_settings = wx.Button(
+            self, wx.ID_ANY, u"Settings", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_button_settings.Bind(wx.EVT_BUTTON, self.edit_settings)
         bSizer3.Add(self.m_button_settings, 0, wx.ALL, 5)
 
-        self.m_button_master = wx.Button(self, wx.ID_ANY, u"Master List", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button_master = wx.Button(
+            self, wx.ID_ANY, u"Master List", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_button_master.Bind(wx.EVT_BUTTON, self.master_list)
         bSizer3.Add(self.m_button_master, 0, wx.ALL, 5)
 
@@ -111,9 +123,9 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         # List Control
         self.list_ctrl = TestListCtrl(self, size=(-1, 1500),
                                       style=wx.LC_REPORT
-                                            | wx.BORDER_SUNKEN
-                                            | wx.LC_SORT_ASCENDING
-                                            | wx.LC_REPORT
+                                      | wx.BORDER_SUNKEN
+                                      | wx.LC_SORT_ASCENDING
+                                      | wx.LC_REPORT
                                       )
         self.list_ctrl.InsertColumn(0, "Event Name")
         self.list_ctrl.SetColumnWidth(0, 400)
@@ -160,7 +172,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         }
         column_idx = column_indexes[self.m_comboBox1.GetValue()]
 
-
         print("Sorting by column:", self.m_comboBox1.GetValue())
         data_lst = []
         data_lst2 = []
@@ -184,8 +195,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
             if not ascending:
                 data_lst2.reverse()
 
-
-
         else:
             for key, data in self.event_data.items():
                 if data[column_idx] == '-':
@@ -201,7 +210,8 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
             date_format = "%Y-%m-%d"
             if column_idx == 8:
                 date_format += ' %H:%M'
-            data_lst.sort(key=lambda L: datetime.strptime(L[column_idx], date_format))
+            data_lst.sort(key=lambda L: datetime.strptime(
+                L[column_idx], date_format))
 
             for d in data_lst:
                 if '1900-01-01' in d[column_idx]:
@@ -219,7 +229,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
         self.save_event_data()
         self.load_data_to_list_ctrl()
-
 
     def start(self, event):
         if self.m_button_start.LabelText == "Start":
@@ -248,13 +257,14 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     break
 
                 print('checking tickets for', value[0])
-                checker = check_website(url, self.settings['Proxy'], value[6], value[10])
+                checker = check_website(
+                    url, self.settings['Proxy'], value[6], value[10])
                 qty, timer = checker.check_ticket_qty()
                 timer_str = "Yes" if timer else "No"
                 print(f">>>>>>>>>>>>>>>>>>{qty}<<<<<<<<<<<<<<<<<<{timer}")
                 evt_data = (value[0], value[1], str(qty), value[3], value[4], value[5], value[6], value[7],
-                                        datetime.today().strftime('%Y-%m-%d %H:%M'), timer_str, value[10])
-                
+                            datetime.today().strftime('%Y-%m-%d %H:%M'), timer_str, value[10])
+
                 time.sleep(0.5)
                 self.event_data[key] = evt_data
                 self.save_event_data()
@@ -278,15 +288,17 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                 if value[4] == url:
                     data_key = key
                     print('checking tickets for', value[0], url)
-                    checker = check_website(url, self.settings['Proxy'], value[6], value[10])
+                    checker = check_website(
+                        url, self.settings['Proxy'], value[6], value[10])
                     qty, timer = checker.check_ticket_qty(captch_way)
                     if timer is None:
                         timer_str = '-'
                     else:
                         timer_str = "Yes" if timer else "No"
                     evt_data = (
-                    value[0], value[1], str(qty), value[3], value[4], value[5], value[6], value[7],
-                    datetime.today().strftime('%Y-%m-%d %H:%M'), timer_str, value[10])
+                        value[0], value[1], str(
+                            qty), value[3], value[4], value[5], value[6], value[7],
+                        datetime.today().strftime('%Y-%m-%d %H:%M'), timer_str, value[10])
                     self.event_data[key] = evt_data
                     self.save_event_data()
                     self.load_data_to_list_ctrl()
@@ -316,7 +328,8 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                 ticket_row = data['row']
                 presale = data['pass']
 
-                evt_data = (name, date, value[2], interval, url, notif, ticket_row, value[7], value[8], value[9], presale)
+                evt_data = (name, date, value[2], interval, url, notif,
+                            ticket_row, value[7], value[8], value[9], presale)
                 self.event_data[key] = evt_data
                 self.save_event_data()
                 self.load_data_to_list_ctrl()
@@ -361,7 +374,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
             date_created = datetime.today().strftime('%Y-%m-%d')
             # print(self.event_data)
             evt_dat = (
-            name, date, '-', interval, url, notif, ticket_row, date_created, "-", '-', presale)
+                name, date, '-', interval, url, notif, ticket_row, date_created, "-", '-', presale)
             self.event_data[len(self.event_data.keys()) + 1] = evt_dat
             self.save_event_data()
             self.load_data_to_list_ctrl()
@@ -385,7 +398,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         #     pickle.dump({}, f)
         with open('data.pickle', 'rb') as f:
             self.event_data = pickle.load(f)
-        
 
     def save_event_data(self):
         with open('data.pickle', 'wb') as f:
@@ -394,7 +406,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
     def load_data_to_list_ctrl(self):
         self.list_ctrl.DeleteAllItems()
         self.load_event_data()
-        
+
         for x in list(self.event_data.keys()):
             self.list_ctrl.InsertItem(10000, '')
 
@@ -466,7 +478,8 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
         print('sending to', self.settings['NotifyEmail'])
         try:
-            server.sendmail(self.settings['GmailEmail'], self.settings['NotifyEmail'], msg)
+            server.sendmail(
+                self.settings['GmailEmail'], self.settings['NotifyEmail'], msg)
         except UnicodeEncodeError:
             pass
         time.sleep(1)
@@ -482,10 +495,11 @@ class MasterList(object):
         if sheet_url:
             scope = ['https://spreadsheets.google.com/feeds',
                      'https://www.googleapis.com/auth/drive']
-            credentials = ServiceAccountCredentials.from_json_keyfile_name('mastelistevents-0050cd80b07f.json', scope)
+            credentials = ServiceAccountCredentials.from_json_keyfile_name(
+                'mastelistevents-0050cd80b07f.json', scope)
             gc = gspread.authorize(credentials)
             self.sheet = gc.open_by_url(sheet_url).get_worksheet(0)
-        #print(self.sheet.get_all_records())
+        # print(self.sheet.get_all_records())
 
     def add_to_list(self, event, retry=0):
         if self.sheet:
@@ -508,7 +522,7 @@ class MasterList(object):
                 # print(idx)
                 # print(val)
                 self.sheet.update_cell(row, idx, val)
-                      
+
     def update_list(self, event):
         print('Updating event on Google sheet...')
         if self.sheet:
@@ -519,7 +533,6 @@ class MasterList(object):
             for idx, val in enumerate(event, 1):
                 self.sheet.update_cell(cell.row, idx, val)
 
-
     def remove_from_list(self, url):
         if self.sheet:
             print('Removing event from Google sheet...')
@@ -529,15 +542,17 @@ class MasterList(object):
                     self.sheet.delete_row(cell.row)
                 except:
                     break
-        #print(cell.row)
+        # print(cell.row)
 
     def reconnect(self):
         if self.sheet:
             scope = ['https://spreadsheets.google.com/feeds',
                      'https://www.googleapis.com/auth/drive']
-            credentials = ServiceAccountCredentials.from_json_keyfile_name('mastelistevents-0050cd80b07f.json', scope)
+            credentials = ServiceAccountCredentials.from_json_keyfile_name(
+                'mastelistevents-0050cd80b07f.json', scope)
             gc = gspread.authorize(credentials)
             self.sheet = gc.open_by_url(self.sheet).get_worksheet(0)
+
 
 if __name__ == "__main__":
 
