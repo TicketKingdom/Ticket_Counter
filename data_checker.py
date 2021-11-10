@@ -29,8 +29,8 @@ def make_request(url):
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0 Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0.'
     }
     r = requests.get(url, headers=headers)
-    time.sleep(3)
-    print(r.content)
+    # time.sleep(3)
+    # print(r.content)
     if r.status_code == 200 or r.status_code == 506:
         return BeautifulSoup(r.content, 'html.parser')
     print(r.status_code, url)

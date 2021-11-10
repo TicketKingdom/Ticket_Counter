@@ -127,7 +127,7 @@ class Scraper(object):
         );
         """ % (ip, port, user, pwd)
         chrome_options = webdriver.ChromeOptions()
-        # chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
         if headless:
             pass
             # chrome_options.add_argument('--headless')
@@ -183,6 +183,7 @@ class Etix(Scraper):
         driver.get(self.ticket_url)
         self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+        soup_1 = BeautifulSoup(driver.page_source, 'html.parser')
 
         sold_out = soup.find('h2', {'class': 'header-message'})
 
@@ -236,7 +237,13 @@ class Etix(Scraper):
         opt_qty = int(opt.get_attribute('value'))
 
         opt.click()
-
+        # print(soup_1)
+        # time.sleep(3000)
+        # if 'isInvisibleCaptchaUsed = true' in soup_1:
+        #     print('this is fake captcha')
+        #     pass
+        # else:
+        #     print('this is real captcha')
         if soup.find('div', {'class': 'g-recaptcha'}):
             if self.cap == "Capmonster":  # solve this capmonster
                 capmonster = NoCaptchaTaskProxyless(
@@ -280,15 +287,13 @@ class Etix(Scraper):
             time.sleep(0.5)
 
         except Exception as e:
-            print(e)
             print(0, '4Tickets added....')
             driver.quit()
             return 0
-
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
         if new_soup.find('div', {'class': 'validationError error'}):
             driver.quit()
-            print('amount miss selected')
+            print('amount miss selected>>>>')
             return 0
         if new_soup.find('div', {'class': 'callout error'}):
             driver.quit()
@@ -305,6 +310,7 @@ class Etix(Scraper):
             if 'Tickets Currently Not Available' in error.text:
                 driver.quit()
                 return 0
+        # time.sleep(3000)
 
         error = soup.find('div', {'class': 'validationError error'})
 
@@ -349,6 +355,7 @@ class Etix(Scraper):
 
         driver.quit()
         print(opt_qty, 'Tickets added')
+        time.sleep(5)
         return opt_qty  # driver
 
     def check_ticket_qty(self, cap):
@@ -379,7 +386,7 @@ class Etix(Scraper):
             if sold_out:
 
                 if 'sold out' in sold_out.text.lower():
-
+                    print("the tickets is sold out")
                     driver.quit()
                     return 0, False
 
@@ -394,11 +401,11 @@ class Etix(Scraper):
                     break
                 loop_qty = 0
                 with Pool(num_pool) as p:
-                    r = p.map(self.get_qty, list(range(20)))
+                    r = p.map(self.get_qty, list(range(1)))
                     for q in r:
                         loop_qty += q
-                        if q == 0:
-                            next_cycle = False
+                        # if q == 0:
+                        #     next_cycle = False
 
                 qty += loop_qty
                 print('Total QTY:', qty)
