@@ -1,4 +1,4 @@
-beautifulsoup4
-selenium
-wxpython
-capmonster-python
+beautifulsoup4==2.2.1
+selenium==1.26.5
+wxpython==4.1.1
+capmonster-python==1.3.0
