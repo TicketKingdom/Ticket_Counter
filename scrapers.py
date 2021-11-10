@@ -127,6 +127,7 @@ class Scraper(object):
         );
         """ % (ip, port, user, pwd)
         chrome_options = webdriver.ChromeOptions()
+        # chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
         if headless:
             pass
             # chrome_options.add_argument('--headless')
@@ -895,15 +896,17 @@ class TicketWeb(Scraper):
             if self.cap == 'Capmonster':
                 capmonster = NoCaptchaTaskProxyless(
                     client_key=capmonster_api_key)
-                taskId = capmonster.createTask(
-                    website_key='6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv', website_url=self.ticket_url)
+                if '.ca' in self.ticket_url:  
+                    print(self.ticket_url)
+                    taskId = capmonster.createTask(
+                        website_key='6LfW2FYUAAAAAJmlXoUhKpxRo7fufecPstaxMMvn', website_url=self.ticket_url)
+                else:
+                    taskId = capmonster.createTask(
+                        website_key='6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv', website_url=self.ticket_url)
+                # taskId = capmonster.createTask(
+                #     website_key='6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv', website_url=self.ticket_url)
                 print("Waiting to solution by capmonster workers")
-                try:
-                    response = capmonster.joinTaskResult(taskId=taskId)
-                except:
-                    print(0, 'Tickets added....')
-                    driver.quit()
-                    return 0
+                response = capmonster.joinTaskResult(taskId=taskId)
             else:
                 site_key = '6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv'
                 client = AnticaptchaClient(api_key)
