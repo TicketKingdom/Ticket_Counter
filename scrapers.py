@@ -237,47 +237,51 @@ class Etix(Scraper):
         opt_qty = int(opt.get_attribute('value'))
 
         opt.click()
-        # print(soup_1)
-        # time.sleep(3000)
-        # if 'isInvisibleCaptchaUsed = true' in soup_1:
-        #     print('this is fake captcha')
-        #     pass
-        # else:
-        #     print('this is real captcha')
-        if soup.find('div', {'class': 'g-recaptcha'}):
-            if self.cap == "Capmonster":  # solve this capmonster
-                capmonster = NoCaptchaTaskProxyless(
-                    client_key=capmonster_api_key)
-                taskId = capmonster.createTask(
-                    website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
-                print("Waiting to solution by capmonster workers")
-                try:
-                    response = capmonster.joinTaskResult(taskId=taskId)
-                except:
-                    print(0, 'Tickets added....')
-                    driver.quit()
-                    return 0
+        if 'let isInvisibleCaptchaUsed = true;' in str(soup_1.contents[0]):
+            print('this is fake captcha')
+            ran = random.random()
+            if ran > 0.5:
+                driver.find_element_by_xpath('//*[@id="price-details"]').click()
             else:
-                # solve this anticapcha
-                client = AnticaptchaClient(api_key)
-                task = NoCaptchaTaskProxylessTask(
-                    self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
-                try:
-                    job = client.createTask(task)
-                    print("Waiting to solution by Anticaptcha workers")
-                    job.join()
-                    # Receive response
-                    response = job.get_solution_response()
-                except:
-                    print(0, 'Tickets added....')
-                    driver.quit()
-                    return 0
-            print("Received solution", response)
-            driver.execute_script(
-                'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-            driver.execute_script(
-                'document.getElementById("submitBtn").removeAttribute("disabled")')
-            time.sleep(3)
+                driver.find_element_by_xpath('//*[@id="price-details"]/a').click()
+            # aria-hidden="true"
+            # driver.find_element_by_class_name('rc-anchor-normal-footer').click()
+        else:
+            print('this is real captcha')
+            if soup.find('div', {'class': 'g-recaptcha'}):
+                if self.cap == "Capmonster":  # solve this capmonster
+                    capmonster = NoCaptchaTaskProxyless(
+                        client_key=capmonster_api_key)
+                    taskId = capmonster.createTask(
+                        website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+                    print("Waiting to solution by capmonster workers")
+                    try:
+                        response = capmonster.joinTaskResult(taskId=taskId)
+                    except:
+                        print(0, 'Tickets added....')
+                        driver.quit()
+                        return 0
+                else:
+                    # solve this anticapcha
+                    client = AnticaptchaClient(api_key)
+                    task = NoCaptchaTaskProxylessTask(
+                        self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+                    try:
+                        job = client.createTask(task)
+                        print("Waiting to solution by Anticaptcha workers")
+                        job.join()
+                        # Receive response
+                        response = job.get_solution_response()
+                    except:
+                        print(0, 'Tickets added....')
+                        driver.quit()
+                        return 0
+                print("Received solution", response)
+                driver.execute_script(
+                    'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+                driver.execute_script(
+                    'document.getElementById("submitBtn").removeAttribute("disabled")')
+                time.sleep(3)
 
         try:
             # click cookie button and click submit
@@ -290,11 +294,62 @@ class Etix(Scraper):
             print(0, '4Tickets added....')
             driver.quit()
             return 0
+        
+        if 'let isInvisibleCaptchaUsed = true;' in str(soup_1.contents[0]):
+            if soup.find('div', {'class': 'g-recaptcha'}):
+                if self.cap == "Capmonster":  # solve this capmonster
+                    capmonster = NoCaptchaTaskProxyless(client_key=capmonster_api_key)
+                    taskId = capmonster.createTask( website_key='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG', website_url=self.ticket_url)
+                    print("Waiting to solution by capmonster workers")
+                    try:
+                        response = capmonster.joinTaskResult(taskId=taskId)
+                    except:
+                        print(0, 'Tickets added....')
+                        driver.quit()
+                        return 0
+                else:
+                    # solve this anticapcha
+                    client = AnticaptchaClient(api_key)
+                    task = NoCaptchaTaskProxylessTask(
+                        self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+                    try:
+                        job = client.createTask(task)
+                        print("Waiting to solution by Anticaptcha workers")
+                        job.join()
+                        # Receive response
+                        response = job.get_solution_response()
+                    except:
+                        print(0, 'Tickets added....')
+                        driver.quit()
+                        return 0
+                print("Received solution", response)
+                driver.execute_script(
+                    'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+                time.sleep(1)
+                try:
+                    try:
+                        driver.find_element_by_id("recaptcha-verify-button").click()
+                    except:
+                        iframe = driver.find_element_by_xpath('//iframe[@title="recaptcha challenge"]')
+                        driver.switch_to.frame(iframe)
+                        driver.find_element_by_id("recaptcha-verify-button").click()
+                    time.sleep(3000)
+                    driver.find_element_by_name("addSeatBtn").click()
+                    time.sleep(0.5)
+
+                except Exception as e:
+                    print(e)
+                    print(0, '4Tickets added....')
+                    driver.quit()
+                    return 0
+
+        # time.sleep(300)
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
-        if new_soup.find('div', {'class': 'validationError error'}):
-            driver.quit()
-            print('amount miss selected>>>>')
-            return 0
+        # time.sleep(3000)
+        # if new_soup.find('div', {'class': 'validationError error'}):
+        #     driver.quit()
+        #     print('amount miss selected>>>>')
+        #     return 0
         if new_soup.find('div', {'class': 'callout error'}):
             driver.quit()
             print('you due to the high volume of requests for the same seats or session expired')
@@ -314,8 +369,7 @@ class Etix(Scraper):
 
         error = soup.find('div', {'class': 'validationError error'})
 
-        num_of_options = len(driver.find_elements_by_xpath(
-            '//*[@id="{}"]/option'.format(id)))
+        num_of_options = len(driver.find_elements_by_xpath( '//*[@id="{}"]/option'.format(id)))
 
         if error:
             # I will check this afre when occure this area.
@@ -336,8 +390,13 @@ class Etix(Scraper):
                     driver.quit()
                     return 0
                 opt.click()
-                driver.find_element_by_xpath(
-                    '//*[@id="view"]/div[5]/form/div[2]/button').click()
+                try:
+                    driver.find_element_by_xpath(
+                        '//*[@id="view"]/div[5]/form/div[2]/button').click()
+                except:
+                    driver.quit()
+                    print(0, 'This is error cause of miss amont.')
+                    return 0
                 soup = BeautifulSoup(driver.page_source, 'html.parser')
 
                 error = soup.find('div', {'class': 'validationError error'})
@@ -350,9 +409,13 @@ class Etix(Scraper):
                     break
         time.sleep(3)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        opt_qty = len(soup.find('table', {
+        try:
+            opt_qty = len(soup.find('table', {
                       'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
-
+        except:
+            driver.quit()
+            print(0, 'ticket added, It occur techiqual error')
+            return 0
         driver.quit()
         print(opt_qty, 'Tickets added')
         time.sleep(5)
@@ -401,7 +464,7 @@ class Etix(Scraper):
                     break
                 loop_qty = 0
                 with Pool(num_pool) as p:
-                    r = p.map(self.get_qty, list(range(1)))
+                    r = p.map(self.get_qty, list(range(10)))
                     for q in r:
                         loop_qty += q
                         # if q == 0:
@@ -433,7 +496,7 @@ class Eventbrite(Scraper):
         self.drivers.append(driver)
         driver.get(self.ticket_url)
         self.input_password(driver)
-
+        
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('span', {'class': 'ticket-status eds-text-color--ui-600 eds-text-bm ticket-status--no-wrap eds-text--right'}):
             print('tickets is unavaliable1')
@@ -444,7 +507,6 @@ class Eventbrite(Scraper):
             print('tickets is unavaliable1 casue of scrap')
             driver.quit()
             return 0
-
         try:
             opt = driver.find_elements_by_xpath(
                 '//*[@id="{}"]/option'.format(_id))[-1]
@@ -541,36 +603,41 @@ class Eventbrite(Scraper):
         #         return 0
 
         time.sleep(2)
-
+        
         try:
             opt = driver.find_elements_by_class_name(
                 'tiered-ticket-display-content-root')[int(self.ticket_row)-1]
-            # try:
-            #     opt = opt.find_elements_by_tag_name('option')[-1]
-            # except:
-            #     print('0 Tickets added', 'unvisable button and tickets')
-            #     driver.quit()
-            #     return 0
+            try:
+                opt = opt.find_elements_by_tag_name('option')[-1]
+            except:
+                print('0 Tickets added', 'unvisable button and tickets')
+                driver.quit()
+                return 0
 
         except IndexError:
+            # pass
             try:
                 time.sleep(3)
-                opt = driver.find_elements_by_class_name(
-                    'eds-card-list__item')[int(self.ticket_row)-1]
                 try:
-                    opt = opt.find_elements_by_tag_name('option')[-1]
+                    opt = driver.find_elements_by_class_name(
+                        'eds-card-list__item')[int(self.ticket_row)-1]
+                    try:
+                        opt = opt.find_elements_by_tag_name('option')[-1]
+                    except:
+                        print('0 Tickets added', 'unvisable button and tickets')
+                        driver.quit()
+                        return 0
                 except:
-                    print('0 Tickets added', 'unvisable button and tickets')
-                    driver.quit()
-                    return 0
+                    # pass
+                    opt = driver.find_elements_by_xpath(
+                        '//select[@id="{}"]/option'.format(_id))[-1]
+                    opt.click()
             except IndexError:
                 print('0 Tickets added', 'idx')
                 driver.quit()
                 return 0
-
+        
         opt_qty = int(opt.get_attribute('value'))
-        # print(f'>>>>>>>>>>>>>>>{opt_qty}')
-        # time.sleep(3000)
         if opt_qty == 1:
             print('this thread is ignored cause of ticket number is 1')
             driver.quit()
