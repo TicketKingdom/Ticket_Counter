@@ -995,10 +995,10 @@ class TicketWeb(Scraper):
                 # Receive response
                 response = job.get_solution_response()
 
-        print("Received solution", response)
-        driver.execute_script(
-            'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-        time.sleep(2)
+            print("Received solution", response)
+            driver.execute_script(
+                'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+            time.sleep(2)
 
         driver.find_element_by_id('edp_checkout_btn').click()
         time.sleep(1)
