@@ -5,6 +5,7 @@ import zipfile
 import random
 import time
 from multiprocessing.pool import Pool
+import requests
 
 import selenium
 from selenium import webdriver
@@ -45,7 +46,7 @@ class Scraper(object):
         self.ticket_url = url
         self.ticket_row = row
         self.password = password
-        with open("proxies_storm.txt", 'r') as f:
+        with open("proxies_bunchs.txt", 'r') as f:
             self.proxies = f.read().split('\n')
 
     def input_password(self, driver):
@@ -68,11 +69,11 @@ class Scraper(object):
             return True
 
     def open_driver(self, 
-                    use_proxy=False,
+                    use_proxy=True,
                     user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36.',
                     headless=False):
         random_proxy = random.choice(self.proxies)
-        auth, ip_port = random_proxy.split('@')
+        ip_port, auth = random_proxy.split('@')
         user, pwd = auth.split(':')
         ip, port = ip_port.split(':')
         manifest_json = """
@@ -482,14 +483,21 @@ class Etix(Scraper):
 class Eventbrite(Scraper):
     def input_password(self, driver):
         if self.password:
-            driver.find_element_by_xpath(
-                '//*[@data-automation="promo-code-form-link"]').click()
+            print("promo code entered")
+            try:
+                driver.find_element_by_xpath(
+                    '//*[@data-automation="promo-code-form-link"]').click()
+            except:
+                pass
             driver.find_element_by_id(
                 'promo-code-field').send_keys(self.password)
             time.sleep(1)
-            driver.find_element_by_xpath(
-                '//span[@class="eds-field-styled__aside eds-field-styled__aside-suffix"]/button').click()
-
+            try:
+                driver.find_element_by_xpath(
+                    '//span[@class="eds-field-styled__aside eds-field-styled__aside-suffix"]/button').click()
+            except:
+                driver.find_element_by_xpath(
+                    '//*[@data-automation="checkout-widget-submit-promo-button"]').click()
     def get_qty(self, _id):
         print('eventbrite type1')
         driver = self.open_driver(headless=True)
@@ -693,6 +701,10 @@ class Eventbrite(Scraper):
         _id = driver.find_element_by_tag_name(
             'body').get_attribute('data-event-id')
         xpath = '//*[@id="eventbrite-widget-modal-{}"]'.format(_id)
+        
+        # new_type_id = "checkout-widget-iframe-"+_id
+        # soup = BeautifulSoup(driver.page_source, 'html.parser')
+        # new_type_iframe = soup.find('iframe', {'allowtransparency':'true'})['src']
 
         try:
             iframe = driver.find_element_by_xpath(xpath)
@@ -700,6 +712,7 @@ class Eventbrite(Scraper):
             self.input_password(driver)
             new_style = True
             print('eventbrite type2')
+            
         except selenium.common.exceptions.NoSuchElementException:
             new_style = False
             print('eventbrite type1')
@@ -717,10 +730,9 @@ class Eventbrite(Scraper):
             try:
                 _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
             except Exception as e:
-
                 print(e)
                 driver.quit()
-                print('No tickets available')
+                print('No tickets available-1')
                 return qty, False
         else:
             try:
@@ -734,10 +746,14 @@ class Eventbrite(Scraper):
                         _id = soup.find_all('div', {'class': 'tiered-ticket-quantity-select eds-g-cell eds-text-color--grey-800 eds-ticket-card-content__quantity-selector'})[
                             int(self.ticket_row) - 1]['data-automation']
                     except:
-
-                        driver.quit()
-                        print('No tickets available')
-                        return qty, False
+                        try:
+                            print("eventbrite new type. Should get the id on iframe")
+                            _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
+                        except:
+                            # driver.quit()
+                            # print('No tickets available-2')
+                            # return qty, False
+                            pass
         driver.quit()
 
         timer_run_out = False
