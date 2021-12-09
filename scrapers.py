@@ -1455,7 +1455,13 @@ class Showclix(Scraper):
             driver.quit()
             return 0
         # time.sleep(3000)
-        time.sleep(0.5)
+        while True:
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            if '{"status":401,"response":"HTTP\/1.1 401 Unauthorized","details":"User has exceeded the request limit. Try again later."}' in soup.text:
+                driver.refresh()
+                time.sleep(1)
+            else:
+                break
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
@@ -1470,7 +1476,7 @@ class Showclix(Scraper):
                 driver.quit()
                 return 0
         # error = soup.find('div', {'class': 'validationError error'})
-        time.sleep(5)
+        time.sleep(2)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         real_amount = soup.find('td', {'class': 'qty-td'}).text.strip()
         opt_qty = int(real_amount)
@@ -1519,7 +1525,7 @@ class Showclix(Scraper):
         driver.quit()
 
         timer_run_out = False
-        num_pool = 20
+        num_pool = 10
         qty = 0
         timer_run_out = False
         oldtime = time.time()
@@ -1529,7 +1535,7 @@ class Showclix(Scraper):
                 break
             loop_qty = 0
             with Pool(num_pool) as p:
-                r = p.map(self.get_qty, list(range(20)))
+                r = p.map(self.get_qty, list(range(10)))
                 for q in r:
                     loop_qty += q
             qty += loop_qty
