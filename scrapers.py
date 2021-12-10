@@ -15,6 +15,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from capmonster_python import *
 from bs4 import BeautifulSoup
+from wx.core import TOUCH_ALL_GESTURES
 
 from anticaptcha import api_key
 from anticaptcha import capmonster_api_key
@@ -183,14 +184,15 @@ class Etix(Scraper):
         driver = self.open_driver()
         driver.get(self.ticket_url)
         self.input_password(driver)
+        time.sleep(1)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+        # if 'price level' in soup.text.lower():
+        #     driver.find_elements_by_xpath('//ul[@id="ticket-type"]/li')[1].click()
+        #     time.sleep(2)
         soup_1 = BeautifulSoup(driver.page_source, 'html.parser')
-
         sold_out = soup.find('h2', {'class': 'header-message'})
 
         if sold_out:
-            # sold_out  ticktes
-
             if 'sold out' in sold_out.text.lower():
                 driver.quit()
                 return 0
@@ -199,6 +201,11 @@ class Etix(Scraper):
             driver.quit()
             print('session expried')
             return 0
+
+        # if soup.find('div', {'class', 'validationError error row'}):
+        #     driver.quit()
+        #     print("this ticket is not enough on price level.")
+        #     return 0
 
         if soup.find('//*[@id="view"]/div[3]'):
             driver.quit()
@@ -232,7 +239,6 @@ class Etix(Scraper):
             except:
                 print(0, '3Tickets added...')
                 return 0
-
         opt = driver.find_elements_by_xpath(
             '//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
@@ -344,7 +350,6 @@ class Etix(Scraper):
                     driver.quit()
                     return 0
 
-        # time.sleep(300)
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
         # time.sleep(3000)
         # if new_soup.find('div', {'class': 'validationError error'}):
