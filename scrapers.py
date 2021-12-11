@@ -1,11 +1,8 @@
 import ast
-import os
-import re
 import zipfile
 import random
 import time
 from multiprocessing.pool import Pool
-import requests
 
 import selenium
 from selenium import webdriver
@@ -21,7 +18,6 @@ from anticaptcha import api_key
 from anticaptcha import capmonster_api_key
 
 num_pool = 20
-
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -69,7 +65,7 @@ class Scraper(object):
         finally:
             return True
 
-    def open_driver(self, 
+    def open_driver(self,
                     use_proxy=True,
                     user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36.',
                     headless=False):
@@ -129,7 +125,8 @@ class Scraper(object):
         );
         """ % (ip, port, user, pwd)
         chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        chrome_options.add_experimental_option(
+            'excludeSwitches', ['enable-logging'])
         if headless:
             pass
             # chrome_options.add_argument('--headless')
@@ -186,9 +183,6 @@ class Etix(Scraper):
         self.input_password(driver)
         time.sleep(1)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        # if 'price level' in soup.text.lower():
-        #     driver.find_elements_by_xpath('//ul[@id="ticket-type"]/li')[1].click()
-        #     time.sleep(2)
         soup_1 = BeautifulSoup(driver.page_source, 'html.parser')
         sold_out = soup.find('h2', {'class': 'header-message'})
 
@@ -201,11 +195,6 @@ class Etix(Scraper):
             driver.quit()
             print('session expried')
             return 0
-
-        # if soup.find('div', {'class', 'validationError error row'}):
-        #     driver.quit()
-        #     print("this ticket is not enough on price level.")
-        #     return 0
 
         if soup.find('//*[@id="view"]/div[3]'):
             driver.quit()
@@ -248,9 +237,11 @@ class Etix(Scraper):
             print('this is fake captcha')
             ran = random.random()
             if ran > 0.5:
-                driver.find_element_by_xpath('//*[@id="price-details"]').click()
+                driver.find_element_by_xpath(
+                    '//*[@id="price-details"]').click()
             else:
-                driver.find_element_by_xpath('//*[@id="price-details"]/a').click()
+                driver.find_element_by_xpath(
+                    '//*[@id="price-details"]/a').click()
             # aria-hidden="true"
             # driver.find_element_by_class_name('rc-anchor-normal-footer').click()
         else:
@@ -301,12 +292,14 @@ class Etix(Scraper):
             print(0, '4Tickets added....')
             driver.quit()
             return 0
-        
+
         if 'let isInvisibleCaptchaUsed = true;' in str(soup_1.contents[0]):
             if soup.find('div', {'class': 'g-recaptcha'}):
                 if self.cap == "Capmonster":  # solve this capmonster
-                    capmonster = NoCaptchaTaskProxyless(client_key=capmonster_api_key)
-                    taskId = capmonster.createTask( website_key='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG', website_url=self.ticket_url)
+                    capmonster = NoCaptchaTaskProxyless(
+                        client_key=capmonster_api_key)
+                    taskId = capmonster.createTask(
+                        website_key='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG', website_url=self.ticket_url)
                     print("Waiting to solution by capmonster workers")
                     try:
                         response = capmonster.joinTaskResult(taskId=taskId)
@@ -335,11 +328,14 @@ class Etix(Scraper):
                 time.sleep(1)
                 try:
                     try:
-                        driver.find_element_by_id("recaptcha-verify-button").click()
+                        driver.find_element_by_id(
+                            "recaptcha-verify-button").click()
                     except:
-                        iframe = driver.find_element_by_xpath('//iframe[@title="recaptcha challenge"]')
+                        iframe = driver.find_element_by_xpath(
+                            '//iframe[@title="recaptcha challenge"]')
                         driver.switch_to.frame(iframe)
-                        driver.find_element_by_id("recaptcha-verify-button").click()
+                        driver.find_element_by_id(
+                            "recaptcha-verify-button").click()
                     time.sleep(3000)
                     driver.find_element_by_name("addSeatBtn").click()
                     time.sleep(0.5)
@@ -358,11 +354,13 @@ class Etix(Scraper):
         #     return 0
         if new_soup.find('div', {'class': 'callout error'}):
             driver.quit()
-            print('you due to the high volume of requests for the same seats or session expired')
+            print(
+                'you due to the high volume of requests for the same seats or session expired')
             return 0
         if new_soup.find('p', {'class': 'callout error'}):
             driver.quit()
-            print('you due to the high volume of requests for the same seats or session expired')
+            print(
+                'you due to the high volume of requests for the same seats or session expired')
             return 0
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -375,7 +373,8 @@ class Etix(Scraper):
 
         error = soup.find('div', {'class': 'validationError error'})
 
-        num_of_options = len(driver.find_elements_by_xpath( '//*[@id="{}"]/option'.format(id)))
+        num_of_options = len(driver.find_elements_by_xpath(
+            '//*[@id="{}"]/option'.format(id)))
 
         if error:
             # I will check this afre when occure this area.
@@ -417,7 +416,7 @@ class Etix(Scraper):
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             opt_qty = len(soup.find('table', {
-                      'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
+                'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
         except:
             driver.quit()
             print(0, 'ticket added, It occur techiqual error')
@@ -485,6 +484,7 @@ class Etix(Scraper):
 
             return qty, timer_run_out
 
+
 class Eventbrite(Scraper):
     def input_password(self, driver):
         if self.password:
@@ -503,13 +503,14 @@ class Eventbrite(Scraper):
             except:
                 driver.find_element_by_xpath(
                     '//*[@data-automation="checkout-widget-submit-promo-button"]').click()
+
     def get_qty(self, _id):
         print('eventbrite type1')
         driver = self.open_driver(headless=True)
         self.drivers.append(driver)
         driver.get(self.ticket_url)
         self.input_password(driver)
-        
+
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('span', {'class': 'ticket-status eds-text-color--ui-600 eds-text-bm ticket-status--no-wrap eds-text--right'}):
             print('tickets is unavaliable1')
@@ -616,7 +617,7 @@ class Eventbrite(Scraper):
         #         return 0
 
         time.sleep(2)
-        
+
         try:
             opt = driver.find_elements_by_class_name(
                 'tiered-ticket-display-content-root')[int(self.ticket_row)-1]
@@ -649,7 +650,7 @@ class Eventbrite(Scraper):
                 print('0 Tickets added', 'idx')
                 driver.quit()
                 return 0
-        
+
         opt_qty = int(opt.get_attribute('value'))
         if opt_qty == 1:
             print('this thread is ignored cause of ticket number is 1')
@@ -706,7 +707,7 @@ class Eventbrite(Scraper):
         _id = driver.find_element_by_tag_name(
             'body').get_attribute('data-event-id')
         xpath = '//*[@id="eventbrite-widget-modal-{}"]'.format(_id)
-        
+
         # new_type_id = "checkout-widget-iframe-"+_id
         # soup = BeautifulSoup(driver.page_source, 'html.parser')
         # new_type_iframe = soup.find('iframe', {'allowtransparency':'true'})['src']
@@ -717,7 +718,7 @@ class Eventbrite(Scraper):
             self.input_password(driver)
             new_style = True
             print('eventbrite type2')
-            
+
         except selenium.common.exceptions.NoSuchElementException:
             new_style = False
             print('eventbrite type1')
@@ -753,7 +754,8 @@ class Eventbrite(Scraper):
                     except:
                         try:
                             print("eventbrite new type. Should get the id on iframe")
-                            _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
+                            _id = soup.find_all('select')[
+                                int(self.ticket_row) - 1]['id']
                         except:
                             # driver.quit()
                             # print('No tickets available-2')
@@ -796,6 +798,7 @@ class Eventbrite(Scraper):
 
         print('total qty', qty)
         return qty, timer_run_out
+
 
 class FrontGate(Scraper):
 
@@ -950,6 +953,7 @@ class FrontGate(Scraper):
         print('total qty', qty)
         return qty, timer_run_out
 
+
 class TicketWeb(Scraper):
 
     def input_password(self, driver):
@@ -995,7 +999,7 @@ class TicketWeb(Scraper):
             if self.cap == 'Capmonster':
                 capmonster = NoCaptchaTaskProxyless(
                     client_key=capmonster_api_key)
-                if '.ca' in self.ticket_url:  
+                if '.ca' in self.ticket_url:
                     print(self.ticket_url)
                     taskId = capmonster.createTask(
                         website_key='6LfW2FYUAAAAAJmlXoUhKpxRo7fufecPstaxMMvn', website_url=self.ticket_url)
@@ -1551,6 +1555,9 @@ class Showclix(Scraper):
 
         print('total qty', qty)
         return qty, timer_run_out
+
+
+
 
 # if __name__ == "__main__":
 #     proxies = r'D:\Programming\Work\Freelancer2\carrcocarr\low_price_warning\proxies.txt'
