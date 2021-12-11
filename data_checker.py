@@ -1,5 +1,3 @@
-import re
-
 import requests
 from bs4 import BeautifulSoup
 from dateutil import parser
@@ -29,8 +27,6 @@ def make_request(url):
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0 Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0.'
     }
     r = requests.get(url, headers=headers)
-    # time.sleep(3)
-    # print(r.content)
     if r.status_code == 200 or r.status_code == 506:
         return BeautifulSoup(r.content, 'html.parser')
     print(r.status_code, url)
@@ -42,6 +38,7 @@ def check_eventbrite(url):
         name = soup.find('h1', {'class': 'text-body-large'}).text.strip()
     except:
         name = soup.find('h1', {'class': 'listing-hero-title'}).text.strip()
+
     try:
         date = soup.find(
             'div', {'class': 'event-details__data'}).find('meta')['content']
@@ -75,10 +72,6 @@ def check_bigticket(url):
 
         date = parser.parse(date).strftime('%Y-%m-%d')
 
-        # venue = soup.find('a', {'title': 'View on Google Maps', 'class':'tab-link'}).decode_contents().split('<br>')[0].replace('\n', '').replace('\t', '')
-        # loc = soup.find('a', {'title': 'View on Google Maps', 'class':'tab-link'}).decode_contents().split('<br>')[1].replace('\n', '').replace('\t', '')
-        # name = name + " {} {}".format(venue, loc)
-
     except:
         name = soup.find('div', {'class': 'event-info'}
                          ).find_next('h1').decode_contents()
@@ -94,13 +87,11 @@ def check_bigticket(url):
 def check_etix(url):
     soup = make_request(url)
     name = soup.find('h1', {'itemprop': 'name'}).text.strip()
+    
     date = soup.find('div', {'class': 'time'})
     date = date.find('meta', {'itemprop': 'startDate'})['content']
-    # print(date)
-    # date.find('script').extract()
-    # date = date.text.strip()
-    # date = re.sub(' +', ' ', date)
     date = parser.parse(date).strftime('%Y-%m-%d')
+
     venue = soup.find('div', {'class': 'location'}).text.strip()
     name = name + " " + venue
     return name, date
@@ -112,34 +103,38 @@ def check_frontgate(url):
         name = soup.find('meta', {'property': 'og:title'})['content']
     except:
         name = soup.find('meta', {'property': 'og:site_name'})['content']
+
     date = soup.find('div', {'class': 'date'}).text.strip().split('-')[0]
     date = date.split('\n')[0]
     date = parser.parse(date).strftime('%Y-%m-%d')
+
     venue = soup.find('div', {'class': 'venue'}).text.replace('at', '').strip()
     adr = soup.find('div', {'class': 'address'}).text.strip()
     adr = adr.split(',')
     adr = ','.join(adr[-2:])
     name = name + " " + venue + " " + adr
+
     return name, date
 
 
 def check_ticketweb(url):
     url = url.split("?")[0]
     soup = make_request(url)
-    time.sleep(1)
-    # try:
-    name = soup.find('h1', {'class': 'title'}).find(
-        'span', {'class': 'big'}).text.strip()
-    # except:
-    #     name = soup.find('h1', {'class': 'title mttext-ellipsis mttext-ellipsis-3'}).findNext('span', {'class': 'big'}).text.strip()
-    print(name)
+    try:
+        name = soup.find('h1', {'class': 'title'}).find(
+            'span', {'class': 'big'}).text.strip()
+    except:
+        name = soup.find('h1', {'class': 'title mttext-ellipsis mttext-ellipsis-3'}).findNext('span', {'class': 'big'}).text.strip()
+
     date = soup.find(
         'div', {'class': 'info-item info-time'}).find('h4').text.strip()
     date = parser.parse(date).strftime('%Y-%m-%d')
+
     venue = soup.find(
         'a', {'href': '#', 'data-ng-click': "visible()", 'class': 'theme-title'})
     adr = venue.find_next('span').find_next('span').text.strip()
     venue = venue.text.strip()
+
     name = name + " " + venue + " " + adr
 
     return name, date
@@ -148,12 +143,15 @@ def check_ticketweb(url):
 def check_seetickets(url):
     soup = make_request(url)
     name = soup.find('h1', {'class': 'event-h2'}).text.strip()
+
     date = soup.find('time', {'itemprop': 'startDate'})['datetime']
     date = parser.parse(date).strftime('%Y-%m-%d')
+
     venue = soup.find('p', {'class': 'float-r'}
                       ).find_next('h5').decode_contents()
     adr = soup.find('input', {'type': 'hidden', 'id': 'locationaddress'})[
         'value']
+
     name = name + " " + venue + " " + adr
 
     return name, date
@@ -162,11 +160,14 @@ def check_seetickets(url):
 def check_showclix(url):
     soup = make_request(url)
     name = soup.find('h1', {'class': 'showtitle'}).text.strip()
+
     date = soup.find('div', {'class': 'event_date'}).text.strip()
     date = parser.parse(date.split('-')[0]).strftime('%Y-%m-%d')
+
     venue = soup.find('span', {'class': 'venuename'}).text.strip()
     adr = soup.find('span', {'class': 'venuename'}).find_next(
         'span').find_next('span').text.strip()
+        
     name = name + " " + venue + " " + adr
     return name, date
 #
