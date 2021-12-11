@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from dateutil import parser
 import time
+import json
 
 
 def get_event_name_and_date(url):
@@ -19,6 +20,8 @@ def get_event_name_and_date(url):
         return check_seetickets(url)
     elif 'showclix.' in url:
         return check_showclix(url)
+    elif 'prekindle.' in url:
+        return check_prekindle(url)
 
 
 def make_request(url):
@@ -167,8 +170,18 @@ def check_showclix(url):
     venue = soup.find('span', {'class': 'venuename'}).text.strip()
     adr = soup.find('span', {'class': 'venuename'}).find_next(
         'span').find_next('span').text.strip()
-        
+
     name = name + " " + venue + " " + adr
+    return name, date
+
+def check_prekindle(url):
+    soup = make_request(url)
+    name = soup.find('div', {'class': 'content-title'}).find_next('span').text.strip()
+
+    date = parser.parse(soup.find('title').text.strip().split(',')[2].split('|')[0]).strftime('%Y-%m-%d') 
+    
+    # location and address missing
+
     return name, date
 #
 # for url in ['https://basscanyonfestival.frontgatetickets.com/event/i8co6kruzz405we8',
