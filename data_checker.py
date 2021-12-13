@@ -177,8 +177,12 @@ def check_showclix(url):
 def check_prekindle(url):
     soup = make_request(url)
     name = soup.find('div', {'class': 'content-title'}).find_next('span').text.strip()
-
-    date = parser.parse(soup.find('title').text.strip().split(',')[2].split('|')[0]).strftime('%Y-%m-%d') 
+    try:
+        date = parser.parse(soup.find('title').text.strip().split(',')[2].split('|')[0]).strftime('%Y-%m-%d') 
+    except:
+        date = parser.parse(soup.select_one('div.content-info > div:nth-child(2) > div:nth-child(2)').text).strftime('%Y-%m-%d')
+    # print(date)
+    # time.sleep(3000)        
     
     # location and address missing
 

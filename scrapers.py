@@ -1575,12 +1575,16 @@ class Prekindle(Scraper):
         # add sold out case or another case on first screen
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-        sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
-        if 'Sold Out' in sold.find('td', {'class':'pricecell'}).text:
-            print('tickets is solded out.')
-            driver.quit()
-            return 0
-        
+        try:
+            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
+            if sold:
+                if 'Sold Out' in sold.find('td', {'class':'pricecell'}).text:
+                    print('tickets is solded out.')
+                    driver.quit()
+                    return 0
+        except:
+            pass
+
         # input promo code
         self.input_password(driver)
 
@@ -1591,8 +1595,13 @@ class Prekindle(Scraper):
             opt.click()
 
         except Exception as e:
-            print(e)
             # case of select general adminsion and get the ticket.
+            opt =  driver.find_element_by_xpath('//*[name="howManyPanel:generalAdmissionContainer:sectionsDropDown]/option')[-1].click()
+            time.sleep(0.5)
+            # opt = driver.find_elements_by_xpath(f'//*[@name="pricingListView:{str(int(self.ticket_row)-1)}:quantityDropDown"]/option')[-1]
+            # opt_qty = int(opt.get_attribute('value'))
+            # opt.click()
+
 
         time.sleep(0.5)
         # click the submit
@@ -1600,14 +1609,15 @@ class Prekindle(Scraper):
         
         
         # duel the erros or sold out
-        # soup = BeautifulSoup(driver.page_source, 'html.parser')
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-        # sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
-        # if 'Sold Out' in sold.find('td', {'class':'pricecell'}).text:
-        #     print('tickets is solded out.')
-        #     driver.quit()
-        #     return '-'
-
+        error = soup.find('li', {'class': 'feedbackPanelERROR'})
+        if error:
+            if 'Capacity for this section has been reached. Please make another section.' in error.text:
+                print('tickets is solded out by scraper.')
+                driver.quit()
+                return 0
+        
         driver.quit()
         print(opt_qty, 'Tickets added')
         return opt_qty
@@ -1623,12 +1633,14 @@ class Prekindle(Scraper):
 
         # add sold out case or another case on first screen
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-
-        sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
-        if 'Sold Out' in sold.find('td', {'class':'pricecell'}).text:
-            print('tickets is solded out.')
-            driver.quit()
-            return '-', False
+        try:
+            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
+            if 'Sold Out' in sold.find('td', {'class':'pricecell'}).text:
+                print('tickets is solded out.')
+                driver.quit()
+                return '-', False
+        except:
+            pass
 
 
         #loop content
