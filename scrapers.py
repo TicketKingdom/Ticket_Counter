@@ -183,24 +183,25 @@ class Etix(Scraper):
         driver = self.open_driver()
         driver.get(self.ticket_url)
         self.input_password(driver)
-        time.sleep(1)
+        time.sleep(0.5)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        soup_1 = BeautifulSoup(driver.page_source, 'html.parser')
+        origin_content = soup
         sold_out = soup.find('h2', {'class': 'header-message'})
 
         if sold_out:
             if 'sold out' in sold_out.text.lower():
+                print('the ticket is solded out')
                 driver.quit()
                 return 0
 
         if soup.find('p', {'class': 'callout error'}):
-            driver.quit()
             print('session expried')
+            driver.quit()
             return 0
 
         if soup.find('//*[@id="view"]/div[3]'):
-            driver.quit()
             print('Tickets is ended')
+            driver.quit()
             return 0
 
         if soup.find('div', {'class': 'callout error emphasize'}):
@@ -212,17 +213,17 @@ class Etix(Scraper):
             id = soup.find('form', {'name': 'frmPickTicket'}).find_all(
                 'select')[int(self.ticket_row) - 1]['id']
             tab_click = False
-
         except:
-            # Next time Check this area ???? mystery area
+            # two tabs is existed and price level.
             tab_click = True
             try:
                 driver.find_element_by_xpath(
                     '//*[@id="ticket-type"]/li[2]/a').click()
             except:
-                driver.quit()
                 print(0, '2Tickets added...')
+                driver.quit()
                 return 0
+
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             try:
                 id = soup.find('form', {'name': 'frmPickTicket'}).find_all(
@@ -230,22 +231,23 @@ class Etix(Scraper):
             except:
                 print(0, '3Tickets added...')
                 return 0
+
         opt = driver.find_elements_by_xpath(
             '//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
-
         opt.click()
-        if 'let isInvisibleCaptchaUsed = true;' in str(soup_1.contents[0]):
-            print('this is fake captcha')
-            ran = random.random()
-            if ran > 0.5:
-                driver.find_element_by_xpath(
-                    '//*[@id="price-details"]').click()
-            else:
-                driver.find_element_by_xpath(
-                    '//*[@id="price-details"]/a').click()
-            # aria-hidden="true"
-            # driver.find_element_by_class_name('rc-anchor-normal-footer').click()
+
+        if origin_content.contents:
+            if 'let isInvisibleCaptchaUsed = true;' in str(origin_content.contents[0]):
+                print('this is fake captcha')
+                ran = random.random()
+                if ran > 0.5:
+                    driver.find_element_by_xpath(
+                        '//*[@id="price-details"]').click()
+                else:
+                    driver.find_element_by_xpath(
+                        '//*[@id="price-details"]/a').click()
+                    
         else:
             print('this is real captcha')
             if soup.find('div', {'class': 'g-recaptcha'}):
@@ -277,11 +279,12 @@ class Etix(Scraper):
                         driver.quit()
                         return 0
                 print("Received solution", response)
+
                 driver.execute_script(
                     'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
                 driver.execute_script(
                     'document.getElementById("submitBtn").removeAttribute("disabled")')
-                time.sleep(3)
+                time.sleep(0.5)
 
         try:
             # click cookie button and click submit
@@ -295,7 +298,7 @@ class Etix(Scraper):
             driver.quit()
             return 0
 
-        if 'let isInvisibleCaptchaUsed = true;' in str(soup_1.contents[0]):
+        if 'let isInvisibleCaptchaUsed = true;' in str(origin_content.contents[0]):
             if soup.find('div', {'class': 'g-recaptcha'}):
                 if self.cap == "Capmonster":  # solve this capmonster
                     capmonster = NoCaptchaTaskProxyless(
@@ -324,6 +327,7 @@ class Etix(Scraper):
                         print(0, 'Tickets added....')
                         driver.quit()
                         return 0
+                        
                 print("Received solution", response)
                 driver.execute_script(
                     'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
@@ -338,9 +342,8 @@ class Etix(Scraper):
                         driver.switch_to.frame(iframe)
                         driver.find_element_by_id(
                             "recaptcha-verify-button").click()
-                    time.sleep(3000)
-                    driver.find_element_by_name("addSeatBtn").click()
                     time.sleep(0.5)
+                    driver.find_element_by_name("addSeatBtn").click()
 
                 except Exception as e:
                     print(e)
@@ -349,83 +352,77 @@ class Etix(Scraper):
                     return 0
 
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
-        # time.sleep(3000)
-        # if new_soup.find('div', {'class': 'validationError error'}):
-        #     driver.quit()
-        #     print('amount miss selected>>>>')
-        #     return 0
+        
         if new_soup.find('div', {'class': 'callout error'}):
             driver.quit()
             print(
                 'you due to the high volume of requests for the same seats or session expired')
             return 0
+
         if new_soup.find('p', {'class': 'callout error'}):
             driver.quit()
             print(
                 'you due to the high volume of requests for the same seats or session expired')
             return 0
 
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        error = soup.find('div', {'class': 'callout'})
-        if error:
-            if 'Tickets Currently Not Available' in error.text:
+        if new_soup.find('div', {'class': 'callout'}):
+            if 'Tickets Currently Not Available' in new_soup.find('div', {'class': 'callout'}).text:
+                print('Tickets Currently Not Available')
                 driver.quit()
                 return 0
-        # time.sleep(3000)
 
-        error = soup.find('div', {'class': 'validationError error'})
+        # error = soup.find('div', {'class': 'validationError error'})
 
-        num_of_options = len(driver.find_elements_by_xpath(
-            '//*[@id="{}"]/option'.format(id)))
+        # num_of_options = len(driver.find_elements_by_xpath(
+        #     '//*[@id="{}"]/option'.format(id)))
 
-        if error:
-            # I will check this afre when occure this area.
-            error_txt = error.text.strip()
-            index = 1
-            while True:
-                # TODO Localize if error
-                if tab_click:
-                    driver.find_element_by_xpath(
-                        '//*[@id="ticket-type"]/li[2]/a').click()
-                    soup = BeautifulSoup(driver.page_source, 'html.parser')
+        # if error:
+        #     # I will check this after when occure this area.
+        #     index = 1
+        #     while True:
+        #         # TODO Localize if error
+        #         if tab_click:
+        #             driver.find_element_by_xpath(
+        #                 '//*[@id="ticket-type"]/li[2]/a').click()
+        #             soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-                opt = driver.find_elements_by_xpath(
-                    '//*[@id="{}"]/option'.format(id))[-1 - index]
-                index += 1
-                opt_qty = int(opt.get_attribute('value'))
-                if opt_qty == 0:
-                    driver.quit()
-                    return 0
-                opt.click()
-                try:
-                    driver.find_element_by_xpath(
-                        '//*[@id="view"]/div[5]/form/div[2]/button').click()
-                except:
-                    driver.quit()
-                    print(0, 'This is error cause of miss amont.')
-                    return 0
-                soup = BeautifulSoup(driver.page_source, 'html.parser')
+        #         opt = driver.find_elements_by_xpath(
+        #             '//*[@id="{}"]/option'.format(id))[-1 - index]
+        #         index += 1
+        #         opt_qty = int(opt.get_attribute('value'))
+        #         if opt_qty == 0:
+        #             driver.quit()
+        #             return 0
+        #         opt.click()
+        #         try:
+        #             driver.find_element_by_xpath(
+        #                 '//*[@id="view"]/div[5]/form/div[2]/button').click()
+        #         except:
+        #             driver.quit()
+        #             print(0, 'This is error cause of miss amont.')
+        #             return 0
+        #         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-                error = soup.find('div', {'class': 'validationError error'})
-                if error:
-                    if num_of_options == index:
-                        driver.quit()
-                        return 0
-                    continue
-                else:
-                    break
-        time.sleep(3)
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        try:
-            opt_qty = len(soup.find('table', {
-                'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
-        except:
-            driver.quit()
-            print(0, 'ticket added, It occur techiqual error')
-            return 0
+        #         error = soup.find('div', {'class': 'validationError error'})
+        #         if error:
+        #             if num_of_options == index:
+        #                 driver.quit()
+        #                 return 0
+        #             continue
+        #         else:
+        #             break
+
+        # soup = BeautifulSoup(driver.page_source, 'html.parser')
+        # try:
+        #     opt_qty = len(soup.find('table', {
+        #         'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
+        # except:
+        #     driver.quit()
+        #     print(0, 'ticket added, It occur techiqual error')
+        #     return 0
+
         driver.quit()
         print(opt_qty, 'Tickets added')
-        time.sleep(5)
         return opt_qty  # driver
 
     def check_ticket_qty(self, cap):
@@ -437,15 +434,17 @@ class Etix(Scraper):
             else:
                 self.ticket_url += '?method=switchSelectionMethod&selection_method=byBest'
         driver.get(self.ticket_url)
+
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+
         if 'Public Onsale Begins:' in soup.text.strip():
             print('this tickets has special date')
             driver.quit()
             return '-', False
+
         if self.wait_for_element(driver, 'view'):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
-            # print(f'id=view div>>>>>>>>{soup}')
-            # time.sleep(3000)
+
             view = soup.find('div', {'id': 'view'}).text.strip()
             if 'Tickets Currently Not Available' in view:
                 print('no tickets available')
@@ -454,7 +453,6 @@ class Etix(Scraper):
 
             sold_out = soup.find('h2', {'class': 'header-message'})
             if sold_out:
-
                 if 'sold out' in sold_out.text.lower():
                     print("the tickets is sold out")
                     driver.quit()
@@ -464,7 +462,7 @@ class Etix(Scraper):
             qty = 0
             timer_run_out = False
             oldtime = time.time()
-            next_cycle = True
+            # next_cycle = True
             while True:
                 if time.time() - oldtime >= 600:
                     timer_run_out = True
@@ -479,8 +477,8 @@ class Etix(Scraper):
 
                 qty += loop_qty
                 print('Total QTY:', qty)
-                if next_cycle == False:
-                    break
+                # if next_cycle == False:
+                #     break
                 if loop_qty == 0:
                     break
 
