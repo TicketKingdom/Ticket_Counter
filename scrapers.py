@@ -1022,6 +1022,7 @@ class TicketWeb(Scraper):
                 # Receive response
                 response = job.get_solution_response()
 
+
             print("Received solution", response)
             driver.execute_script(
                 'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
@@ -1076,11 +1077,11 @@ class TicketWeb(Scraper):
             if 'Sorry, there are currently no tickets  available through TicketWeb.' in no_tickets_available.text.strip():
                 driver.quit()
                 print('It can not get the tickets cause of no_tickets_available')
-                return '-'
+                return '-', False
             if 'This event is sold out' in no_tickets_available.text.strip():
                 driver.quit()
                 print('It can not get the tickets cause of sold_out')
-                return '-'
+                return '-', False
 
         driver.quit()
         num_pool = 10
@@ -1097,9 +1098,7 @@ class TicketWeb(Scraper):
                 r = p.map(self.get_qty, lst)
                 for q in r:
                     loop_qty += q
-                    if q == 0:
-                        print("the tickets sold out by scrap!")
-                        break
+                    
             qty += loop_qty
             print('Total QTY:', qty)
             if loop_qty == 0:
