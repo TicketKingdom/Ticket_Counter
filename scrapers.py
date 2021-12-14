@@ -1569,7 +1569,7 @@ class Prekindle(Scraper):
         driver.get(self.ticket_url)
 
         driver.find_element_by_xpath('//a[@class="action-bar-button buybutton"]').click()
-        time.sleep(0.5)
+        time.sleep(1)
         
         
         # add sold out case or another case on first screen
@@ -1594,16 +1594,24 @@ class Prekindle(Scraper):
             opt_qty = int(opt.get_attribute('value'))
             opt.click()
 
-        except Exception as e:
+        except:
             # case of select general adminsion and get the ticket.
-            opt =  driver.find_element_by_xpath('//*[name="howManyPanel:generalAdmissionContainer:sectionsDropDown]/option')[-1].click()
+            opt =  driver.find_elements_by_xpath('//*[@name="howManyPanel:generalAdmissionContainer:sectionsDropDown"]/option')[-1]
+            opt.click()
             time.sleep(0.5)
-            # opt = driver.find_elements_by_xpath(f'//*[@name="pricingListView:{str(int(self.ticket_row)-1)}:quantityDropDown"]/option')[-1]
-            # opt_qty = int(opt.get_attribute('value'))
-            # opt.click()
-
+            opt = driver.find_elements_by_xpath(f'//*[@name="pricingListView:{str(int(self.ticket_row)-1)}:quantityDropDown"]/option')[-1]
+            opt_qty = int(opt.get_attribute('value'))
+            opt.click()
 
         time.sleep(0.5)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        error = soup.find('div', {'class':'headline'})
+        if error:
+            if 'Something went wrong.' in error.text:
+                print('ticket occre the errors')
+                driver.quit()
+                return 0
         # click the submit
         driver.find_element_by_xpath('//input[@class="purchasebutton greenbutton"]').click()
         
@@ -1627,6 +1635,22 @@ class Prekindle(Scraper):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        try:
+            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
+            if 'Sold Out' in sold.find('td', {'class':'pricecell'}).text:
+                print('tickets is solded out.')
+                driver.quit()
+                return '-', False
+            error = soup.find('div', {'class':'headline'})
+            if error:
+                if 'Something went wrong.' in error.text:
+                    print('ticket occre the errors')
+                    driver.quit()
+                    return 0
+        except:
+            pass
+
         driver.find_element_by_xpath('//a[@class="action-bar-button buybutton"]').click()
         time.sleep(0.5)
 
@@ -1639,6 +1663,12 @@ class Prekindle(Scraper):
                 print('tickets is solded out.')
                 driver.quit()
                 return '-', False
+            error = soup.find('div', {'class':'headline'})
+            if error:
+                if 'Something went wrong.' in error.text:
+                    print('ticket occre the errors')
+                    driver.quit()
+                    return 0
         except:
             pass
 
