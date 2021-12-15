@@ -1308,7 +1308,7 @@ class SeeTickets(Scraper):
                     '//*[@id="addtocartbnt"]')
                 driver.execute_script("arguments[0].click();", add_To_cart)
             except Exception as e:
-                print(e)
+                # print(e)
                 pass
             time.sleep(4)
             try:
@@ -1352,6 +1352,13 @@ class SeeTickets(Scraper):
                 if try_agian:
                     if 'TRY AGAIN' in try_agian.text:
                         print('can\'t check out')
+                        driver.quit()
+                        return 0
+
+                cancel_ticket = soup.find('div',{'class': 'notice-bar'})
+                if cancel_ticket:
+                    if 'Your transaction has been canceled because' in cancel_ticket.text:
+                        print('ticket is cannceld')
                         driver.quit()
                         return 0
             except:
@@ -1614,12 +1621,17 @@ class Prekindle(Scraper):
         
         
         # duel the erros or sold out
+        time.sleep(2)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         error = soup.find('li', {'class': 'feedbackPanelERROR'})
         if error:
             if 'Capacity for this section has been reached. Please make another section.' in error.text:
                 print('tickets is solded out by scraper.')
+                driver.quit()
+                return 0
+            if 'section \"General Admission\" was reached prior to purchase' in error.text:
+                print('tickets is solded out by scraper and can\'t reach tickets')
                 driver.quit()
                 return 0
         
