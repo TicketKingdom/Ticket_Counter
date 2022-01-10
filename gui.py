@@ -1,8 +1,4 @@
-# https://wxpython.org/Phoenix/docs/html/wx.dataview.DataViewCtrl.html
-# https://wxpython.org/Phoenix/docs/html/wx.lib.mixins.listctrl.ColumnSorterMixin.html
-import locale
 import pickle
-import re
 import smtplib
 import threading
 import time
@@ -65,13 +61,18 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         bSizer6.Add(self.m_button_start, 0, wx.ALL, 5)
 
         self.m_gauge1 = wx.Gauge(
-            self, wx.ID_ANY, 100, wx.DefaultPosition, wx.Size(300, 25), wx.GA_HORIZONTAL)
+            self, wx.ID_ANY, 100, wx.DefaultPosition, wx.Size(200, 25), wx.GA_HORIZONTAL)
         self.m_gauge1.SetValue(0)
         bSizer6.Add(self.m_gauge1, 0, wx.ALL, 5)
 
         self.m_comboBox10 = wx.ComboBox(self, wx.ID_ANY, u"Capmonster", wx.DefaultPosition, wx.Size(
             120, 25), [u'Capmonster', u'Anticaptcha'], 0)
         bSizer6.Add(self.m_comboBox10, 0, wx.ALL, 5)
+
+        self.amount_select = wx.TextCtrl(self, wx.ID_ANY, u"", wx.DefaultPosition, wx.Size(
+            80, 23))
+        self.amount_select.SetHint('Amounts')
+        bSizer6.Add(self.amount_select, 0, wx.ALL, 5)
 
         self.m_comboBox1 = wx.ComboBox(self, wx.ID_ANY, u"Sort Column...", wx.DefaultPosition, wx.Size(
             120, 25), [u'Date', u'Added on', u'Last Check', 'Quantity'], 0)
@@ -242,6 +243,8 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
     def update_gui(self):
         self.shutdown_event = threading.Event()
+        captch_way = self.m_comboBox10.GetValue()
+
         while True:
             for key, value in self.event_data.items():
                 url = value[4]
@@ -259,7 +262,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                 print('checking tickets for', value[0])
                 checker = check_website(
                     url, self.settings['Proxy'], value[6], value[10])
-                qty, timer = checker.check_ticket_qty()
+                qty, timer = checker.check_ticket_qty(captch_way)
                 timer_str = "Yes" if timer else "No"
                 print(f">>>>>>>>>>>>>>>>>>{qty}<<<<<<<<<<<<<<<<<<{timer}")
                 evt_data = (value[0], value[1], str(qty), value[3], value[4], value[5], value[6], value[7],
@@ -280,6 +283,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         # self.m_button_update.Disable()
         self.shutdown_event = threading.Event()
         captch_way = self.m_comboBox10.GetValue()
+        choose_amount = self.amount_select.GetValue()
         selected = self.list_ctrl.GetFirstSelected()
         if selected >= 0:
             url = self.list_ctrl.GetItemText(selected, 4)
@@ -290,7 +294,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     print('checking tickets for', value[0], url)
                     checker = check_website(
                         url, self.settings['Proxy'], value[6], value[10])
-                    qty, timer = checker.check_ticket_qty(captch_way)
+                    qty, timer = checker.check_ticket_qty(captch_way, choose_amount)
                     if timer is None:
                         timer_str = '-'
                     else:
