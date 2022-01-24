@@ -19,6 +19,7 @@ from anticaptcha import capmonster_api_key
 
 num_pool = 10
 
+
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
         return Etix(url, proxies, row, log, password)
@@ -168,7 +169,6 @@ class Etix(Scraper):
 
     def input_password(self, driver):
         if self.password:
-
             pwd_num = len(driver.find_elements_by_xpath(
                 '//*[@placeholder="Password"]'))
             max_ticket_row = len(driver.find_elements_by_xpath(
@@ -184,17 +184,17 @@ class Etix(Scraper):
         driver.get(self.ticket_url)
         self.input_password(driver)
         time.sleep(0.5)
-        origin_content=''
+        origin_content = ''
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         # detect the fake captcha using url
         try:
-            origin_content = soup.find('div', {'class':'grecaptcha-logo'}).find_next({'iframe'})['src']
+            origin_content = soup.find(
+                'div', {'class': 'grecaptcha-logo'}).find_next({'iframe'})['src']
         except:
             pass
-        
-        #detect the ticket status
-        sold_out = soup.find('h2', {'class': 'header-message'})
 
+        # detect the ticket status
+        sold_out = soup.find('h2', {'class': 'header-message'})
         if sold_out:
             if 'sold out' in sold_out.text.lower():
                 print('the ticket is solded out')
@@ -228,7 +228,7 @@ class Etix(Scraper):
                 driver.find_element_by_xpath(
                     '//*[@id="ticket-type"]/li[2]/a').click()
             except:
-                print(0, '2Tickets added...')
+                print('there is no tickets...')
                 driver.quit()
                 return 0
 
@@ -237,9 +237,9 @@ class Etix(Scraper):
                 id = soup.find('form', {'name': 'frmPickTicket'}).find_all(
                     'select')[int(self.ticket_row) - 1]['id']
             except:
-                print(0, '3Tickets added...')
+                print('Can\'t select the Tickets on tab click...')
                 return 0
-        
+
         opt = driver.find_elements_by_xpath(
             '//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
@@ -247,9 +247,10 @@ class Etix(Scraper):
 
         if origin_content:
             if 'invisible' in origin_content:
-                print('this is fake captcha')
+                print('this is fake captcha.')
                 pass
-                    
+                # click more button on fake captcha or solve the captcha
+
             else:
                 print('this is real captcha')
                 if soup.find('div', {'class': 'g-recaptcha'}):
@@ -265,8 +266,7 @@ class Etix(Scraper):
                             print(0, 'Tickets added....')
                             driver.quit()
                             return 0
-                    else:
-                        # solve this anticapcha
+                    else:                         # solve this anticapcha
                         client = AnticaptchaClient(api_key)
                         task = NoCaptchaTaskProxylessTask(
                             self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
@@ -280,16 +280,15 @@ class Etix(Scraper):
                             print(0, 'Tickets added....')
                             driver.quit()
                             return 0
-                    print("Received solution", response)
+                    print("Received solution--->", response)
 
                     driver.execute_script(
                         'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
                     driver.execute_script(
                         'document.getElementById("submitBtn").removeAttribute("disabled")')
                     time.sleep(0.5)
-        # click more button on fake captcha or solve the captcha 
-        # add the code
-
+        
+        
         # click confirm button
         try:
             # click cookie button and click submit
@@ -334,7 +333,7 @@ class Etix(Scraper):
         #                 print(0, 'Tickets added....')
         #                 driver.quit()
         #                 return 0
-                        
+
         #         print("Received solution", response)
         #         driver.execute_script(
         #             'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
@@ -352,7 +351,7 @@ class Etix(Scraper):
         #             return 0
 
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
-        
+
         if new_soup.find('div', {'class': 'callout error'}):
             driver.quit()
             print(
@@ -372,10 +371,11 @@ class Etix(Scraper):
                 return 0
         print(self.choose_amount)
 
-        if new_soup.find('div', {'class':'errorBox'}):
-            if 'the number of tickets you requested is over the per order limit' in new_soup.find('div', {'class':'errorBox'}).text:
+        if new_soup.find('div', {'class': 'errorBox'}):
+            if 'the number of tickets you requested is over the per order limit' in new_soup.find('div', {'class': 'errorBox'}).text:
                 error = soup.find('div', {'class': 'validationError error'})
-                num_of_options = len(driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id)))
+                num_of_options = len(driver.find_elements_by_xpath(
+                    '//*[@id="{}"]/option'.format(id)))
                 # print(f'>>>>>>>>>>>>>>>{num_of_options}')
                 # time.sleep(3000)
                 # if error:
@@ -404,7 +404,7 @@ class Etix(Scraper):
                 #             continue
                 #         else:
                 #             break
-                      
+
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             opt_qty = len(soup.find('table', {
@@ -1015,7 +1015,6 @@ class TicketWeb(Scraper):
                 # Receive response
                 response = job.get_solution_response()
 
-
             print("Received solution", response)
             driver.execute_script(
                 'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
@@ -1091,7 +1090,7 @@ class TicketWeb(Scraper):
                 r = p.map(self.get_qty, lst)
                 for q in r:
                     loop_qty += q
-                    
+
             qty += loop_qty
             print('Total QTY:', qty)
             if loop_qty == 0:
@@ -1350,7 +1349,7 @@ class SeeTickets(Scraper):
                         driver.quit()
                         return 0
 
-                cancel_ticket = soup.find('div',{'class': 'notice-bar'})
+                cancel_ticket = soup.find('div', {'class': 'notice-bar'})
                 if cancel_ticket:
                     if 'Your transaction has been canceled because' in cancel_ticket.text:
                         print('ticket is cannceld')
@@ -1567,17 +1566,18 @@ class Prekindle(Scraper):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 
-        driver.find_element_by_xpath('//a[@class="action-bar-button buybutton"]').click()
+        driver.find_element_by_xpath(
+            '//a[@class="action-bar-button buybutton"]').click()
         time.sleep(1)
-        
-        
+
         # add sold out case or another case on first screen
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         try:
-            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
+            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
+                'tbody')[int(self.ticket_row)]
             if sold:
-                if 'Sold Out' in sold.find('td', {'class':'pricecell'}).text:
+                if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
                     print('tickets is solded out.')
                     driver.quit()
                     return 0
@@ -1589,32 +1589,35 @@ class Prekindle(Scraper):
 
         try:
             # case of normal type(direclty select the select option)
-            opt = driver.find_elements_by_xpath(f'//*[@name="sectionListView:{str(int(self.ticket_row)-1)}:pricingListView:0:optionContainer:quantityDropDown"]/option')[-1]
+            opt = driver.find_elements_by_xpath(
+                f'//*[@name="sectionListView:{str(int(self.ticket_row)-1)}:pricingListView:0:optionContainer:quantityDropDown"]/option')[-1]
             opt_qty = int(opt.get_attribute('value'))
             opt.click()
 
         except:
             # case of select general adminsion and get the ticket.
-            opt =  driver.find_elements_by_xpath('//*[@name="howManyPanel:generalAdmissionContainer:sectionsDropDown"]/option')[-1]
+            opt = driver.find_elements_by_xpath(
+                '//*[@name="howManyPanel:generalAdmissionContainer:sectionsDropDown"]/option')[-1]
             opt.click()
             time.sleep(0.5)
-            opt = driver.find_elements_by_xpath(f'//*[@name="pricingListView:{str(int(self.ticket_row)-1)}:quantityDropDown"]/option')[-1]
+            opt = driver.find_elements_by_xpath(
+                f'//*[@name="pricingListView:{str(int(self.ticket_row)-1)}:quantityDropDown"]/option')[-1]
             opt_qty = int(opt.get_attribute('value'))
             opt.click()
 
         time.sleep(0.5)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-        error = soup.find('div', {'class':'headline'})
+        error = soup.find('div', {'class': 'headline'})
         if error:
             if 'Something went wrong.' in error.text:
                 print('ticket occre the errors')
                 driver.quit()
                 return 0
         # click the submit
-        driver.find_element_by_xpath('//input[@class="purchasebutton greenbutton"]').click()
-        
-        
+        driver.find_element_by_xpath(
+            '//input[@class="purchasebutton greenbutton"]').click()
+
         # duel the erros or sold out
         time.sleep(2)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -1629,7 +1632,7 @@ class Prekindle(Scraper):
                 print('tickets is solded out by scraper and can\'t reach tickets')
                 driver.quit()
                 return 0
-        
+
         driver.quit()
         print(opt_qty, 'Tickets added')
         return opt_qty
@@ -1641,12 +1644,13 @@ class Prekindle(Scraper):
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
-            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
-            if 'Sold Out' in sold.find('td', {'class':'pricecell'}).text:
+            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
+                'tbody')[int(self.ticket_row)]
+            if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
                 print('tickets is solded out.')
                 driver.quit()
                 return '-', False
-            error = soup.find('div', {'class':'headline'})
+            error = soup.find('div', {'class': 'headline'})
             if error:
                 if 'Something went wrong.' in error.text:
                     print('ticket occre the errors')
@@ -1655,19 +1659,20 @@ class Prekindle(Scraper):
         except:
             pass
 
-        driver.find_element_by_xpath('//a[@class="action-bar-button buybutton"]').click()
+        driver.find_element_by_xpath(
+            '//a[@class="action-bar-button buybutton"]').click()
         time.sleep(0.5)
-
 
         # add sold out case or another case on first screen
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
-            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
-            if 'Sold Out' in sold.find('td', {'class':'pricecell'}).text:
+            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
+                'tbody')[int(self.ticket_row)]
+            if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
                 print('tickets is solded out.')
                 driver.quit()
                 return '-', False
-            error = soup.find('div', {'class':'headline'})
+            error = soup.find('div', {'class': 'headline'})
             if error:
                 if 'Something went wrong.' in error.text:
                     print('ticket occre the errors')
@@ -1676,8 +1681,7 @@ class Prekindle(Scraper):
         except:
             pass
 
-
-        #loop content
+        # loop content
         driver.quit()
         lst = [x for x in range(num_pool)]
         qty = 0
