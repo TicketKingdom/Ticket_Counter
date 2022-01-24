@@ -127,7 +127,8 @@ def check_ticketweb(url):
         name = soup.find('h1', {'class': 'title'}).find(
             'span', {'class': 'big'}).text.strip()
     except:
-        name = soup.find('h1', {'class': 'title mttext-ellipsis mttext-ellipsis-3'}).findNext('span', {'class': 'big'}).text.strip()
+        name = soup.find('h1', {'class': 'title mttext-ellipsis mttext-ellipsis-3'}).find(
+            'span', {'class': 'big'}).text.strip()
 
     date = soup.find(
         'div', {'class': 'info-item info-time'}).find('h4').text.strip()
