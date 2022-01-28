@@ -185,6 +185,7 @@ class Etix(Scraper):
         self.input_password(driver)
         time.sleep(0.5)
         origin_content = ''
+
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         # detect the fake captcha using url
         try:
@@ -222,12 +223,14 @@ class Etix(Scraper):
                 'select')[int(self.ticket_row) - 1]['id']
             tab_click = False
         except:
-            # two tabs is existed and price level.
+            # two tabs is existed and select price level.
             tab_click = True
             try:
-                driver.find_element_by_xpath(
-                    '//*[@id="ticket-type"]/li[2]/a').click()
-            except:
+                price_level = driver.find_element_by_xpath(
+                    '//*[@id="ticket-type"]/li[2]/a')
+                driver.execute_script("arguments[0].click();", price_level)
+            except Exception as e:
+                print(e)
                 print('there is no tickets...')
                 driver.quit()
                 return 0
@@ -245,15 +248,62 @@ class Etix(Scraper):
         opt_qty = int(opt.get_attribute('value'))
         opt.click()
 
+        #Solve the capchat area(fake and real)
         if origin_content:
             if 'invisible' in origin_content:
-                print('this is fake captcha.')
+                print('this is fake captcha.') # solve the fake captcha, but there is not code yet
                 pass
-                # click more button on fake captcha or solve the captcha
+                # if didn't get the ticket, solve the rest fake captcha
+                # if origin_content:
+                #   if 'invisible' in origin_content:
+                #     if soup.find('div', {'class': 'g-recaptcha'}):
+                #         if self.cap == "Capmonster":  # solve this capmonster
+                #             capmonster = NoCaptchaTaskProxyless(
+                #                 client_key=capmonster_api_key)
+                #             taskId = capmonster.createTask(
+                #                 website_key='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG', website_url=self.ticket_url)
+                #             print("Waiting to solution by capmonster workers")
+                #             try:
+                #                 response = capmonster.joinTaskResult(taskId=taskId)
+                #             except:
+                #                 print(0, 'Tickets added....')
+                #                 driver.quit()
+                #                 return 0
+                #         else:
+                #             # solve this anticapcha
+                #             client = AnticaptchaClient(api_key)
+                #             task = NoCaptchaTaskProxylessTask(
+                #                 self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+                #             try:
+                #                 job = client.createTask(task)
+                #                 print("Waiting to solution by Anticaptcha workers")
+                #                 job.join()
+                #                 # Receive response
+                #                 response = job.get_solution_response()
+                #             except:
+                #                 print(0, 'Tickets added....')
+                #                 driver.quit()
+                #                 return 0
 
-            else:
-                print('this is real captcha')
-                if soup.find('div', {'class': 'g-recaptcha'}):
+                #         print("Received solution", response)
+                #         driver.execute_script(
+                #             'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+                #         try:
+                #             iframe = driver.find_element_by_xpath(
+                #                 '//div[@class="grecaptcha-logo"]/iframe')
+                #             time.sleep(3000)
+                #             driver.switch_to.frame(iframe)
+                #             driver.find_element_by_id(
+                #                 "recaptcha-verify-button").click()
+
+                #         except Exception as e:
+                #             print(0, '4Tickets added....')
+                #             driver.quit()
+                #             return 0                
+
+        else:
+            print('this is real captcha') # solve the real captcha
+            if soup.find('div', {'class': 'g-recaptcha'}):
                     if self.cap == "Capmonster":  # solve this capmonster
                         capmonster = NoCaptchaTaskProxyless(
                             client_key=capmonster_api_key)
@@ -291,7 +341,6 @@ class Etix(Scraper):
         
         # click confirm button
         try:
-            # click cookie button and click submit
             driver.find_element_by_id("allow_cookies").click()
             time.sleep(0.5)
             driver.find_element_by_name("addSeatBtn").click()
@@ -302,54 +351,7 @@ class Etix(Scraper):
             driver.quit()
             return 0
 
-        # if didn't get the ticket, solve the rest fake captcha
-        # if origin_content:
-        #   if 'invisible' in origin_content:
-        #     if soup.find('div', {'class': 'g-recaptcha'}):
-        #         if self.cap == "Capmonster":  # solve this capmonster
-        #             capmonster = NoCaptchaTaskProxyless(
-        #                 client_key=capmonster_api_key)
-        #             taskId = capmonster.createTask(
-        #                 website_key='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG', website_url=self.ticket_url)
-        #             print("Waiting to solution by capmonster workers")
-        #             try:
-        #                 response = capmonster.joinTaskResult(taskId=taskId)
-        #             except:
-        #                 print(0, 'Tickets added....')
-        #                 driver.quit()
-        #                 return 0
-        #         else:
-        #             # solve this anticapcha
-        #             client = AnticaptchaClient(api_key)
-        #             task = NoCaptchaTaskProxylessTask(
-        #                 self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
-        #             try:
-        #                 job = client.createTask(task)
-        #                 print("Waiting to solution by Anticaptcha workers")
-        #                 job.join()
-        #                 # Receive response
-        #                 response = job.get_solution_response()
-        #             except:
-        #                 print(0, 'Tickets added....')
-        #                 driver.quit()
-        #                 return 0
-
-        #         print("Received solution", response)
-        #         driver.execute_script(
-        #             'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-        #         try:
-        #             iframe = driver.find_element_by_xpath(
-        #                 '//div[@class="grecaptcha-logo"]/iframe')
-        #             time.sleep(3000)
-        #             driver.switch_to.frame(iframe)
-        #             driver.find_element_by_id(
-        #                 "recaptcha-verify-button").click()
-
-        #         except Exception as e:
-        #             print(0, '4Tickets added....')
-        #             driver.quit()
-        #             return 0
-
+        # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         if new_soup.find('div', {'class': 'callout error'}):
@@ -416,6 +418,7 @@ class Etix(Scraper):
             # print('It occur techiqual error(can\'t solve the fake captcha)')
             # return 0
             pass
+        driver.quit()
         print(opt_qty, 'Tickets added')
         return opt_qty  # driver
 
@@ -499,6 +502,7 @@ class Eventbrite(Scraper):
                 driver.find_element_by_xpath(
                     '//*[@data-automation="checkout-widget-submit-promo-button"]').click()
 
+    # type1
     def get_qty(self, _id):
         print('eventbrite type1')
         driver = self.open_driver(headless=True)
@@ -568,6 +572,7 @@ class Eventbrite(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
+    # type2
     def get_qty_new(self, _id):
         driver = self.open_driver(headless=True)
         self.drivers.append(driver)
@@ -1167,6 +1172,7 @@ class BigTicket(Scraper):
             return 0
 
         time.sleep(0.5)
+        
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         if soup.find('div', {'class': 'g-recaptcha'}):
@@ -1205,7 +1211,19 @@ class BigTicket(Scraper):
                 'btn btn-primary btn-submit').click()
             time.sleep(3)
 
+        # soup = BeautifulSoup(driver.page_source, 'html.parser')
+        # try:
+        #     agree = driver.find_element_by_class_name('btn btn-primary pull-right')
+        #     driver.execute_script("arguments[0].click();", agree)
+
+        #     print(1)
+        # except: 
+        #     print(2)
+
+        #     pass
+
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+            
         real_amount = 0
         try:
             show_counter = soup.find('div', {'class': 'countdown-timer-clock'})
