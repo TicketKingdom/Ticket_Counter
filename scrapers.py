@@ -862,6 +862,7 @@ class FrontGate(Scraper):
 
         time.sleep(1)
         print('click the add tickets')
+        # time.sleep(3000)
         try:
             driver.find_element_by_class_name(
                 'eds-btn eds-btn--button eds-btn--fill').click()
@@ -879,14 +880,14 @@ class FrontGate(Scraper):
         except:
             pass
 
-        if self.wait_for_element(driver, '//*[@id="cart-success-header"/h2]', By.XPATH):
+        if self.wait_for_element(driver, '//*[@id="cart-success-header"/h2]', By.XPATH) or self.wait_for_element(driver, '//div[@role="banner"]', By.XPATH):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             real_amount = soup.find(
                 'span', {'class': 'cartTotal badge'}).decode_contents()
             qty = int(real_amount)
-            # print(f"succesed>>>>>>>>>>{real_amount}")
+            print(f"succesed>>>>>>>>>>{real_amount}")
             time.sleep(3)
-
+        # time.sleep(3000)
         driver.quit()
         print(qty, 'Tickets added')
         return qty
