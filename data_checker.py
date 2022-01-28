@@ -67,6 +67,10 @@ def check_bigticket(url):
     try:
         name = soup.find('div', {'class': 'event-titles'}
                          ).find_next('h1').decode_contents()
+    except:
+        name = soup.find('div', {'class': 'event-info'}
+                         ).find_next('h1').decode_contents()
+    try:
         # date = soup.find('div', {'class': 'event-titles'}).find_next('h4').decode_contents().split('<')[0]
         date = soup.find('div', {'class': 'event-titles'}
                          ).find_next('strong').decode_contents().split('on')[1]
@@ -74,16 +78,17 @@ def check_bigticket(url):
         date = date.split('.')[0]
 
         date = parser.parse(date).strftime('%Y-%m-%d')
-
     except:
-        name = soup.find('div', {'class': 'event-info'}
-                         ).find_next('h1').decode_contents()
+    
         date = soup.find('span', {'class': 'event-dates'}
                          ).decode_contents().split('|')[0]
 
         date = parser.parse(date).strftime('%Y-%m-%d')
+    try:
         venue = soup.find('span', {'class': 'event-city'}).decode_contents()
         name = name + " {} ".format(venue)
+    except:
+        pass
     return name, date
 
 
