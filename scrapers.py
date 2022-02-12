@@ -252,10 +252,10 @@ class Etix(Scraper):
             if 'invisible' in origin_content:
                 print('this is fake captcha.') # solve the fake captcha, but there is not code yet
                 # pass           
-                solver = captcha_harvesters(solving_site="capmonster", api_key=capmonster_api_key, sitekey="6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j", captcha_url="https://www.google.com/recaptcha/api2/demo", invisible_captcha=True)
-                text_cap_answer = solver.get_normal(self.ticket_url)
-                print("Svoled:", text_cap_answer)
-                time.sleep(3000)
+                # solver = captcha_harvesters(solving_site="capmonster", api_key=capmonster_api_key, sitekey="6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j", captcha_url="https://www.google.com/recaptcha/api2/demo", invisible_captcha=True)
+                # text_cap_answer = solver.get_normal(self.ticket_url)
+                # print("Svoled:", text_cap_answer)
+                # time.sleep(3000)
 
         else:
             print('this is real captcha') # solve the real captcha
