@@ -69,10 +69,10 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
             120, 25), [u'Capmonster', u'Anticaptcha'], 0)
         bSizer6.Add(self.m_comboBox10, 0, wx.ALL, 5)
 
-        self.amount_select = wx.TextCtrl(self, wx.ID_ANY, u"", wx.DefaultPosition, wx.Size(
-            80, 23))
-        self.amount_select.SetHint('Amounts')
-        bSizer6.Add(self.amount_select, 0, wx.ALL, 5)
+        # self.amount_select = wx.TextCtrl(self, wx.ID_ANY, u"", wx.DefaultPosition, wx.Size(
+        #     80, 23))
+        # self.amount_select.SetHint('Amounts')
+        # bSizer6.Add(self.amount_select, 0, wx.ALL, 5)
 
         self.m_comboBox1 = wx.ComboBox(self, wx.ID_ANY, u"Sort Column...", wx.DefaultPosition, wx.Size(
             120, 25), [u'Date', u'Added on', u'Last Check', 'Quantity'], 0)
@@ -283,7 +283,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         # self.m_button_update.Disable()
         self.shutdown_event = threading.Event()
         captch_way = self.m_comboBox10.GetValue()
-        choose_amount = self.amount_select.GetValue()
+        choose_amount = 0
         selected = self.list_ctrl.GetFirstSelected()
         if selected >= 0:
             url = self.list_ctrl.GetItemText(selected, 4)

@@ -301,7 +301,7 @@ class Etix(Scraper):
             driver.find_element_by_id("allow_cookies").click()
             time.sleep(0.5)
             driver.find_element_by_name("addSeatBtn").click()
-            time.sleep(0.5)
+            time.sleep(1.5)
 
         except Exception as e:
             print('Submit button is diferent or disabled. 0 Tickets added....')
@@ -312,9 +312,9 @@ class Etix(Scraper):
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         if new_soup.find('div', {'class': 'callout error'}):
-            driver.quit()
             print(
                 'you due to the high volume of requests for the same seats or session expired')
+            driver.quit()
             return 0
 
         if new_soup.find('div', {'class': 'callout'}):
@@ -324,41 +324,44 @@ class Etix(Scraper):
                 return 0
 
         if new_soup.find('div', {'class': 'validationError error'}):
-            if 'the number of tickets you requested is over the per order limit' in new_soup.find('div', {'class': 'errorBox'}).text or 'Sorry, there are not enough adjacent seats available for tickets of that type. Please change the type of tickets you are requesting, or reduce the number of tickets and try again.' in new_soup.find('div', {'class': 'errorBox'}).text:
-                error = soup.find('div', {'class': 'validationError error'})
-                num_of_options = len(driver.find_elements_by_xpath(
-                    '//*[@id="{}"]/option'.format(id)))
-                if error:
-                    index = 1
-                    while True:
-                        # TODO Localize if error
-                        if tab_click:
-                            driver.find_element_by_xpath(
-                                '//*[@id="ticket-type"]/li[2]/a').click()
-                            soup = BeautifulSoup(
-                                driver.page_source, 'html.parser')
+            if new_soup.find('div', {'class', 'errorBox'}):
+                # print('Reducing ticket mode>>>1')
+                if 'the number of tickets you requested is over the per order limit' in new_soup.find('div', {'class': 'errorBox'}).text or ('Sorry, there are not enough' in new_soup.find('div', {'class': 'errorBox'}).text):
+                    # print("Reducing ticket mode>>>2")
+                    error = soup.find('div', {'class': 'validationError error'})
+                    num_of_options = len(driver.find_elements_by_xpath(
+                        '//*[@id="{}"]/option'.format(id)))
+                    if error:
+                        index = 1
+                        while True:
+                            # TODO Localize if error
+                            if tab_click:
+                                driver.find_element_by_xpath(
+                                    '//*[@id="ticket-type"]/li[2]/a').click()
+                                soup = BeautifulSoup(
+                                    driver.page_source, 'html.parser')
 
-                        opt = driver.find_elements_by_xpath(
-                            '//*[@id="{}"]/option'.format(id))[-1 - index]
-                        index += 1
-                        opt_qty = int(opt.get_attribute('value'))
-                        if opt_qty == 0:
-                            driver.quit()
-                            return 0
-                        opt.click()
-                        driver.find_element_by_xpath(
-                            '//button[@type="submit"]').click()
-                        time.sleep(0.5)
-                        soup = BeautifulSoup(driver.page_source, 'html.parser')
-                        error = soup.find(
-                            'div', {'class': 'validationError error'})
-                        if error:
-                            if num_of_options == index:
+                            opt = driver.find_elements_by_xpath(
+                                '//*[@id="{}"]/option'.format(id))[-1 - index]
+                            index += 1
+                            opt_qty = int(opt.get_attribute('value'))
+                            if opt_qty == 0:
                                 driver.quit()
                                 return 0
-                            continue
-                        else:
-                            break
+                            opt.click()
+                            driver.find_element_by_xpath(
+                                '//button[@type="submit"]').click()
+                            time.sleep(0.5)
+                            soup = BeautifulSoup(driver.page_source, 'html.parser')
+                            error = soup.find(
+                                'div', {'class': 'validationError error'})
+                            if error:
+                                if num_of_options == index:
+                                    driver.quit()
+                                    return 0
+                                continue
+                            else:
+                                break
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
@@ -778,7 +781,7 @@ class FrontGate(Scraper):
                 driver.quit()
                 print(qty, 'Tickets added')
                 return qty
-
+        time.sleep(3)
         driver.find_element_by_id('btn-add-cart').click()
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -790,8 +793,10 @@ class FrontGate(Scraper):
                     'document.getElementById("div-btn-modal-submit").removeAttribute("disabled")')
                 capmonster = NoCaptchaTaskProxyless(
                     client_key=capmonster_api_key)
+                # taskId = capmonster.createTask(
+                #     website_key='6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU', website_url=self.ticket_url)
                 taskId = capmonster.createTask(
-                    website_key='6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU', website_url=self.ticket_url)
+                    website_key='6LeoXOodAAAAALfpnJFDs-revkub2Cr-anY0yBeL', website_url=self.ticket_url)
                 print("Waiting to solution by capmonster workers")
                 response = capmonster.joinTaskResult(taskId=taskId)
                 print("Received solution", response)
@@ -816,7 +821,7 @@ class FrontGate(Scraper):
                 time.sleep(1)
                 driver.find_element_by_id('div-btn-modal-submit').click()
 
-        time.sleep(1)
+        time.sleep(2.5)
         print('click the add tickets')
         # time.sleep(3000)
         try:
@@ -824,7 +829,7 @@ class FrontGate(Scraper):
                 'eds-btn eds-btn--button eds-btn--fill').click()
         except:
             pass
-        time.sleep(3)
+        time.sleep(4)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             error_box = soup.find('div', {'class': 'div-add-cart-message'})
