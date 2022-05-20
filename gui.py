@@ -35,7 +35,9 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
     def __init__(self, parent):
         self.event_data = {}
         self.col = wx.Colour(255, 255, 255)
+        self.color = wx.Colour(255, 255, 255)
         self.decrease_status = 0
+        self.proxy_status = 0
         # self.save_event_data() # When you want to create new data file
         with open('settings.pickle', 'rb') as f:
             self.settings = pickle.load(f)
@@ -51,7 +53,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         bSizer2 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer6 = wx.BoxSizer(wx.HORIZONTAL)
-
 
         self.m_button_update = wx.Button(
             self, wx.ID_ANY, u"Quick Check", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -72,11 +73,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
             120, 25), [u'Capmonster', u'Anticaptcha'], 0)
         bSizer6.Add(self.m_comboBox10, 0, wx.ALL, 5)
 
-        # self.amount_select = wx.TextCtrl(self, wx.ID_ANY, u"", wx.DefaultPosition, wx.Size(
-        #     80, 23))
-        # self.amount_select.SetHint('Amounts')
-        # bSizer6.Add(self.amount_select, 0, wx.ALL, 5)
-
         self.m_comboBox1 = wx.ComboBox(self, wx.ID_ANY, u"Sort Column...", wx.DefaultPosition, wx.Size(
             120, 25), [u'Date', u'Added on', u'Last Check', 'Quantity'], 0)
         bSizer6.Add(self.m_comboBox1, 0, wx.ALL, 5)
@@ -91,10 +87,15 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         self.m_button_sort_down.Bind(wx.EVT_BUTTON, self.sort_down)
         bSizer6.Add(self.m_button_sort_down, 0, wx.ALL, 5)
 
-
-        self.toogle_button = wx.ToggleButton(self, wx.ID_ANY, u"Decrease Way", wx.DefaultPosition, wx.Size(200, 25), 0)
+        self.toogle_button = wx.ToggleButton(
+            self, wx.ID_ANY, u"Decrease Way", wx.DefaultPosition, wx.Size(100, 25), 0)
         self.toogle_button.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleRed)
         bSizer6.Add(self.toogle_button, 0, wx.ALL, 5)
+
+        self.toogle_proxy_button = wx.ToggleButton(
+            self, wx.ID_ANY, u"Proxy Way", wx.DefaultPosition, wx.Size(100, 25), 0)
+        self.toogle_proxy_button.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleProxyRed)
+        bSizer6.Add(self.toogle_proxy_button, 0, wx.ALL, 5)
 
         bSizer2.Add(bSizer6, 0, wx.ALL, 5)
         bSizer3 = wx.BoxSizer(wx.HORIZONTAL)
@@ -171,7 +172,25 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
         self.toogle_button.SetBackgroundColour(self.col)
         self.toogle_button.Refresh()
+
+    def ToggleProxyRed(self, e):
+        obj1 = e.GetEventObject()
+        isPressed = obj1.GetValue()
+
+        green = self.color.Green()
+        blue = self.color.Blue()
+
+        if isPressed:
+            self.proxy_status = 1
+            self.color.Set(0, green, 255)
+        else:
+            self.proxy_status = 0
+            self.color.Set(0, green, blue)
+
+        self.toogle_proxy_button.SetBackgroundColour(self.color)
+        self.toogle_proxy_button.Refresh()
     # Threading
+
     def startThread(self, event):
         th = threading.Thread(target=self.start, args=(event,))
         th.start()
@@ -310,6 +329,9 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         choose_amount = 0
         selected = self.list_ctrl.GetFirstSelected()
         decrease_status = self.decrease_status
+        proxy_status = self.proxy_status
+        # print('proxy_status>>>>>>>>>>>>>>', proxy_status)
+        # print('decrease_status>>>>>>>>>>>>>>', decrease_status)
         if selected >= 0:
             url = self.list_ctrl.GetItemText(selected, 4)
             data_key = None
@@ -319,7 +341,8 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     print('checking tickets for', value[0], url)
                     checker = check_website(
                         url, self.settings['Proxy'], value[6], value[10])
-                    qty, timer = checker.check_ticket_qty(captch_way, choose_amount, decrease_status)
+                    qty, timer = checker.check_ticket_qty(
+                        captch_way, choose_amount, decrease_status, proxy_status)
                     if timer is None:
                         timer_str = '-'
                     else:

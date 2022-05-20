@@ -55,7 +55,7 @@ class Scraper(object):
     def log_message(self, msg):
         pass
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status):
+    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
         pass
 
     def wait_for_element(self, driver, element, type=By.ID):
@@ -180,7 +180,7 @@ class Etix(Scraper):
             #driver.find_elements_by_xpath('//*[@placeholder="Password"]')[int(pwd_num) - 1].send_keys(self.password)
 
     def get_qty(self, box_id):
-        driver = self.open_driver()
+        driver = self.open_driver(use_proxy=self.proxy_status)
         driver.get(self.ticket_url)
         self.input_password(driver)
         time.sleep(0.5)
@@ -382,10 +382,11 @@ class Etix(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty  # driver
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status):
+    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
         self.cap = cap
         self.choose_amount = choose_amount
         self.decrease_status = decrease_status
+        self.proxy_status = proxy_status
         driver = self.open_driver()
         if '?method=switchSelectionMethod&selection_method=byBest' not in self.ticket_url:
             if '?' in self.ticket_url:
@@ -653,7 +654,7 @@ class Eventbrite(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status):
+    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
         driver = self.open_driver()
         self.drivers = []
         qty = 0
@@ -860,7 +861,7 @@ class FrontGate(Scraper):
     def check_new_style(self, driver):
         pass
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status):
+    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
         print(cap, choose_amount)
         self.cap = cap
         driver = self.open_driver()
@@ -1019,7 +1020,7 @@ class TicketWeb(Scraper):
         print(qty, 'Tickets added')
         return qty
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status):
+    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
         if '?' in self.ticket_url:
             self.ticket_url = self.ticket_url[:self.ticket_url.find('?')]
         self.cap = cap
@@ -1100,7 +1101,7 @@ class BigTicket(Scraper):
             # return 0
 
         # click the max value and get value
-        time.sleep(3)
+        time.sleep(4)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             if 'The maximum number of attendees for this event has been reached' in soup.find('form', {'name': 'EventForm'}).decode_contents():
@@ -1137,16 +1138,20 @@ class BigTicket(Scraper):
             driver.quit()
             return 0
 
-        time.sleep(0.5)
+        time.sleep(3)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-
         if soup.find('div', {'class': 'g-recaptcha'}):
             if self.cap == "Capmonster":  # solve this capmonster
                 capmonster = NoCaptchaTaskProxyless(
                     client_key=capmonster_api_key)
-                taskId = capmonster.createTask(
-                    website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+                # 6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu
+                try:
+                    taskId = capmonster.createTask(
+                        website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+                except:
+                    taskId = capmonster.createTask(
+                        website_key='6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu', website_url=self.ticket_url)
                 print("Waiting to solution by capmonster workers")
                 try:
                     response = capmonster.joinTaskResult(taskId=taskId)
@@ -1157,8 +1162,12 @@ class BigTicket(Scraper):
             else:
                 # solve this anticapcha
                 client = AnticaptchaClient(api_key)
-                task = NoCaptchaTaskProxylessTask(
-                    self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+                try:
+                    task = NoCaptchaTaskProxylessTask(
+                        self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+                except:
+                    task = NoCaptchaTaskProxylessTask(
+                        self.ticket_url, '6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu')
                 try:
                     job = client.createTask(task)
                     print("Waiting to solution by Anticaptcha workers")
@@ -1169,24 +1178,19 @@ class BigTicket(Scraper):
                     print(0, 'Tickets added....')
                     driver.quit()
                     return 0
+
             print("Received solution", response)
             driver.execute_script(
                 'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
         #   driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
-            driver.find_element_by_class_name(
-                'btn btn-primary btn-submit').click()
-            time.sleep(3)
-
-        # soup = BeautifulSoup(driver.page_source, 'html.parser')
-        # try:
-        #     agree = driver.find_element_by_class_name('btn btn-primary pull-right')
-        #     driver.execute_script("arguments[0].click();", agree)
-
-        #     print(1)
-        # except:
-        #     print(2)
-
-        #     pass
+            try:
+                continueButton = driver.find_element_by_xpath('//a[@class="btn btn-primary btn-submit"]')
+                driver.execute_script("arguments[0].click();", continueButton)
+            except:
+                driver.find_element_by_class_name(
+                    'btn btn-primary btn-submit').click()
+        
+        time.sleep(1)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
@@ -1205,6 +1209,7 @@ class BigTicket(Scraper):
             print('This is not current style')
             driver.quit()
             return 0
+
         real_amount = real_amount.replace(
             '\n', '').replace('×', '').replace('  ', '')
         opt_qty = int(real_amount)
@@ -1212,10 +1217,11 @@ class BigTicket(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status):
+    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
         print(cap, choose_amount)
         driver = self.open_driver()
         driver.get(self.ticket_url)
+        self.cap = cap
         time.sleep(1)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
@@ -1349,7 +1355,7 @@ class SeeTickets(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status):
+    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 
@@ -1478,7 +1484,7 @@ class Showclix(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty  # driver
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status):
+    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
         print(cap, choose_amount)
         driver = self.open_driver()
         driver.get(self.ticket_url)
@@ -1621,7 +1627,7 @@ class Prekindle(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status):
+    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
         print(cap, choose_amount)
         driver = self.open_driver()
         driver.get(self.ticket_url)
