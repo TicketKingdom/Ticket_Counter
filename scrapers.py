@@ -182,6 +182,7 @@ class Etix(Scraper):
     def get_qty(self, box_id):
         driver = self.open_driver(use_proxy=self.proxy_status)
         driver.get(self.ticket_url)
+        time.sleep(2)
         self.input_password(driver)
         time.sleep(0.5)
         origin_content = ''
@@ -329,7 +330,8 @@ class Etix(Scraper):
                 if 'the number of tickets you requested is over the per order limit' in new_soup.find('div', {'class': 'errorBox'}).text or ('Sorry, there are not enough' in new_soup.find('div', {'class': 'errorBox'}).text):
                     if self.decrease_status:
                         # print("Reducing ticket mode>>>2")
-                        error = soup.find('div', {'class': 'validationError error'})
+                        error = soup.find(
+                            'div', {'class': 'validationError error'})
                         num_of_options = len(driver.find_elements_by_xpath(
                             '//*[@id="{}"]/option'.format(id)))
                         if error:
@@ -353,7 +355,8 @@ class Etix(Scraper):
                                 driver.find_element_by_xpath(
                                     '//button[@type="submit"]').click()
                                 time.sleep(0.5)
-                                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                                soup = BeautifulSoup(
+                                    driver.page_source, 'html.parser')
                                 error = soup.find(
                                     'div', {'class': 'validationError error'})
                                 if error:
@@ -364,7 +367,8 @@ class Etix(Scraper):
                                 else:
                                     break
                     else:
-                        print("Please active the decrease way. You can get whole amount using decrease method.")
+                        print(
+                            "Please active the decrease way. You can get whole amount using decrease method.")
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
@@ -1184,12 +1188,13 @@ class BigTicket(Scraper):
                 'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
         #   driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
             try:
-                continueButton = driver.find_element_by_xpath('//a[@class="btn btn-primary btn-submit"]')
+                continueButton = driver.find_element_by_xpath(
+                    '//a[@class="btn btn-primary btn-submit"]')
                 driver.execute_script("arguments[0].click();", continueButton)
             except:
                 driver.find_element_by_class_name(
                     'btn btn-primary btn-submit').click()
-        
+
         time.sleep(1)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
