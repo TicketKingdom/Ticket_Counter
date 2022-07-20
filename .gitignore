@@ -1,3 +1,6 @@
 __pycache__
 *.pyc
 *.zip
+node_modules
+.vscode
+.idea
