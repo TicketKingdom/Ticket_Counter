@@ -17,7 +17,7 @@ from wx.core import TOUCH_ALL_GESTURES
 from captcha_key import api_key
 from captcha_key import capmonster_api_key
 
-num_pool = 10
+num_pool = 1
 
 
 def check_website(url, proxies, row, password, log=None):
@@ -327,52 +327,51 @@ class Etix(Scraper):
             if new_soup.find('div', {'class', 'errorBox'}):
                 # print('Reducing ticket mode>>>1')
                 if 'the number of tickets you requested is over the per order limit' in new_soup.find('div', {'class': 'errorBox'}).text or ('Sorry, there are not enough' in new_soup.find('div', {'class': 'errorBox'}).text):
-                    if self.decrease_status:
-                        # print("Reducing ticket mode>>>2")
-                        error = soup.find(
-                            'div', {'class': 'validationError error'})
-                        num_of_options = len(driver.find_elements_by_xpath(
-                            '//*[@id="{}"]/option'.format(id)))
-                        if error:
-                            index = 1
-                            while True:
-                                # TODO Localize if error
-                                if tab_click:
-                                    driver.find_element_by_xpath(
-                                        '//*[@id="ticket-type"]/li[2]/a').click()
-                                    soup = BeautifulSoup(
-                                        driver.page_source, 'html.parser')
-
-                                opt = driver.find_elements_by_xpath(
-                                    '//*[@id="{}"]/option'.format(id))[-1 - index]
-                                index += 1
-                                opt_qty = int(opt.get_attribute('value'))
-                                if opt_qty == 0:
-                                    driver.quit()
-                                    return 0
-                                opt.click()
+                    # print("Reducing ticket mode>>>2")
+                    error = soup.find(
+                        'div', {'class': 'validationError error'})
+                    num_of_options = len(driver.find_elements_by_xpath(
+                        '//*[@id="{}"]/option'.format(id)))
+                    if error:
+                        index = 1
+                        while True:
+                            # TODO Localize if error
+                            if tab_click:
                                 driver.find_element_by_xpath(
-                                    '//button[@type="submit"]').click()
-                                time.sleep(0.5)
+                                    '//*[@id="ticket-type"]/li[2]/a').click()
                                 soup = BeautifulSoup(
                                     driver.page_source, 'html.parser')
-                                error = soup.find(
-                                    'div', {'class': 'validationError error'})
-                                if error:
-                                    if num_of_options == index:
-                                        driver.quit()
-                                        return 0
-                                    continue
-                                else:
-                                    break
-                    else:
-                        print(
-                            "Please active the decrease way. You can get whole amount using decrease method.")
+
+                            opt = driver.find_elements_by_xpath(
+                                '//*[@id="{}"]/option'.format(id))[-1 - index]
+                            index += 1
+                            opt_qty = int(opt.get_attribute('value'))
+                            if opt_qty == 0:
+                                driver.quit()
+                                return 0
+                            opt.click()
+                            driver.find_element_by_xpath(
+                                '//button[@type="submit"]').click()
+                            time.sleep(0.5)
+                            soup = BeautifulSoup(
+                                driver.page_source, 'html.parser')
+                            error = soup.find(
+                                'div', {'class': 'validationError error'})
+                            if error:
+                                if num_of_options == index:
+                                    driver.quit()
+                                    return 0
+                                continue
+                            else:
+                                break
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
-            opt_qty = len(soup.find('table', {
-                'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
+            opt_qty = driver.find_element_by_xpath(
+                '//*[@id="cartForm"]/div[1]/div/table/tbody/tr/td[6]').text.split('×')[1].strip()
+            if(opt_qty < 10):
+                opt_qty = len(soup.find('table', {
+                    'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
         except:
             # we add capchat solve area on here.
             # time.sleep(3000)
@@ -383,7 +382,7 @@ class Etix(Scraper):
 
         driver.quit()
         print(opt_qty, 'Tickets added')
-        return opt_qty  # driver
+        return int(opt_qty) 
 
     def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
         self.cap = cap
