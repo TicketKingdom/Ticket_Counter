@@ -79,7 +79,7 @@ def check_bigticket(url):
 
         date = parser.parse(date).strftime('%Y-%m-%d')
     except:
-    
+
         date = soup.find('span', {'class': 'event-dates'}
                          ).decode_contents().split('|')[0]
 
@@ -95,7 +95,7 @@ def check_bigticket(url):
 def check_etix(url):
     soup = make_request(url)
     name = soup.find('h1', {'itemprop': 'name'}).text.strip()
-    
+
     date = soup.find('div', {'class': 'time'})
     date = date.find('meta', {'itemprop': 'startDate'})['content']
     date = parser.parse(date).strftime('%Y-%m-%d')
@@ -180,16 +180,20 @@ def check_showclix(url):
     name = name + " " + venue + " " + adr
     return name, date
 
+
 def check_prekindle(url):
     soup = make_request(url)
-    name = soup.find('div', {'class': 'content-title'}).find_next('span').text.strip()
+    name = soup.find('div', {'class': 'content-title'}
+                     ).find_next('span').text.strip()
     try:
-        date = parser.parse(soup.find('title').text.strip().split(',')[2].split('|')[0]).strftime('%Y-%m-%d') 
+        date = parser.parse(soup.find('title').text.strip().split(',')[
+                            2].split('|')[0]).strftime('%Y-%m-%d')
     except:
-        date = parser.parse(soup.select_one('div.content-info > div:nth-child(2) > div:nth-child(2)').text).strftime('%Y-%m-%d')
+        date = parser.parse(soup.select_one(
+            'div.content-info > div:nth-child(2) > div:nth-child(2)').text).strftime('%Y-%m-%d')
     # print(date)
-    # time.sleep(3000)        
-    
+    # time.sleep(3000)
+
     # location and address missing
 
     return name, date

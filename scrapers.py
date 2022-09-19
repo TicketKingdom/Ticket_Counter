@@ -73,9 +73,8 @@ class Scraper(object):
                     user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36.',
                     headless=False):
         random_proxy = random.choice(self.proxies)
-        ip_port, auth = random_proxy.split('@')
-        user, pwd = auth.split(':')
-        ip, port = ip_port.split(':')
+        ip, port, user, pwd   = random_proxy.split(':')
+        
         manifest_json = """
         {
             "version": "1.0.0",
@@ -937,7 +936,7 @@ class TicketWeb(Scraper):
         qty = 0
         driver = self.open_driver()
         driver.get(self.ticket_url)
-        # self.input_password(driver)
+        self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         sold_out = soup.find(
@@ -964,21 +963,22 @@ class TicketWeb(Scraper):
             driver.find_elements_by_xpath(
                 '//a[@ng-click="plus()"]')[int(self.ticket_row)-1].click()
             # driver.find_element_by_xpath('//*[@id="{}"]/div/div/div/a[2]'.format(ticket_id)).click()
-
         captcha = soup.find('div', {'class': 'g-recaptcha'})
         if captcha:
             if self.cap == 'Capmonster':
                 capmonster = NoCaptchaTaskProxyless(
                     client_key=capmonster_api_key)
-                if '.ca' in self.ticket_url:
-                    print(self.ticket_url)
-                    taskId = capmonster.createTask(
-                        website_key='6LfW2FYUAAAAAJmlXoUhKpxRo7fufecPstaxMMvn', website_url=self.ticket_url)
-                else:
-                    taskId = capmonster.createTask(
-                        website_key='6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv', website_url=self.ticket_url)
-                # taskId = capmonster.createTask(
-                #     website_key='6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv', website_url=self.ticket_url)
+                time.sleep(3000)
+                try:
+                    if '.ca' in self.ticket_url:
+                        taskId = capmonster.createTask(
+                            website_key='6LfW2FYUAAAAAJmlXoUhKpxRo7fufecPstaxMMvn', website_url=self.ticket_url)
+                    else:
+                        taskId = capmonster.createTask(
+                            website_key='6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv', website_url=self.ticket_url)
+                except Exception as e:
+                    print(e)
+
                 print("Waiting to solution by capmonster workers")
                 response = capmonster.joinTaskResult(taskId=taskId)
             else:
@@ -1052,7 +1052,7 @@ class TicketWeb(Scraper):
                 return '-', False
 
         driver.quit()
-        num_pool = 10
+        num_pool = 1
         lst = [x for x in range(num_pool)]
         qty = 0
         oldtime = time.time()
@@ -1088,30 +1088,33 @@ class BigTicket(Scraper):
         try:
             buy_now = soup.find(
                 'button', {'class': 'btn btn-primary btn-lg btn-sticky-panel'})
-            if 'BUY NOW' in buy_now.text:
-                print("enter the buy now area")
-                buy_button_elements = driver.find_element_by_class_name(
-                    'btn-sticky-panel')
-                driver.execute_script(
-                    "arguments[0].click();", buy_button_elements)
-                time.sleep(0.5)
+            if buy_now:
+                if 'BUY NOW' in buy_now.text:
+                    buy_button_elements = driver.find_element_by_class_name(
+                        'btn-sticky-panel')
+                    driver.execute_script(
+                        "arguments[0].click();", buy_button_elements)
+                    time.sleep(0.5)
 
         except Exception as e:
-            print(e)
-
+            pass
             # can't find the select tag
             # driver.quit()
             # print(0, 'Tickets added...')
             # return 0
 
         # click the max value and get value
-        time.sleep(4)
+
+        time.sleep(2)
+
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             if 'The maximum number of attendees for this event has been reached' in soup.find('form', {'name': 'EventForm'}).decode_contents():
-                print("Ticket's number is maximum")
+                print("Ticket's amount is maximum")
                 driver.quit()
                 return 0
+
+            time.sleep(1)
 
             select_name = soup.find('form', {'name': 'EventForm'}).find_all(
                 'select')[int(self.ticket_row) - 1]['name']
@@ -1121,28 +1124,39 @@ class BigTicket(Scraper):
 
             opt_qty = int(opt.get_attribute('value'))
             opt.click()
+
         except Exception as e:
             print("Can't find the row")
             driver.quit()
             return '-'
+
         # click checkout
         try:
             check_out = driver.find_element_by_class_name('btn-submit')
             driver.execute_script("arguments[0].click();", check_out)
+
+            time.sleep(2)
+
             try:
-                time.sleep(0.5)
                 driver.find_element_by_xpath(
                     '//*[@id="modal-liability-waiver"]/div/div/div[3]/div/a[1]').click()
-                driver.find_element_by_xpath(
-                    '//*[@id="formCarousel"]/div/div[1]/div[1]/a[2]').click()
+
+                time.sleep(2)
+                
+                try:
+                    driver.find_element_by_xpath(
+                        '//*[@id="formCarousel"]/div/div[1]/div[1]/a[2]').click()
+                except:
+                    pass
+
             except Exception as e:
+                print(e)
                 pass
+
         except Exception as e:
             print(0, 'Tickets added....')
             driver.quit()
             return 0
-
-        time.sleep(3)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('div', {'class': 'g-recaptcha'}):
@@ -1186,7 +1200,7 @@ class BigTicket(Scraper):
             print("Received solution", response)
             driver.execute_script(
                 'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-        #   driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
+
             try:
                 continueButton = driver.find_element_by_xpath(
                     '//a[@class="btn btn-primary btn-submit"]')
@@ -1229,6 +1243,7 @@ class BigTicket(Scraper):
         self.cap = cap
         time.sleep(1)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+
         try:
             no_seat = soup.find('div', {'class': 'seats-ui-primary'})
             if 'No Map Seats Available.' in no_seat.text:
