@@ -17,7 +17,7 @@ from wx.core import TOUCH_ALL_GESTURES
 from captcha_key import api_key
 from captcha_key import capmonster_api_key
 
-num_pool = 1
+num_pool = 10
 
 
 def check_website(url, proxies, row, password, log=None):
@@ -956,8 +956,14 @@ class TicketWeb(Scraper):
 
         ticket = soup.find_all(
             'div', {'class': 'action-select'})[int(self.ticket_row)-1]
-        max_amount = int(ticket.find(
-            'div', {'class': 'value-select'})['limit'])
+        try:
+            max_amount = int(ticket.find(
+                'div', {'class': 'value-select'})['limit'])
+        except:
+            driver.quit()
+            print('The ticket is sold out')
+            return 0
+
         for i in range(max_amount):
             driver.find_elements_by_xpath(
                 '//a[@ng-click="plus()"]')[int(self.ticket_row)-1].click()
@@ -967,7 +973,6 @@ class TicketWeb(Scraper):
             if self.cap == 'Capmonster':
                 capmonster = NoCaptchaTaskProxyless(
                     client_key=capmonster_api_key)
-                time.sleep(3000)
                 try:
                     if '.ca' in self.ticket_url:
                         taskId = capmonster.createTask(
@@ -1051,7 +1056,7 @@ class TicketWeb(Scraper):
                 return '-', False
 
         driver.quit()
-        num_pool = 1
+        num_pool = 10
         lst = [x for x in range(num_pool)]
         qty = 0
         oldtime = time.time()
