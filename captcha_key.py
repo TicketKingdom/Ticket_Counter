@@ -1,2 +1,2 @@
 api_key = '2be4ef82418fe7232a78955957413285'
-capmonster_api_key = '85365a658bf19c4b467c4543199fda73'
+capmonster_api_key = '46d7d2985459e249df34a61c5e99861c'
