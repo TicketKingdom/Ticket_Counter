@@ -1442,7 +1442,7 @@ class Showclix(Scraper):
     def get_qty(self, box_id):
         driver = self.open_driver()
         driver.get(self.ticket_url)
-        time.sleep(6)
+        time.sleep(30)
 
         # self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')

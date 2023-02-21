@@ -40,13 +40,18 @@ def check_eventbrite(url):
     try:
         name = soup.find('h1', {'class': 'text-body-large'}).text.strip()
     except:
-        name = soup.find('h1', {'class': 'listing-hero-title'}).text.strip()
+        try:
+            name = soup.find('h1', {'class': 'listing-hero-title'}).text.strip()
+        except:
+            name = soup.find('h1', {'class': 'event-title'}).text.strip()
 
     try:
-        date = soup.find(
-            'div', {'class': 'event-details__data'}).find('meta')['content']
-    except TypeError:
-        date = soup.find('time', {'class': 'clrfix'}).find('p').text.strip()
+        date = soup.find('div', {'class': 'event-details__data'}).find('meta')['content']
+    except:
+        try:
+            date = soup.find('time', {'class': 'clrfix'}).find('p').text.strip()
+        except:
+            date = soup.find('p', {'class': 'date-and-time'}).find('meta')['content']
     if len(date) < 2:
         date = str(soup.select(
             "#event-page > main > div.js-hidden-when-expired.event-listing.event-listing--has-image > div.g-grid.g-grid--page-margin-manual > div > section.listing-info.clrfix > div.listing-info__body.l-sm-pad-vert-0.l-sm-pad-vert-6.clrfix.g-group.g-group--page-margin-reset > div > div > div.g-cell.g-cell-12-12.g-cell-md-4-12.g-offset-md-1-12.g-cell--no-gutters.l-lg-pad-left-6 > div > div:nth-child(4) > meta:nth-child(1)")).split('\"')[1]
@@ -54,11 +59,15 @@ def check_eventbrite(url):
     if date.find('-') > 0:
         date = date.replace('-', ' ').strip()
     date = parser.parse(date).strftime('%Y-%m-%d')
-    loc = [x.find_next('div', {'class': 'event-details__data'}) for x in soup.find_all(
-        'h3', {'class': 'label-primary l-mar-bot-2'}) if 'Location' in x.text][0]
-    loc = loc.find_all('p')
-    venue, loc = loc[0].text.strip(), loc[2].text.strip()
-    name = name + " {} {}".format(venue, loc)
+    try:
+        loc = [x.find_next('div', {'class': 'event-details__data'}) for x in soup.find_all(
+            'h3', {'class': 'label-primary l-mar-bot-2'}) if 'Location' in x.text][0]
+        loc = loc.find_all('p')
+        venue, loc = loc[0].text.strip(), loc[2].text.strip()
+        name = name + " {} {}".format(venue, loc)
+    except:
+        loc = soup.find('section', {'aria-labelledby':'location-heading'}).find('div', {'class':'detail__content'}).find('p').text.strip()
+        name = name + " {}".format(loc)
     return name, date
 
 
