@@ -32,7 +32,6 @@ class SettingsDialog(wx.Dialog):
         bSizer11.Add(self.m_proxies_button, 0, wx.ALL, 5)
 
         proxies_label_text = self.proxy
-        print(proxies_label_text)
         self.m_proxies_label = wx.StaticText(self, wx.ID_ANY, proxies_label_text, wx.DefaultPosition,
                                              wx.DefaultSize, 0)
         self.m_proxies_label.Wrap(-1)

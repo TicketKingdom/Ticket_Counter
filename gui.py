@@ -142,6 +142,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         self.list_ctrl.InsertColumn(2, "Quantity")
         self.list_ctrl.InsertColumn(3, "Interval")
         self.list_ctrl.InsertColumn(4, 'URL')
+        self.list_ctrl.SetColumnWidth(4, 200)
         self.list_ctrl.InsertColumn(5, "Notification")
         self.list_ctrl.InsertColumn(6, 'Row')
         self.list_ctrl.InsertColumn(7, 'Added on')
@@ -543,67 +544,77 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
 class MasterList(object):
     def __init__(self, sheet_url):
-        self.sheet = sheet_url
-        if sheet_url:
-            scope = ['https://spreadsheets.google.com/feeds',
-                     'https://www.googleapis.com/auth/drive']
-            credentials = ServiceAccountCredentials.from_json_keyfile_name(
-                'mastelistevents-0050cd80b07f.json', scope)
-            gc = gspread.authorize(credentials)
-            self.sheet = gc.open_by_url(sheet_url).get_worksheet(0)
+        pass
+        # processing with google sheet instead of pass
+        # self.sheet = sheet_url
+        # if sheet_url:
+        #     scope = ['https://spreadsheets.google.com/feeds',
+        #              'https://www.googleapis.com/auth/drive']
+        #     credentials = ServiceAccountCredentials.from_json_keyfile_name(
+        #         'mastelistevents-0050cd80b07f.json', scope)
+        #     gc = gspread.authorize(credentials)
+        #     self.sheet = gc.open_by_url(sheet_url).get_worksheet(0)
         # print(self.sheet.get_all_records())
 
     def add_to_list(self, event, retry=0):
-        if self.sheet:
-            try:
-                row = len(self.sheet.get_all_values())+1
-                # row = len(self.sheet.get_all_values())
-            except:
-                if retry == 10:
-                    return
-                retry += 1
-                self.reconnect()
-                time.sleep(1)
-                return self.add_to_list(event, retry)
-            print('Adding event to Google sheet...')
-            # print(event)
-            # print(row)
-            # self.sheet.insert_row(event, row, valueInputOption='RAW')
-            for idx, val in enumerate(event, 1):
+        pass
+        # processing with google sheet instead of pass
+        # if self.sheet:
+        #     try:
+        #         row = len(self.sheet.get_all_values())+1
+        #         # row = len(self.sheet.get_all_values())
+        #     except:
+        #         if retry == 10:
+        #             return
+        #         retry += 1
+        #         self.reconnect()
+        #         time.sleep(1)
+        #         return self.add_to_list(event, retry)
+        #     print('Adding event to Google sheet...')
+        #     # print(event)
+        #     # print(row)
+        #     # self.sheet.insert_row(event, row, valueInputOption='RAW')
+        #     for idx, val in enumerate(event, 1):
 
-                # print(idx)
-                # print(val)
-                self.sheet.update_cell(row, idx, val)
+        #         # print(idx)
+        #         # print(val)
+        #         self.sheet.update_cell(row, idx, val)
 
     def update_list(self, event):
-        print('Updating event on Google sheet...')
-        if self.sheet:
-            try:
-                cell = self.sheet.find(event[4])
-            except:
-                return
-            for idx, val in enumerate(event, 1):
-                self.sheet.update_cell(cell.row, idx, val)
+        pass
+        # processing with google sheet instead of pass
+        # print('Updating event on Google sheet...')
+        # if self.sheet:
+        #     try:
+        #         cell = self.sheet.find(event[4])
+        #     except:
+        #         return
+        #     for idx, val in enumerate(event, 1):
+        #         self.sheet.update_cell(cell.row, idx, val)
 
     def remove_from_list(self, url):
-        if self.sheet:
-            print('Removing event from Google sheet...')
-            for i in range(30):
-                try:
-                    cell = self.sheet.find(url)
-                    self.sheet.delete_row(cell.row)
-                except:
-                    break
+        pass
+        # processing with google sheet instead of pass
+        # if self.sheet:
+        #     print('Removing event from Google sheet...')
+        #     for i in range(30):
+        #         try:
+        #             cell = self.sheet.find(url)
+        #             self.sheet.delete_row(cell.row)
+        #         except:
+        #             break
         # print(cell.row)
 
     def reconnect(self):
-        if self.sheet:
-            scope = ['https://spreadsheets.google.com/feeds',
-                     'https://www.googleapis.com/auth/drive']
-            credentials = ServiceAccountCredentials.from_json_keyfile_name(
-                'mastelistevents-0050cd80b07f.json', scope)
-            gc = gspread.authorize(credentials)
-            self.sheet = gc.open_by_url(self.sheet).get_worksheet(0)
+        pass
+        # processing with google sheet instead of pass
+        # if self.sheet:
+        #     scope = ['https://spreadsheets.google.com/feeds',
+        #              'https://www.googleapis.com/auth/drive']
+        #     credentials = ServiceAccountCredentials.from_json_keyfile_name(
+        #         'mastelistevents-0050cd80b07f.json', scope)
+        #     gc = gspread.authorize(credentials)
+        #     self.sheet = gc.open_by_url(self.sheet).get_worksheet(0)
 
 
 if __name__ == "__main__":

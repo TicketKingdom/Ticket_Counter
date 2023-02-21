@@ -18,7 +18,7 @@ def get_event_name_and_date(url):
         return check_ticketweb(url)
     elif 'seetickets.us' in url:
         return check_seetickets(url)
-    elif 'showclix.' in url:
+    elif 'showclix.' in url or '.thecomplexslc.' in url:
         return check_showclix(url)
     elif 'prekindle.' in url:
         return check_prekindle(url)
