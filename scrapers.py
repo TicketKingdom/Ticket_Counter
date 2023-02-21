@@ -36,7 +36,7 @@ def check_website(url, proxies, row, password, log=None):
         return TicketWeb(url, proxies, row, log, password)
     elif 'seetickets.us' in url:
         return SeeTickets(url, proxies, row, log, password)
-    elif 'showclix.' in url:
+    elif 'showclix.' in url or '.thecomplexslc.' in url:
         return Showclix(url, proxies, row, log, password)
     elif 'prekindle.' in url:
         return Prekindle(url, proxies, row, log, password)
@@ -138,11 +138,15 @@ class Scraper(object):
 
         if use_proxy:
             pluginfile = 'proxy_auth_plugin.zip'
-            with zipfile.ZipFile(pluginfile, 'w') as zp:
-                zp.writestr("manifest.json", manifest_json)
-                zp.writestr("background.js", background_js)
-            chrome_options.add_extension(pluginfile)
-            time.sleep(2)
+            try: 
+                with zipfile.ZipFile(pluginfile, 'w') as zp:
+                    zp.writestr("manifest.json", manifest_json)
+                    zp.writestr("background.js", background_js)
+                chrome_options.add_extension(pluginfile)
+                time.sleep(2)
+            except:
+                driver.quit()
+                return self.open_driver()
 
         if user_agent:
             chrome_options.add_argument('--user-agent=%s' % user_agent)
@@ -1438,7 +1442,8 @@ class Showclix(Scraper):
     def get_qty(self, box_id):
         driver = self.open_driver()
         driver.get(self.ticket_url)
-        time.sleep(2)
+        time.sleep(6)
+
         # self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
@@ -1515,7 +1520,15 @@ class Showclix(Scraper):
         # error = soup.find('div', {'class': 'validationError error'})
         time.sleep(2)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        real_amount = soup.find('td', {'class': 'qty-td'}).text.strip()
+        try:
+            real_amount = soup.find('td', {'class': 'qty-td'}).text.strip()
+        except:
+            bad_request = soup.find('div', {'class': 'copy'}).text.strip()
+            if 'Bad Request' in bad_request:
+                print("401 error. Bad request")
+                driver.quit()
+                return 0
+
         opt_qty = int(real_amount)
 
         driver.quit()
@@ -1523,13 +1536,11 @@ class Showclix(Scraper):
         return opt_qty  # driver
 
     def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
-        print(cap, choose_amount)
         driver = self.open_driver()
         driver.get(self.ticket_url)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         # sold_out or any event
-
         try:
             id = soup.find(
                 'form', {'id': 'ticket-form'}).find_all('select')[int(self.ticket_row) - 1]['id']
@@ -1570,7 +1581,7 @@ class Showclix(Scraper):
                 break
             loop_qty = 0
             with Pool(num_pool) as p:
-                r = p.map(self.get_qty, list(range(10)))
+                r = p.map(self.get_qty, list(range(num_pool)))
                 for q in r:
                     loop_qty += q
             qty += loop_qty

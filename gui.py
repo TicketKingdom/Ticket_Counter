@@ -331,8 +331,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         selected = self.list_ctrl.GetFirstSelected()
         decrease_status = self.decrease_status
         proxy_status = self.proxy_status
-        # print('proxy_status>>>>>>>>>>>>>>', proxy_status)
-        # print('decrease_status>>>>>>>>>>>>>>', decrease_status)
         if selected >= 0:
             url = self.list_ctrl.GetItemText(selected, 4)
             data_key = None
