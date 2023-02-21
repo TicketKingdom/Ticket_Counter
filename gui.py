@@ -302,7 +302,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     self.shutdown_event.set()
                     break
 
-                print('checking tickets for', value[0])
+                print('checking tickets for', value[0], url)
                 checker = check_website(
                     url, self.settings['Proxy'], value[6], value[10])
                 qty, timer = checker.check_ticket_qty(captch_way)

@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
-from capmonster_python import RecaptchaV2Task
+from capmonster_python import NoCaptchaTaskProxyless
 from multiprocessing.pool import Pool
 from bs4 import BeautifulSoup
 
@@ -130,8 +130,8 @@ class Scraper(object):
         );
         """ % (ip, port, user, pwd)
         chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_experimental_option(
-            'excludeSwitches', ['enable-logging'])
+        # chrome_options.add_experimental_option(
+        #     'excludeSwitches', ['enable-logging'])
         if headless:
             pass
             # chrome_options.add_argument('--headless')
@@ -142,17 +142,24 @@ class Scraper(object):
                 zp.writestr("manifest.json", manifest_json)
                 zp.writestr("background.js", background_js)
             chrome_options.add_extension(pluginfile)
-            time.sleep(1)
+            time.sleep(2)
+
         if user_agent:
             chrome_options.add_argument('--user-agent=%s' % user_agent)
+
+        driver = webdriver.Chrome(
+            'chromedriver', chrome_options=chrome_options)
+
         try:
-            driver = webdriver.Chrome(
-                'chromedriver', chrome_options=chrome_options)
-        except Exception as E:
+            driver.get('https://www.google.com/')
+        except:
+            if use_proxy:
+                print("\tProxy has been banned, ", ip, ":", port, ":", user, ":", pwd)
+            else:   
+                print("\tTimeout Error")
+            driver.quit()
             return self.open_driver()
 
-        # Check if it's working
-        driver.get('https://www.google.com/')
         try:
             driver.find_element_by_id("L2AGLb").click()
             time.sleep(0.5)
@@ -162,6 +169,10 @@ class Scraper(object):
         try:
             driver.find_element_by_css_selector('input[name="q"]')
         except:
+            if use_proxy:
+                print("\tProxy has been banned, ", ip, ":", port, ":", user, ":", pwd)
+            else:
+                print("\tTimeout Error")
             driver.quit()
             return self.open_driver()
         return driver
@@ -266,7 +277,7 @@ class Etix(Scraper):
             print('this is real captcha')  # solve the real captcha
             if soup.find('div', {'class': 'g-recaptcha'}):
                 if self.cap == "Capmonster":  # solve this capmonster
-                    capmonster = RecaptchaV2Task(
+                    capmonster = NoCaptchaTaskProxyless(
                         client_key=capmonster_key)
                     taskId = capmonster.createTask(
                         website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
@@ -801,7 +812,7 @@ class FrontGate(Scraper):
                 # using capmonster
                 driver.execute_script(
                     'document.getElementById("div-btn-modal-submit").removeAttribute("disabled")')
-                capmonster = RecaptchaV2Task(
+                capmonster = NoCaptchaTaskProxyless(
                     client_key=capmonster_key)
                 # taskId = capmonster.createTask(
                 #     website_key='6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU', website_url=self.ticket_url)
@@ -974,7 +985,7 @@ class TicketWeb(Scraper):
         captcha = soup.find('div', {'class': 'g-recaptcha'})
         if captcha:
             if self.cap == 'Capmonster':
-                capmonster = RecaptchaV2Task(
+                capmonster = NoCaptchaTaskProxyless(
                     client_key=capmonster_key)
                 try:
                     if '.ca' in self.ticket_url:
@@ -1168,7 +1179,7 @@ class BigTicket(Scraper):
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('div', {'class': 'g-recaptcha'}):
             if self.cap == "Capmonster":  # solve this capmonster
-                capmonster = RecaptchaV2Task(
+                capmonster = NoCaptchaTaskProxyless(
                     client_key=capmonster_key)
                 # 6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu
                 try:
