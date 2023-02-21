@@ -1,6 +1,5 @@
-__pycache__/
-*.pyc
-node_modules
-.vscode/
+__pycache__
+*.zip
+./proxies_bunchs.txt
 captcha_key.py
-__pycache__/
+.env

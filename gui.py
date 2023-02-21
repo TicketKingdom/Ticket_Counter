@@ -25,7 +25,7 @@ class TestListCtrl(wx.ListCtrl):
 
     # ----------------------------------------------------------------------
     def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=0):
+                size=wx.DefaultSize, style=0):
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
 
 
@@ -46,7 +46,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         #     self.event_timestamps = pickle.loads(f)
         self.event_timestamps = {}
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
-                          size=wx.Size(1000, 1000), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
+                            size=wx.Size(1000, 1000), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
 
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 

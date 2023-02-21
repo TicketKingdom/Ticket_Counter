@@ -1,2 +1,0 @@
-api_key = '2be4ef82418fe7232a78955957413285'
-capmonster_api_key = '46d7d2985459e249df34a61c5e99861c'

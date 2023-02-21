@@ -5,3 +5,4 @@ capmonster-python==1.3.0
 gspread
 oauth2client
 python_anticaptcha
+python-dotenv
