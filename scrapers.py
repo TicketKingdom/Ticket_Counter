@@ -1,11 +1,11 @@
-import selenium
-import ast
-import zipfile
-import random
-import time
 import os
-from dotenv import load_dotenv
+import ast
+import time
+import random
+import zipfile
+import selenium
 
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -21,7 +21,6 @@ anticaptch_key = os.getenv('anticaptch_key')
 capmonster_key = os.getenv('capmonster_key')
 
 num_pool = 10
-
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -41,9 +40,7 @@ def check_website(url, proxies, row, password, log=None):
     elif 'prekindle.' in url:
         return Prekindle(url, proxies, row, log, password)
 
-
 class Scraper(object):
-
     def __init__(self, url, proxies, row, log, password):
         self.log = log
         self.ticket_url = url
@@ -58,7 +55,7 @@ class Scraper(object):
     def log_message(self, msg):
         pass
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
+    def check_ticket_qty(self, cap):
         pass
 
     def wait_for_element(self, driver, element, type=By.ID):
@@ -103,14 +100,14 @@ class Scraper(object):
         var config = {
                 mode: "fixed_servers",
                 rules: {
-                  singleProxy: {
-                    scheme: "http",
-                    host: "%s",
-                    port: parseInt(%s)
-                  },
-                  bypassList: ["localhost"]
+                    singleProxy: {
+                        scheme: "http",
+                        host: "%s",
+                        port: parseInt(%s)
+                    },
+                    bypassList: ["localhost"]
                 }
-              };
+            };
 
         chrome.proxy.settings.set({value: config, scope: "regular"}, function() {});
 
@@ -183,7 +180,6 @@ class Scraper(object):
 
 
 class Etix(Scraper):
-
     def input_password(self, driver):
         if self.password:
             pwd_num = len(driver.find_elements_by_xpath(
@@ -402,11 +398,8 @@ class Etix(Scraper):
         print(opt_qty, 'Tickets added')
         return int(opt_qty) 
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
+    def check_ticket_qty(self, cap):
         self.cap = cap
-        self.choose_amount = choose_amount
-        self.decrease_status = decrease_status
-        self.proxy_status = proxy_status
         driver = self.open_driver()
         if '?method=switchSelectionMethod&selection_method=byBest' not in self.ticket_url:
             if '?' in self.ticket_url:
@@ -674,7 +667,7 @@ class Eventbrite(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
+    def check_ticket_qty(self, cap):
         driver = self.open_driver()
         self.drivers = []
         qty = 0
@@ -881,8 +874,7 @@ class FrontGate(Scraper):
     def check_new_style(self, driver):
         pass
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
-        print(cap, choose_amount)
+    def check_ticket_qty(self, cap):
         self.cap = cap
         driver = self.open_driver()
         driver.get(self.ticket_url)
@@ -1046,7 +1038,7 @@ class TicketWeb(Scraper):
         print(qty, 'Tickets added')
         return qty
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
+    def check_ticket_qty(self, cap):
         if '?' in self.ticket_url:
             self.ticket_url = self.ticket_url[:self.ticket_url.find('?')]
         self.cap = cap
@@ -1258,8 +1250,7 @@ class BigTicket(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
-        print(cap, choose_amount)
+    def check_ticket_qty(self, cap):
         driver = self.open_driver()
         driver.get(self.ticket_url)
         self.cap = cap
@@ -1397,7 +1388,7 @@ class SeeTickets(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
+    def check_ticket_qty(self, cap):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 
@@ -1535,7 +1526,7 @@ class Showclix(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty  # driver
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
+    def check_ticket_qty(self, cap):
         driver = self.open_driver()
         driver.get(self.ticket_url)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -1676,8 +1667,7 @@ class Prekindle(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap, choose_amount, decrease_status, proxy_status):
-        print(cap, choose_amount)
+    def check_ticket_qty(self, cap):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 

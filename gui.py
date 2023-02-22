@@ -327,8 +327,9 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         # self.m_button_update.Disable()
         self.shutdown_event = threading.Event()
         captch_way = self.m_comboBox10.GetValue()
-        choose_amount = 0
         selected = self.list_ctrl.GetFirstSelected()
+        # unused params
+        choose_amount = 0
         decrease_status = self.decrease_status
         proxy_status = self.proxy_status
         if selected >= 0:
@@ -340,8 +341,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     print('checking tickets for', value[0], url)
                     checker = check_website(
                         url, self.settings['Proxy'], value[6], value[10])
-                    qty, timer = checker.check_ticket_qty(
-                        captch_way, choose_amount, decrease_status, proxy_status)
+                    qty, timer = checker.check_ticket_qty(captch_way)
                     if timer is None:
                         timer_str = '-'
                     else:
