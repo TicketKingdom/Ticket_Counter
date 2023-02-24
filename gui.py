@@ -49,6 +49,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                             size=wx.Size(1000, 1000), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
 
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
+        self.SetTitle('Ticket Counter')
 
         bSizer2 = wx.BoxSizer(wx.VERTICAL)
 
@@ -92,10 +93,10 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         self.toogle_button.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleRed)
         bSizer6.Add(self.toogle_button, 0, wx.ALL, 5)
 
-        self.toogle_proxy_button = wx.ToggleButton(
-            self, wx.ID_ANY, u"Proxy Way", wx.DefaultPosition, wx.Size(100, 25), 0)
-        self.toogle_proxy_button.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleProxyRed)
-        bSizer6.Add(self.toogle_proxy_button, 0, wx.ALL, 5)
+        # self.toogle_proxy_button = wx.ToggleButton(
+        #     self, wx.ID_ANY, u"Proxy Way", wx.DefaultPosition, wx.Size(100, 25), 0)
+        # self.toogle_proxy_button.Bind(wx.EVT_TOGGLEBUTTON, self.ToggleProxyRed)
+        # bSizer6.Add(self.toogle_proxy_button, 0, wx.ALL, 5)
 
         bSizer2.Add(bSizer6, 0, wx.ALL, 5)
         bSizer3 = wx.BoxSizer(wx.HORIZONTAL)
