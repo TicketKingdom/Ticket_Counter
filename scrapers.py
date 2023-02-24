@@ -739,7 +739,7 @@ class Eventbrite(Scraper):
         driver.quit()
 
         timer_run_out = False
-        num_pool = 1
+        # num_pool = 1
         lst = [_id for x in range(num_pool)]
 
         oldtime = time.time()
@@ -1428,15 +1428,21 @@ class SeeTickets(Scraper):
 class Showclix(Scraper):
     def input_password(self, driver):
         if self.password:
-            driver.find_element_by_id('promoCode').send_keys(self.password)
-            driver.find_element_by_id('applyPromoCode').click()
+            try:
+                driver.find_element_by_id('promoCode').send_keys(self.password)
+                driver.find_element_by_id('applyPromoCode').click()
+            except:
+                driver.find_element_by_id('coupon').clear()
+                driver.find_element_by_id('coupon').send_keys(self.password)
+                driver.find_element_by_id('apply_coupon').click()
+                
 
     def get_qty(self, box_id):
         driver = self.open_driver()
         driver.get(self.ticket_url)
-        time.sleep(30)
+        time.sleep(3)
 
-        # self.input_password(driver)
+        self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             id = soup.find(
@@ -1530,6 +1536,9 @@ class Showclix(Scraper):
     def check_ticket_qty(self, cap):
         driver = self.open_driver()
         driver.get(self.ticket_url)
+        self.input_password(driver)
+        time.sleep(2)
+        
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         # sold_out or any event
@@ -1563,7 +1572,7 @@ class Showclix(Scraper):
         driver.quit()
 
         timer_run_out = False
-        num_pool = 10
+        num_pool = 1
         qty = 0
         timer_run_out = False
         oldtime = time.time()
