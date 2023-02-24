@@ -1434,8 +1434,10 @@ class Showclix(Scraper):
             except:
                 driver.find_element_by_id('coupon').clear()
                 driver.find_element_by_id('coupon').send_keys(self.password)
-                driver.find_element_by_id('apply_coupon').click()
-                
+                try:
+                    driver.find_element_by_id('apply_coupon').click()
+                except:
+                    driver.find_element_by_id('reserve_coupon').click()
 
     def get_qty(self, box_id):
         driver = self.open_driver()
@@ -1572,7 +1574,7 @@ class Showclix(Scraper):
         driver.quit()
 
         timer_run_out = False
-        num_pool = 1
+        # num_pool = 1
         qty = 0
         timer_run_out = False
         oldtime = time.time()
