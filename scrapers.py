@@ -469,17 +469,19 @@ class Eventbrite(Scraper):
                 pass
             driver.find_element_by_id(
                 'promo-code-field').send_keys(self.password)
-            time.sleep(1)
             try:
                 driver.find_element_by_xpath(
                     '//span[@class="eds-field-styled__aside eds-field-styled__aside-suffix"]/button').click()
             except:
-                driver.find_element_by_xpath(
-                    '//*[@data-automation="checkout-widget-submit-promo-button"]').click()
+                try:
+                    driver.find_element_by_xpath(
+                        '//*[@data-automation="checkout-widget-submit-promo-button"]').click()
+                except:
+                    driver.find_element_by_xpath(
+                        '//*[@data-automation="promo-code-form-cta-text"]').click()
 
     # type1
     def get_qty(self, _id):
-        print('eventbrite type1')
         driver = self.open_driver(headless=True)
         self.drivers.append(driver)
         driver.get(self.ticket_url)
@@ -696,7 +698,7 @@ class Eventbrite(Scraper):
         except selenium.common.exceptions.NoSuchElementException:
             new_style = False
             print('eventbrite type1')
-
+        
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         length = len(soup.find_all('select'))
         self.opt_len = length
@@ -710,7 +712,6 @@ class Eventbrite(Scraper):
             try:
                 _id = soup.find_all('select')[int(self.ticket_row) - 1]['id']
             except Exception as e:
-                print(e)
                 driver.quit()
                 print('No tickets available-1')
                 return qty, False
@@ -738,7 +739,7 @@ class Eventbrite(Scraper):
         driver.quit()
 
         timer_run_out = False
-        num_pool = 10
+        num_pool = 1
         lst = [_id for x in range(num_pool)]
 
         oldtime = time.time()
