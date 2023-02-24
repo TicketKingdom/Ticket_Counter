@@ -74,23 +74,19 @@ def check_eventbrite(url):
 def check_bigticket(url):
     soup = make_request(url)
     try:
-        name = soup.find('div', {'class': 'event-titles'}
-                         ).find_next('h1').decode_contents()
+        name = soup.find('div', {'class': 'event-titles'}).find_next('h1').decode_contents()
     except:
-        name = soup.find('div', {'class': 'event-info'}
-                         ).find_next('h1').decode_contents()
+        name = soup.find('div', {'class': 'event-info'}).find_next('h1').decode_contents()
     try:
         # date = soup.find('div', {'class': 'event-titles'}).find_next('h4').decode_contents().split('<')[0]
-        date = soup.find('div', {'class': 'event-titles'}
-                         ).find_next('strong').decode_contents().split('on')[1]
+        date = soup.find('div', {'class': 'event-titles'}).find_next('strong').decode_contents().split('on')[1]
 
         date = date.split('.')[0]
 
         date = parser.parse(date).strftime('%Y-%m-%d')
     except:
 
-        date = soup.find('span', {'class': 'event-dates'}
-                         ).decode_contents().split('|')[0]
+        date = soup.find('span', {'class': 'event-dates'}).decode_contents().split('|')[0]
 
         date = parser.parse(date).strftime('%Y-%m-%d')
     try:
@@ -165,8 +161,7 @@ def check_seetickets(url):
     date = soup.find('time', {'itemprop': 'startDate'})['datetime']
     date = parser.parse(date).strftime('%Y-%m-%d')
 
-    venue = soup.find('p', {'class': 'float-r'}
-                      ).find_next('h5').decode_contents()
+    venue = soup.find('p', {'class': 'float-r'}).find_next('h5').decode_contents()
     adr = soup.find('input', {'type': 'hidden', 'id': 'locationaddress'})[
         'value']
 
@@ -192,8 +187,7 @@ def check_showclix(url):
 
 def check_prekindle(url):
     soup = make_request(url)
-    name = soup.find('div', {'class': 'content-title'}
-                     ).find_next('span').text.strip()
+    name = soup.find('div', {'class': 'content-title'}).find_next('span').text.strip()
     try:
         date = parser.parse(soup.find('title').text.strip().split(',')[
                             2].split('|')[0]).strftime('%Y-%m-%d')

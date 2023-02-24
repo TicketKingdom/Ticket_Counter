@@ -285,6 +285,10 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         elif self.m_button_start.LabelText == "Stop":
             self.m_gauge1.SetValue(0)
             self.m_button_start.SetLabel("Start")
+            try:
+                self.th.join()
+            except:
+                pass
 
     def update_gui(self):
         self.shutdown_event = threading.Event()
