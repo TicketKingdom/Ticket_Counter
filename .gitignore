@@ -3,4 +3,4 @@ __pycache__
 ./proxies_bunchs.txt
 captcha_key.py
 .env
-__pycache__/*.pyc
+__pycache__/*.*

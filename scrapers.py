@@ -1528,6 +1528,10 @@ class Showclix(Scraper):
                 print("401 error. Bad request")
                 driver.quit()
                 return 0
+            if '400' in bad_request:
+                print("400 error.")
+                driver.quit()
+                return 0
 
         opt_qty = int(real_amount)
 
