@@ -39,6 +39,8 @@ def check_website(url, proxies, row, password, log=None):
         return Showclix(url, proxies, row, log, password)
     elif 'prekindle.' in url:
         return Prekindle(url, proxies, row, log, password)
+    elif '.tixr.' in url:
+        return Tixr(url, proxies, row, log, password)
 
 class Scraper(object):
     def __init__(self, url, proxies, row, log, password):
@@ -74,6 +76,7 @@ class Scraper(object):
                     headless=False):
         random_proxy = random.choice(self.proxies)
         ip, port, user, pwd = random_proxy.split(':')
+        print(use_proxy)
         
         manifest_json = """
         {
@@ -1753,6 +1756,160 @@ class Prekindle(Scraper):
         print('total qty', qty)
         return qty, timer_run_out
 
+class Tixr(Scraper):
+    def input_password(self, driver):
+        if self.password:
+            print('password area')
+            # driver.find_element_by_id('promoCode').send_keys(self.password)
+            # driver.find_element_by_id('applyPromoCode').click()
+
+    def get_qty(self, box_id):
+        driver = self.open_driver()
+        driver.get(self.ticket_url)
+
+        driver.find_element_by_xpath(
+            '//a[@class="action-bar-button buybutton"]').click()
+        time.sleep(1)
+
+        # add sold out case or another case on first screen
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        try:
+            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
+                'tbody')[int(self.ticket_row)]
+            if sold:
+                if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
+                    print('tickets is solded out.')
+                    driver.quit()
+                    return 0
+        except:
+            pass
+
+        # input promo code
+        self.input_password(driver)
+
+        try:
+            # case of normal type(direclty select the select option)
+            opt = driver.find_elements_by_xpath(
+                f'//*[@name="sectionListView:{str(int(self.ticket_row)-1)}:pricingListView:0:optionContainer:quantityDropDown"]/option')[-1]
+            opt_qty = int(opt.get_attribute('value'))
+            opt.click()
+
+        except:
+            # case of select general adminsion and get the ticket.
+            opt = driver.find_elements_by_xpath(
+                '//*[@name="howManyPanel:generalAdmissionContainer:sectionsDropDown"]/option')[-1]
+            opt.click()
+            time.sleep(0.5)
+            opt = driver.find_elements_by_xpath(
+                f'//*[@name="pricingListView:{str(int(self.ticket_row)-1)}:quantityDropDown"]/option')[-1]
+            opt_qty = int(opt.get_attribute('value'))
+            opt.click()
+
+        time.sleep(0.5)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        error = soup.find('div', {'class': 'headline'})
+        if error:
+            if 'Something went wrong.' in error.text:
+                print('ticket occre the errors')
+                driver.quit()
+                return 0
+        # click the submit
+        driver.find_element_by_xpath(
+            '//input[@class="purchasebutton greenbutton"]').click()
+
+        # duel the erros or sold out
+        time.sleep(2)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        error = soup.find('li', {'class': 'feedbackPanelERROR'})
+        if error:
+            if 'Capacity for this section has been reached. Please make another section.' in error.text:
+                print('tickets is solded out by scraper.')
+                driver.quit()
+                return 0
+            if 'section \"General Admission\" was reached prior to purchase' in error.text:
+                print('tickets is solded out by scraper and can\'t reach tickets')
+                driver.quit()
+                return 0
+
+        driver.quit()
+        print(opt_qty, 'Tickets added')
+        return opt_qty
+
+    def check_ticket_qty(self, cap):
+        driver = self.open_driver()
+        driver.get(self.ticket_url)
+        time.sleep(3000)
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        try:
+            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
+                'tbody')[int(self.ticket_row)]
+            if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
+                print('tickets is solded out.')
+                driver.quit()
+                return '-', False
+            error = soup.find('div', {'class': 'headline'})
+            if error:
+                if 'Something went wrong.' in error.text:
+                    print('ticket occre the errors')
+                    driver.quit()
+                    return 0
+        except:
+            pass
+
+        driver.find_element_by_xpath(
+            '//a[@class="action-bar-button buybutton"]').click()
+        time.sleep(0.5)
+
+        # add sold out case or another case on first screen
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        try:
+            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
+                'tbody')[int(self.ticket_row)]
+            if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
+                print('tickets is solded out.')
+                driver.quit()
+                return '-', False
+            error = soup.find('div', {'class': 'headline'})
+            if error:
+                if 'Something went wrong.' in error.text:
+                    print('ticket occre the errors')
+                    driver.quit()
+                    return 0
+        except:
+            pass
+
+        # loop content
+        driver.quit()
+        lst = [x for x in range(num_pool)]
+        qty = 0
+        oldtime = time.time()
+        timer_run_out = False
+        while True:
+            if time.time() - oldtime >= 600:
+                timer_run_out = True
+                break
+            loop_qty = 0
+            with Pool(num_pool) as p:
+                r = p.map(self.get_qty, lst)
+                for q in r:
+                    loop_qty += q
+                    if q == 0:
+                        print("the tickets sold out by scrap!")
+                        break
+            qty += loop_qty
+            print('Total QTY:', qty)
+            if loop_qty == 0:
+                break
+            time.sleep(2)
+
+        print('total qty', qty)
+        return qty, timer_run_out
+    
+    
 # if __name__ == "__main__":
 #     proxies = r'D:\Programming\Work\Freelancer2\carrcocarr\low_price_warning\proxies.txt'
 #     t = TicketFly('https://www.ticketfly.com/purchase/event/1822963', proxies, 1, None)
