@@ -22,6 +22,8 @@ def get_event_name_and_date(url):
         return check_showclix(url)
     elif 'prekindle.' in url:
         return check_prekindle(url)
+    elif '.tixr.' in url:
+        return check_tixr(url)
 
 
 def make_request(url):
@@ -198,6 +200,16 @@ def check_prekindle(url):
     # time.sleep(3000)
 
     # location and address missing
+
+    return name, date
+
+def check_tixr(url):
+    soup = make_request(url)
+    name =  soup.find('title').text.strip()
+    try:
+        date = parser.parse(soup.find('meta', {'property': 'event:start_time'})["content"]).strftime('%Y-%m-%d')
+    except:
+        pass
 
     return name, date
 #
