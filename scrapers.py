@@ -193,7 +193,7 @@ class Etix(Scraper):
             #driver.find_elements_by_xpath('//*[@placeholder="Password"]')[int(pwd_num) - 1].send_keys(self.password)
 
     def get_qty(self, box_id):
-        driver = self.open_driver(use_proxy=self.proxy_status)
+        driver = self.open_driver()
         driver.get(self.ticket_url)
         time.sleep(2)
         self.input_password(driver)
