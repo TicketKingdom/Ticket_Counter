@@ -71,12 +71,11 @@ class Scraper(object):
             return True
 
     def open_driver(self,
-                    use_proxy=False,
+                    use_proxy=True,
                     user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36.',
                     headless=False):
         random_proxy = random.choice(self.proxies)
         ip, port, user, pwd = random_proxy.split(':')
-        print(use_proxy)
         
         manifest_json = """
         {
@@ -1763,48 +1762,52 @@ class Tixr(Scraper):
             # driver.find_element_by_id('promoCode').send_keys(self.password)
             # driver.find_element_by_id('applyPromoCode').click()
 
-    def get_qty(self, box_id):
+    def get_qty(self, _id):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 
-        driver.find_element_by_xpath(
-            '//a[@class="action-bar-button buybutton"]').click()
-        time.sleep(1)
-
-        # add sold out case or another case on first screen
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-
         try:
-            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
-                'tbody')[int(self.ticket_row)]
-            if sold:
-                if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-                    print('tickets is solded out.')
-                    driver.quit()
-                    return 0
-        except:
+            driver.find_element_by_xpath('//*[@id="overlay"]/div[2]/div[2]/div/div/a[1]').click()
+        except: 
             pass
+        time.sleep(3)
+
+        if self.wait_for_element(driver, '//div[@class="tickets"]', By.XPATH):
+
+            item = driver.find_element_by_xpath('//*[@data-product-id="{}"]'.format(_id))
+            # add sold out case or another case on first screen
+
+            try:
+                sold = item['data-product-state']
+                if sold:
+                    if 'SOLD_OUT' in sold.text:
+                        print('tickets is solded out.')
+                        driver.quit()
+                        return 0
+            except:
+                pass
 
         # input promo code
         self.input_password(driver)
 
-        try:
-            # case of normal type(direclty select the select option)
-            opt = driver.find_elements_by_xpath(
-                f'//*[@name="sectionListView:{str(int(self.ticket_row)-1)}:pricingListView:0:optionContainer:quantityDropDown"]/option')[-1]
-            opt_qty = int(opt.get_attribute('value'))
-            opt.click()
+        if self.wait_for_element(driver, '//div[@data-product-id="{}"][@class="full"]"]', By.XPATH):
+            try:
+                # case of normal type(direclty select the select option)
+                opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
+                opt.click()
 
-        except:
-            # case of select general adminsion and get the ticket.
-            opt = driver.find_elements_by_xpath(
-                '//*[@name="howManyPanel:generalAdmissionContainer:sectionsDropDown"]/option')[-1]
-            opt.click()
-            time.sleep(0.5)
-            opt = driver.find_elements_by_xpath(
-                f'//*[@name="pricingListView:{str(int(self.ticket_row)-1)}:quantityDropDown"]/option')[-1]
-            opt_qty = int(opt.get_attribute('value'))
-            opt.click()
+            except Exception as e:
+                print('error', e)
+                # case of select general adminsion and get the ticket.
+                # opt = driver.find_elements_by_xpath(
+                #     '//*[@name="howManyPanel:generalAdmissionContainer:sectionsDropDown"]/option')[-1]
+                # opt.click()
+                # time.sleep(0.5)
+                # opt = driver.find_elements_by_xpath(
+                #     f'//*[@name="pricingListView:{str(int(self.ticket_row)-1)}:quantityDropDown"]/option')[-1]
+                # opt_qty = int(opt.get_attribute('value'))
+                # opt.click()
+        time.sleep(3000)
 
         time.sleep(0.5)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -1841,50 +1844,54 @@ class Tixr(Scraper):
     def check_ticket_qty(self, cap):
         driver = self.open_driver()
         driver.get(self.ticket_url)
-        time.sleep(3000)
+        # click accept cookie button
+        try:
+            driver.find_element_by_xpath('//*[@id="overlay"]/div[2]/div[2]/div/div/a[1]').click()
+        except: 
+            pass
+
+        # add sold out or inactive action in whole site 
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        try:
+            # sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
+            #     'tbody')[int(self.ticket_row)]
+            # if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
+            #     print('tickets is solded out.')
+            #     driver.quit()
+            #     return '-', False
+            # error = soup.find('div', {'class': 'headline'})
+            # if error:
+            #     if 'Something went wrong.' in error.text:
+            #         print('ticket occre the errors')
+            #         driver.quit()
+            #         return 0
+            pass
+        except:
+            pass
+        time.sleep(3)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
-            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
-                'tbody')[int(self.ticket_row)]
-            if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
+            sold = soup.find_all('div', {'class':'ticket'})[int(self.ticket_row)-1]
+            _id = sold['data-product-id']
+            if 'SOLD_OUT' in sold['data-product-state']:
                 print('tickets is solded out.')
                 driver.quit()
                 return '-', False
-            error = soup.find('div', {'class': 'headline'})
-            if error:
-                if 'Something went wrong.' in error.text:
-                    print('ticket occre the errors')
-                    driver.quit()
-                    return 0
-        except:
+            # error = soup.find('div', {'class': 'headline'})
+            # if error:
+            #     if 'Something went wrong.' in error.text:
+            #         print('ticket occre the errors')
+            #         driver.quit()
+            #         return 0
+        except Exception as e:
+            print('err', e)
             pass
-
-        driver.find_element_by_xpath(
-            '//a[@class="action-bar-button buybutton"]').click()
-        time.sleep(0.5)
-
-        # add sold out case or another case on first screen
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        try:
-            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
-                'tbody')[int(self.ticket_row)]
-            if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-                print('tickets is solded out.')
-                driver.quit()
-                return '-', False
-            error = soup.find('div', {'class': 'headline'})
-            if error:
-                if 'Something went wrong.' in error.text:
-                    print('ticket occre the errors')
-                    driver.quit()
-                    return 0
-        except:
-            pass
-
-        # loop content
+        
         driver.quit()
-        lst = [x for x in range(num_pool)]
+        num_pool = 2
+        # loop content
+        lst = [_id for x in range(num_pool)]
         qty = 0
         oldtime = time.time()
         timer_run_out = False
