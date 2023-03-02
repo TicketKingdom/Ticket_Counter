@@ -1773,10 +1773,8 @@ class Tixr(Scraper):
         time.sleep(3)
 
         if self.wait_for_element(driver, '//div[@class="tickets"]', By.XPATH):
-
             item = driver.find_element_by_xpath('//*[@data-product-id="{}"]'.format(_id))
             # add sold out case or another case on first screen
-
             try:
                 sold = item['data-product-state']
                 if sold:
@@ -1789,53 +1787,37 @@ class Tixr(Scraper):
 
         # input promo code
         self.input_password(driver)
-
-        if self.wait_for_element(driver, '//div[@data-product-id="{}"][@class="full"]"]', By.XPATH):
+        
+        # click possible amount.
+        while True:
             try:
                 # case of normal type(direclty select the select option)
                 opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
                 opt.click()
-
+        
             except Exception as e:
-                print('error', e)
-                # case of select general adminsion and get the ticket.
-                # opt = driver.find_elements_by_xpath(
-                #     '//*[@name="howManyPanel:generalAdmissionContainer:sectionsDropDown"]/option')[-1]
-                # opt.click()
-                # time.sleep(0.5)
-                # opt = driver.find_elements_by_xpath(
-                #     f'//*[@name="pricingListView:{str(int(self.ticket_row)-1)}:quantityDropDown"]/option')[-1]
-                # opt_qty = int(opt.get_attribute('value'))
-                # opt.click()
-        time.sleep(3000)
-
-        time.sleep(0.5)
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-
-        error = soup.find('div', {'class': 'headline'})
-        if error:
-            if 'Something went wrong.' in error.text:
-                print('ticket occre the errors')
-                driver.quit()
-                return 0
-        # click the submit
-        driver.find_element_by_xpath(
-            '//input[@class="purchasebutton greenbutton"]').click()
-
-        # duel the erros or sold out
+                opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[1]'.format(_id))
+                opt.click()
+                opt_qty =  int(driver.find_element_by_xpath('//p[@class="quantity"]').text)
+                break
         time.sleep(2)
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        # click purchar button
+        
+        driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
+        time.sleep(2)
 
-        error = soup.find('li', {'class': 'feedbackPanelERROR'})
-        if error:
-            if 'Capacity for this section has been reached. Please make another section.' in error.text:
-                print('tickets is solded out by scraper.')
-                driver.quit()
-                return 0
-            if 'section \"General Admission\" was reached prior to purchase' in error.text:
-                print('tickets is solded out by scraper and can\'t reach tickets')
-                driver.quit()
-                return 0
+        # add issues after click purchar button
+        # soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        # error = soup.find('div', {'class': 'headline'})
+        # if error:
+        #     if 'Something went wrong.' in error.text:
+        #         print('ticket occre the errors')
+        #         driver.quit()
+        #         return 0
+        # # click the submit
+        # driver.find_element_by_xpath(
+        #     '//input[@class="purchasebutton greenbutton"]').click()
 
         driver.quit()
         print(opt_qty, 'Tickets added')
@@ -1889,7 +1871,7 @@ class Tixr(Scraper):
             pass
         
         driver.quit()
-        num_pool = 2
+        num_pool = 10
         # loop content
         lst = [_id for x in range(num_pool)]
         qty = 0
