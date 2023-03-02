@@ -1798,13 +1798,30 @@ class Tixr(Scraper):
             except Exception as e:
                 opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[1]'.format(_id))
                 opt.click()
-                opt_qty =  int(driver.find_element_by_xpath('//p[@class="quantity"]').text)
+                opt_qty_temp =  int(driver.find_element_by_xpath('//p[@class="quantity"]').text)
                 break
-        time.sleep(2)
+        time.sleep(1)
+
         # click purchar button
         
         driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
         time.sleep(2)
+        while True:
+            try:
+                opt_qty =  int(driver.find_element_by_xpath('//ul[@class="items"]/li[1]/div[1]/div[2]').text)
+                break
+            except:
+                # decrease amount and purchur
+                opt_qty_temp = opt_qty_temp - 1
+                if opt_qty_temp == 0:
+                    print('ticket sold out by scrap')
+                    driver.quit()
+                    return 0
+                    break
+                opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
+                for i in range(opt_qty_temp):
+                    opt.click()
+                driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
 
         # add issues after click purchar button
         # soup = BeautifulSoup(driver.page_source, 'html.parser')
