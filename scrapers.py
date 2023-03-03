@@ -144,14 +144,16 @@ class Scraper(object):
                 chrome_options.add_extension(pluginfile)
                 time.sleep(2)
             except:
-                driver.quit()
                 return self.open_driver()
 
         if user_agent:
             chrome_options.add_argument('--user-agent=%s' % user_agent)
 
-        driver = webdriver.Chrome(
-            'chromedriver', chrome_options=chrome_options)
+        try:
+            driver = webdriver.Chrome(
+                'chromedriver', chrome_options=chrome_options)
+        except:
+            return self.open_driver()
 
         try:
             driver.get('https://www.google.com/')
@@ -1787,6 +1789,7 @@ class Tixr(Scraper):
 
         # input promo code
         self.input_password(driver)
+        opt_qty_temp = 0
         
         # click possible amount.
         while True:
@@ -1802,16 +1805,16 @@ class Tixr(Scraper):
                 break
         time.sleep(1)
 
-        # click purchar button
-        
+        # click purchase button        
         driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
         time.sleep(2)
+
         while True:
             try:
                 opt_qty =  int(driver.find_element_by_xpath('//ul[@class="items"]/li[1]/div[1]/div[2]').text)
                 break
             except:
-                # decrease amount and purchur
+                # decrease amount and purchase
                 opt_qty_temp = opt_qty_temp - 1
                 if opt_qty_temp == 0:
                     print('ticket sold out by scrap')
@@ -1822,6 +1825,7 @@ class Tixr(Scraper):
                 for i in range(opt_qty_temp):
                     opt.click()
                 driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
+                time.sleep(3)
 
         # add issues after click purchar button
         # soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -1843,6 +1847,7 @@ class Tixr(Scraper):
     def check_ticket_qty(self, cap):
         driver = self.open_driver()
         driver.get(self.ticket_url)
+
         # click accept cookie button
         try:
             driver.find_element_by_xpath('//*[@id="overlay"]/div[2]/div[2]/div/div/a[1]').click()
@@ -1877,18 +1882,12 @@ class Tixr(Scraper):
                 print('tickets is solded out.')
                 driver.quit()
                 return '-', False
-            # error = soup.find('div', {'class': 'headline'})
-            # if error:
-            #     if 'Something went wrong.' in error.text:
-            #         print('ticket occre the errors')
-            #         driver.quit()
-            #         return 0
         except Exception as e:
             print('err', e)
             pass
         
         driver.quit()
-        num_pool = 10
+        num_pool = 2
         # loop content
         lst = [_id for x in range(num_pool)]
         qty = 0
