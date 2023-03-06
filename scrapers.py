@@ -1396,6 +1396,7 @@ class SeeTickets(Scraper):
     def check_ticket_qty(self, cap):
         driver = self.open_driver()
         driver.get(self.ticket_url)
+        self.input_password(driver)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
@@ -1757,6 +1758,7 @@ class Prekindle(Scraper):
         print('total qty', qty)
         return qty, timer_run_out
 
+# in progress
 class Tixr(Scraper):
     def input_password(self, driver):
         if self.password:
@@ -1774,18 +1776,17 @@ class Tixr(Scraper):
             pass
         time.sleep(3)
 
-        if self.wait_for_element(driver, '//div[@class="tickets"]', By.XPATH):
-            item = driver.find_element_by_xpath('//*[@data-product-id="{}"]'.format(_id))
-            # add sold out case or another case on first screen
-            try:
-                sold = item['data-product-state']
-                if sold:
-                    if 'SOLD_OUT' in sold.text:
-                        print('tickets is solded out.')
-                        driver.quit()
-                        return 0
-            except:
-                pass
+        item = driver.find_element_by_xpath('//*[@data-product-id="{}"]'.format(_id))
+        # add sold out case or another case on first screen
+        try:
+            sold = item['data-product-state']
+            if sold:
+                if 'SOLD_OUT' in sold.text:
+                    print('tickets is solded out.')
+                    driver.quit()
+                    return 0
+        except:
+            pass
 
         # input promo code
         self.input_password(driver)
@@ -1799,6 +1800,20 @@ class Tixr(Scraper):
                 opt.click()
         
             except Exception as e:
+                print('errer', e)
+                item = driver.find_element_by_xpath('//*[@data-product-id="{}"]'.format(_id))
+                # add sold out case or another case on first screen
+                try:
+                    sold = item['data-product-state']
+                    print(sold)
+                    if sold:
+                        if 'SOLD_OUT' in sold.text:
+                            print('tickets is solded out.')
+                            driver.quit()
+                            return 0
+                except:
+                    pass
+
                 opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[1]'.format(_id))
                 opt.click()
                 opt_qty_temp =  int(driver.find_element_by_xpath('//p[@class="quantity"]').text)
@@ -1814,18 +1829,29 @@ class Tixr(Scraper):
                 opt_qty =  int(driver.find_element_by_xpath('//ul[@class="items"]/li[1]/div[1]/div[2]').text)
                 break
             except:
-                # decrease amount and purchase
-                opt_qty_temp = opt_qty_temp - 1
-                if opt_qty_temp == 0:
-                    print('ticket sold out by scrap')
-                    driver.quit()
-                    return 0
+                overlay = driver.find_element_by_xpath('//*[@id="overlay"]/div[2]/div[2]/div/div[2]/div[2]')
+                print(overlay)
+                time.sleep(3000)
+                if(len(overlay) > 0):
+                    opt_qty = opt_qty_temp
                     break
-                opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
-                for i in range(opt_qty_temp):
-                    opt.click()
-                driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
-                time.sleep(3)
+               
+                if self.wait_for_element(driver, '//div[@id="loading-spinner"]', By.XPATH):
+                    # decrease amount and purchase
+                    opt_qty_temp = opt_qty_temp - 1
+                    if opt_qty_temp == 0:
+                        print(4)
+                        print('ticket sold out by scrap')
+                        driver.quit()
+                        return 0
+                        break
+                    print(5)
+                    opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
+                    for i in range(opt_qty_temp):
+                        opt.click()
+                    driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
+                    print(6)
+                    time.sleep(3)
 
         # add issues after click purchar button
         # soup = BeautifulSoup(driver.page_source, 'html.parser')

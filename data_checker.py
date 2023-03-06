@@ -158,16 +158,23 @@ def check_ticketweb(url):
 
 def check_seetickets(url):
     soup = make_request(url)
-    name = soup.find('h1', {'class': 'event-h2'}).text.strip()
+    time.sleep(2)
+    try:
+        name = soup.find('h1', {'class': 'event-h2'}).text.strip()
 
+        venue = soup.find('p', {'class': 'float-r'}).find_next('h5').decode_contents()
+        adr = soup.find('input', {'type': 'hidden', 'id': 'locationaddress'})[
+            'value']
+
+        name = name + " " + venue + " " + adr
+    except:
+        name = soup.find('title').text.strip()
+        name = name.split('Buy Tickets to')
+    print(name)
+    time.sleep(3000)
     date = soup.find('time', {'itemprop': 'startDate'})['datetime']
     date = parser.parse(date).strftime('%Y-%m-%d')
 
-    venue = soup.find('p', {'class': 'float-r'}).find_next('h5').decode_contents()
-    adr = soup.find('input', {'type': 'hidden', 'id': 'locationaddress'})[
-        'value']
-
-    name = name + " " + venue + " " + adr
 
     return name, date
 
