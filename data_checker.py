@@ -29,7 +29,8 @@ def get_event_name_and_date(url):
 def make_request(url):
     headers = {
         # 'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36.',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0 Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0.'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0 Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0.',
+        'referer':'https://www.google.com/'
     }
     r = requests.get(url, headers=headers)
     if r.status_code == 200 or r.status_code == 506:
@@ -159,17 +160,17 @@ def check_ticketweb(url):
 def check_seetickets(url):
     soup = make_request(url)
     time.sleep(2)
-    try:
-        name = soup.find('h1', {'class': 'event-h2'}).text.strip()
+    # try:
+    name = soup.find('h1', {'class': 'event-h2'}).text.strip()
 
-        venue = soup.find('p', {'class': 'float-r'}).find_next('h5').decode_contents()
-        adr = soup.find('input', {'type': 'hidden', 'id': 'locationaddress'})[
-            'value']
+    venue = soup.find('p', {'class': 'float-r'}).find_next('h5').decode_contents()
+    adr = soup.find('input', {'type': 'hidden', 'id': 'locationaddress'})[
+        'value']
 
-        name = name + " " + venue + " " + adr
-    except:
-        name = soup.find('title').text.strip()
-        name = name.split('Buy Tickets to')
+    name = name + " " + venue + " " + adr
+    # except:
+    #     name = soup.find('title').text.strip()
+    #     name = name.split('Buy Tickets to')
     print(name)
     time.sleep(3000)
     date = soup.find('time', {'itemprop': 'startDate'})['datetime']

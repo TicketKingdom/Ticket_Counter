@@ -1294,12 +1294,15 @@ class BigTicket(Scraper):
 
 
 class SeeTickets(Scraper):
-    # def input_password(self, driver):
-    #     if self.password:
-    #         driver.find_element_by_xpath('//*[@data-automation="order-box-enter-promo"]').click()
-    #         driver.find_element_by_id('promo-access-code-input').send_keys(self.password)
-    #         driver.find_element_by_xpath('//*[@type="submit"]').click()
-    #         time.sleep(2)
+    def input_password(self, driver):
+        if self.password:
+            prom = driver.find_elements_by_class_name('coupon-code')[2]
+            try:
+                prom.find_element_by_xpath('//*[@placeholder="Enter Promo Code"]').send_keys(self.password)
+            except Exception as e:
+                print(e)
+            time.sleep(3000)
+            driver.find_element_by_xpath('//*[@type="submit"]').click()
 
     def get_qty(self, box_id):
         driver = self.open_driver()
