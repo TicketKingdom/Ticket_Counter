@@ -1,8 +1,9 @@
 beautifulsoup4==4.9.3
 selenium==3.141.0
-wxpython==4.1.1
+wxpython==4.2.0
 capmonster-python==1.3.0
 gspread==3.7.0
 oauth2client==4.1.3
 python_anticaptcha==1.0.0
 python-dotenv==0.21.0
+python-dateutil==2.8.2

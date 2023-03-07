@@ -20,7 +20,7 @@ load_dotenv()
 anticaptch_key = os.getenv('anticaptch_key')
 capmonster_key = os.getenv('capmonster_key')
 
-num_pool = 10
+num_pool = 2
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -446,7 +446,7 @@ class Etix(Scraper):
                     break
                 loop_qty = 0
                 with Pool(num_pool) as p:
-                    r = p.map(self.get_qty, list(range(10)))
+                    r = p.map(self.get_qty, list(range(num_pool)))
                     for q in r:
                         loop_qty += q
                         # if q == 0:
@@ -1071,7 +1071,7 @@ class TicketWeb(Scraper):
                 return '-', False
 
         driver.quit()
-        num_pool = 10
+        # num_pool = 10
         lst = [x for x in range(num_pool)]
         qty = 0
         oldtime = time.time()
@@ -1422,7 +1422,7 @@ class SeeTickets(Scraper):
                 break
             loop_qty = 0
             with Pool(num_pool) as p:
-                r = p.map(self.get_qty, list(range(10)))
+                r = p.map(self.get_qty, list(range(num_pool)))
                 for q in r:
                     loop_qty += q
             qty += loop_qty
@@ -1916,7 +1916,7 @@ class Tixr(Scraper):
             pass
         
         driver.quit()
-        num_pool = 2
+        # num_pool = 2
         # loop content
         lst = [_id for x in range(num_pool)]
         qty = 0
