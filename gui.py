@@ -300,7 +300,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     if current_time - last_time_check <= interval:
                         continue
                 
-                print('event status', self.shutdown_event.is_set())
                 if self.m_button_start.LabelText == "Start":
                     self.shutdown_event.set()
                     break

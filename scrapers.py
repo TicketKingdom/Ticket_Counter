@@ -278,7 +278,7 @@ class Etix(Scraper):
                 # time.sleep(3000)
 
         else:
-            print('this is real captcha')  # solve the real captcha
+            # solve the real captcha
             if soup.find('div', {'class': 'g-recaptcha'}):
                 if self.cap == "Capmonster":  # solve this capmonster
                     capmonster = NoCaptchaTaskProxyless(
