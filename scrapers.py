@@ -204,8 +204,15 @@ class Etix(Scraper):
         time.sleep(0.5)
         origin_content = ''
 
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        try:
+            canvas_mode = driver.find_element_by_id('EtixOnlineManifestMapDivSection')
+            driver.execute_script('document.querySelector("#EtixOnlineManifestMapDivSection > map > area:nth-child(2)").click()')
+        except:
+            pass
+        time.sleep(3000)
+
         # detect the fake captcha using url
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             origin_content = soup.find(
                 'div', {'class': 'grecaptcha-logo'}).find_next({'iframe'})['src']
