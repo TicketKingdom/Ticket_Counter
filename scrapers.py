@@ -1303,11 +1303,12 @@ class BigTicket(Scraper):
 class SeeTickets(Scraper):
     def input_password(self, driver):
         if self.password:
-            prom = driver.find_elements_by_class_name('coupon-code')[2]
             try:
+                prom = driver.find_elements_by_class_name('coupon-code')[2]
                 prom.find_element_by_xpath('//*[@placeholder="Enter Promo Code"]').send_keys(self.password)
             except Exception as e:
-                print(e)
+                driver.find_element_by_xpath('//*[@id="eventpass"]').send_keys(self.password)
+                driver.find_element_by_xpath('//*[@id="checkoutbutton"]').click()
 
     def get_qty(self, box_id):
         driver = self.open_driver()
@@ -1359,12 +1360,17 @@ class SeeTickets(Scraper):
         
         # check presale second part red alert
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        if 'The password you entered in the coupon field is not valid.' in soup.find('p', {'id': 'warning-text'}).text:
+        try: 
+            message = soup.find('p', {'id': 'warning-text'}).text
+        except:
+            message = ''
+            
+        if 'The password you entered in the coupon field is not valid.' in message:
             print('Password is not valid')
             driver.quit()
             return 0
         
-        if 'Please update your ticket quantities and try again.' in soup.find('p', {'id': 'warning-text'}).text:
+        if 'Please update your ticket quantities and try again.' in message:
             i = 0
             while True:
                 i = i + 1
