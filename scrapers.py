@@ -1308,14 +1308,13 @@ class SeeTickets(Scraper):
                 prom.find_element_by_xpath('//*[@placeholder="Enter Promo Code"]').send_keys(self.password)
             except Exception as e:
                 print(e)
-            time.sleep(3000)
-            driver.find_element_by_xpath('//*[@type="submit"]').click()
 
     def get_qty(self, box_id):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 
         time.sleep(5)
+        self.input_password(driver)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
