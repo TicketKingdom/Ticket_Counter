@@ -209,7 +209,6 @@ class Etix(Scraper):
             driver.execute_script('document.querySelector("#EtixOnlineManifestMapDivSection > map > area:nth-child(2)").click()')
         except:
             pass
-        time.sleep(3000)
 
         # detect the fake captcha using url
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -241,13 +240,18 @@ class Etix(Scraper):
             driver.quit()
             print('Can\'t scrap! It\' sold out all')
             return 0
-
+        time.sleep(3)
+        
         # detect the two tabs works
         try:
-            id = soup.find('form', {'name': 'frmPickTicket'}).find_all(
-                'select')[int(self.ticket_row) - 1]['id']
+            try:
+                id = soup.find('form', {'name': 'frmPickTicket'}).find_all(
+                    'select')[int(self.ticket_row) - 1]['id']
+            except:
+                modal_diaglog_soup = BeautifulSoup(driver.page_source, 'html.parser')
+                id = modal_diaglog_soup.find('body', {'id':'add-seat-manifest'}).find_all('select')[int(self.ticket_row) - 1]['id']
             tab_click = False
-        except:
+        except Exception as e:
             # two tabs is existed and select price level.
             tab_click = True
             try:
@@ -1359,59 +1363,59 @@ class SeeTickets(Scraper):
         time.sleep(4)
         
         # check presale second part red alert
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        try: 
-            message = soup.find('p', {'id': 'warning-text'}).text
-        except:
-            message = ''
+        # soup = BeautifulSoup(driver.page_source, 'html.parser')
+        # try: 
+        #     message = soup.find('p', {'id': 'warning-text'}).text
+        # except:
+        #     message = ''
             
-        if 'The password you entered in the coupon field is not valid.' in message:
-            print('Password is not valid')
-            driver.quit()
-            return 0
+        # if 'The password you entered in the coupon field is not valid.' in message:
+        #     print('Password is not valid')
+        #     driver.quit()
+        #     return 0
         
-        if 'Please update your ticket quantities and try again.' in message:
-            i = 0
-            while True:
-                i = i + 1
-                print('Decrease the number of tickets')
-                opt = driver.find_elements_by_xpath(
-                    '//*[@id="{}"]/option'.format(id))[-1-i]
-                opt_qty = int(opt.get_attribute('value'))
-                opt.click()
-                if self.wait_for_element(driver, 'container'):
-                    # click checkout
-                    try:
-                        add_To_cart = driver.find_element_by_xpath(
-                            '//*[@id="addtocartbnt"]')
-                        driver.execute_script("arguments[0].click();", add_To_cart)
-                    except Exception as e:
-                        # print(e)
-                        pass
-                    time.sleep(4)
-                    try:
-                        driver.find_element_by_xpath('//*[@id="checkoutbnt"]').click()
-                    except:
-                        try:
-                            checkout = driver.find_elements_by_xpath(
-                                '//*[@id="checkoutbnt"]')
-                            for x in range(0, len(checkout)):
-                                driver.execute_script(
-                                    "arguments[0].click();", checkout[x])
-                        except Exception as e:
-                            print(0, 'Tickets added....')
-                            driver.quit()
-                            return 0
-                time.sleep(4)
-                soup = BeautifulSoup(driver.page_source, 'html.parser')
-                try:
-                    warn_text = soup.find('p', {'id': 'warning-text'}).text
-                    if 'Please update your ticket quantities and try again.' in warn_text:
-                        continue
-                    else:
-                        break
-                except:
-                    break
+        # if 'Please update your ticket quantities and try again.' in message:
+        #     i = 0
+        #     while True:
+        #         i = i + 1
+        #         print('Decrease the number of tickets')
+        #         opt = driver.find_elements_by_xpath(
+        #             '//*[@id="{}"]/option'.format(id))[-1-i]
+        #         opt_qty = int(opt.get_attribute('value'))
+        #         opt.click()
+        #         if self.wait_for_element(driver, 'container'):
+        #             # click checkout
+        #             try:
+        #                 add_To_cart = driver.find_element_by_xpath(
+        #                     '//*[@id="addtocartbnt"]')
+        #                 driver.execute_script("arguments[0].click();", add_To_cart)
+        #             except Exception as e:
+        #                 # print(e)
+        #                 pass
+        #             time.sleep(4)
+        #             try:
+        #                 driver.find_element_by_xpath('//*[@id="checkoutbnt"]').click()
+        #             except:
+        #                 try:
+        #                     checkout = driver.find_elements_by_xpath(
+        #                         '//*[@id="checkoutbnt"]')
+        #                     for x in range(0, len(checkout)):
+        #                         driver.execute_script(
+        #                             "arguments[0].click();", checkout[x])
+        #                 except Exception as e:
+        #                     print(0, 'Tickets added....')
+        #                     driver.quit()
+        #                     return 0
+        #         time.sleep(4)
+        #         soup = BeautifulSoup(driver.page_source, 'html.parser')
+        #         try:
+        #             warn_text = soup.find('p', {'id': 'warning-text'}).text
+        #             if 'Please update your ticket quantities and try again.' in warn_text:
+        #                 continue
+        #             else:
+        #                 break
+        #         except:
+        #             break
 
         try:
             driver.find_element_by_xpath('//*[@id="skipbutton"]').click()
