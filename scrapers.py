@@ -20,7 +20,7 @@ load_dotenv()
 anticaptch_key = os.getenv('anticaptch_key')
 capmonster_key = os.getenv('capmonster_key')
 
-num_pool = 2
+num_pool = 10
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -393,6 +393,43 @@ class Etix(Scraper):
                             else:
                                 break
         time.sleep(5)
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        if soup.find('div', {'class': 'g-recaptcha'}):
+                if self.cap == "Capmonster":  # solve this capmonster
+                    capmonster = NoCaptchaTaskProxyless(
+                        client_key=capmonster_key)
+                    taskId = capmonster.createTask(
+                        website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+                    print("Waiting to solution by capmonster workers")
+                    try:
+                        response = capmonster.joinTaskResult(taskId=taskId)
+                    except:
+                        print(0, 'Tickets added....')
+                        driver.quit()
+                        return 0
+                else:                         # solve this anticapcha
+                    client = AnticaptchaClient(anticaptch_key)
+                    task = NoCaptchaTaskProxylessTask(
+                        self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+                    try:
+                        job = client.createTask(task)
+                        print("Waiting to solution by Anticaptcha workers")
+                        job.join()
+                        # Receive response
+                        response = job.get_solution_response()
+                    except:
+                        print(0, 'Tickets added....')
+                        driver.quit()
+                        return 0
+                print("Received solution--->", response)
+
+                driver.execute_script(
+                    'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+                driver.execute_script(
+                    'document.getElementById("submitBtn").removeAttribute("disabled")')
+                time.sleep(0.5)
+
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             opt_qty = driver.find_element_by_xpath(
@@ -407,6 +444,7 @@ class Etix(Scraper):
             # print('It occur techiqual error(can\'t solve the fake captcha)')
             # return 0
             pass
+        time.sleep(3000)
 
         driver.quit()
         print(opt_qty, 'Tickets added')
