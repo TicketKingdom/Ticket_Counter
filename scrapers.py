@@ -286,11 +286,10 @@ class Etix(Scraper):
                 # solver = captcha_harvesters(solving_site="capmonster", api_key=capmonster_key, sitekey="6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j", captcha_url="https://www.google.com/recaptcha/api2/demo", invisible_captcha=True)
                 # text_cap_answer = solver.get_normal(self.ticket_url)
                 # print("Svoled:", text_cap_answer)
-                # time.sleep(3000)
+        # time.sleep(3000)
 
-        else:
-            # solve the real captcha
-            if soup.find('div', {'class': 'g-recaptcha'}):
+        # solve the real captcha
+        if soup.find('div', {'class': 'g-recaptcha'}):
                 if self.cap == "Capmonster":  # solve this capmonster
                     capmonster = NoCaptchaTaskProxyless(
                         client_key=capmonster_key)
@@ -393,7 +392,7 @@ class Etix(Scraper):
                                 continue
                             else:
                                 break
-
+        time.sleep(5)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             opt_qty = driver.find_element_by_xpath(
