@@ -444,7 +444,7 @@ class Etix(Scraper):
             # print('It occur techiqual error(can\'t solve the fake captcha)')
             # return 0
             pass
-        time.sleep(3000)
+        time.sleep(3)
 
         driver.quit()
         print(opt_qty, 'Tickets added')
