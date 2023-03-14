@@ -20,7 +20,7 @@ load_dotenv()
 anticaptch_key = os.getenv('anticaptch_key')
 capmonster_key = os.getenv('capmonster_key')
 
-num_pool = 10
+num_pool = 2
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -209,6 +209,7 @@ class Etix(Scraper):
             driver.execute_script('document.querySelector("#EtixOnlineManifestMapDivSection > map > area:nth-child(2)").click()')
         except:
             pass
+        time.sleep(2)
 
         # detect the fake captcha using url
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -222,12 +223,12 @@ class Etix(Scraper):
         sold_out = soup.find('h2', {'class': 'header-message'})
         if sold_out:
             if 'sold out' in sold_out.text.lower():
-                print('the ticket is solded out')
+                print('the ticket is sold out')
                 driver.quit()
                 return 0
 
         if soup.find('p', {'class': 'callout error'}):
-            print('session expried')
+            print('session expired')
             driver.quit()
             return 0
 
@@ -240,27 +241,23 @@ class Etix(Scraper):
             driver.quit()
             print('Can\'t scrap! It\' sold out all')
             return 0
-        time.sleep(3)
         
         # detect the two tabs works
         try:
             try:
-                id = soup.find('form', {'name': 'frmPickTicket'}).find_all(
-                    'select')[int(self.ticket_row) - 1]['id']
+                id = soup.find('form', {'name': 'frmPickTicket'}).find_all('select')[int(self.ticket_row) - 1]['id']
             except:
-                modal_diaglog_soup = BeautifulSoup(driver.page_source, 'html.parser')
-                id = modal_diaglog_soup.find('body', {'id':'add-seat-manifest'}).find_all('select')[int(self.ticket_row) - 1]['id']
+                modal_dialog_soup = BeautifulSoup(driver.page_source, 'html.parser')
+                id = modal_dialog_soup.find('body', {'id':'add-seat-manifest'}).find_all('select')[int(self.ticket_row) - 1]['id']
             tab_click = False
         except Exception as e:
             # two tabs is existed and select price level.
             tab_click = True
             try:
-                price_level = driver.find_element_by_xpath(
-                    '//*[@id="ticket-type"]/li[2]/a')
+                price_level = driver.find_element_by_xpath('//*[@id="ticket-type"]/li[2]/a')
                 driver.execute_script("arguments[0].click();", price_level)
             except Exception as e:
-                print(e)
-                print('there is no tickets...')
+                print('there is no tickets...(this type is not one tab or two tabs way)')
                 driver.quit()
                 return 0
 
@@ -277,52 +274,46 @@ class Etix(Scraper):
         opt_qty = int(opt.get_attribute('value'))
         opt.click()
 
-        # Solve the capchat area(fake and real)
+        # Solve the captcha area(fake and real)
         if origin_content:
             if 'invisible' in origin_content:
-                # solve the fake captcha, but there is not code yet
-                print('this is fake captcha.')
+                # solve the fake captcha, but there is not code yet maybe add fake captcha solver
+                # print('this is fake captcha.')
                 pass
-                # solver = captcha_harvesters(solving_site="capmonster", api_key=capmonster_key, sitekey="6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j", captcha_url="https://www.google.com/recaptcha/api2/demo", invisible_captcha=True)
-                # text_cap_answer = solver.get_normal(self.ticket_url)
-                # print("Svoled:", text_cap_answer)
-        # time.sleep(3000)
+        else:
+            # solve the real captcha
+            # print('this is real captcha.')
+            pass
+            # if soup.find('div', {'class': 'g-recaptcha'}):
+            #     if self.cap == "Capmonster":  # solve this capmonster
+            #         capmonster = NoCaptchaTaskProxyless(client_key=capmonster_key)
+            #         taskId = capmonster.createTask(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+            #         print("Waiting to solution by capmonster workers")
+            #         try:
+            #             response = capmonster.joinTaskResult(taskId=taskId)
+            #         except:
+            #             print(0, 'Tickets added....')
+            #             driver.quit()
+            #             return 0
+            #     else:                         # solve this anticapcha
+            #         client = AnticaptchaClient(anticaptch_key)
+            #         task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+            #         try:
+            #             job = client.createTask(task)
+            #             print("Waiting to solution by Anticaptcha workers")
+            #             job.join()
+            #             response = job.get_solution_response()
+            #         except:
+            #             print(0, 'Tickets added....')
+            #             driver.quit()
+            #             return 0
+            #     print("Received solution--->", response)
 
-        # solve the real captcha
-        if soup.find('div', {'class': 'g-recaptcha'}):
-                if self.cap == "Capmonster":  # solve this capmonster
-                    capmonster = NoCaptchaTaskProxyless(
-                        client_key=capmonster_key)
-                    taskId = capmonster.createTask(
-                        website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
-                    print("Waiting to solution by capmonster workers")
-                    try:
-                        response = capmonster.joinTaskResult(taskId=taskId)
-                    except:
-                        print(0, 'Tickets added....')
-                        driver.quit()
-                        return 0
-                else:                         # solve this anticapcha
-                    client = AnticaptchaClient(anticaptch_key)
-                    task = NoCaptchaTaskProxylessTask(
-                        self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
-                    try:
-                        job = client.createTask(task)
-                        print("Waiting to solution by Anticaptcha workers")
-                        job.join()
-                        # Receive response
-                        response = job.get_solution_response()
-                    except:
-                        print(0, 'Tickets added....')
-                        driver.quit()
-                        return 0
-                print("Received solution--->", response)
-
-                driver.execute_script(
-                    'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-                driver.execute_script(
-                    'document.getElementById("submitBtn").removeAttribute("disabled")')
-                time.sleep(0.5)
+            #     driver.execute_script(
+            #         'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+            #     driver.execute_script(
+            #         'document.getElementById("submitBtn").removeAttribute("disabled")')
+            #     time.sleep(0.5)
 
         # click confirm button
         try:
@@ -332,7 +323,7 @@ class Etix(Scraper):
             time.sleep(1.5)
 
         except Exception as e:
-            print('Submit button is diferent or disabled. 0 Tickets added....')
+            print('Submit button is different or disabled. 0 Tickets added....')
             driver.quit()
             return 0
 
@@ -340,8 +331,7 @@ class Etix(Scraper):
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         if new_soup.find('div', {'class': 'callout error'}):
-            print(
-                'you due to the high volume of requests for the same seats or session expired')
+            print('you due to the high volume of requests for the same seats or session expired')
             driver.quit()
             return 0
 
@@ -353,22 +343,16 @@ class Etix(Scraper):
 
         if new_soup.find('div', {'class': 'validationError error'}):
             if new_soup.find('div', {'class', 'errorBox'}):
-                # print('Reducing ticket mode>>>1')
                 if 'the number of tickets you requested is over the per order limit' in new_soup.find('div', {'class': 'errorBox'}).text or ('Sorry, there are not enough' in new_soup.find('div', {'class': 'errorBox'}).text):
-                    # print("Reducing ticket mode>>>2")
-                    error = soup.find(
-                        'div', {'class': 'validationError error'})
-                    num_of_options = len(driver.find_elements_by_xpath(
-                        '//*[@id="{}"]/option'.format(id)))
+                    # get amount is impossible, decrease the amount.
+                    error = soup.find('div', {'class': 'validationError error'})
+                    num_of_options = len(driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id)))
                     if error:
                         index = 1
                         while True:
-                            # TODO Localize if error
                             if tab_click:
-                                driver.find_element_by_xpath(
-                                    '//*[@id="ticket-type"]/li[2]/a').click()
-                                soup = BeautifulSoup(
-                                    driver.page_source, 'html.parser')
+                                driver.find_element_by_xpath('//*[@id="ticket-type"]/li[2]/a').click()
+                                soup = BeautifulSoup(driver.page_source, 'html.parser')
 
                             opt = driver.find_elements_by_xpath(
                                 '//*[@id="{}"]/option'.format(id))[-1 - index]
@@ -378,13 +362,10 @@ class Etix(Scraper):
                                 driver.quit()
                                 return 0
                             opt.click()
-                            driver.find_element_by_xpath(
-                                '//button[@type="submit"]').click()
+                            driver.find_element_by_xpath('//button[@type="submit"]').click()
                             time.sleep(0.5)
-                            soup = BeautifulSoup(
-                                driver.page_source, 'html.parser')
-                            error = soup.find(
-                                'div', {'class': 'validationError error'})
+                            soup = BeautifulSoup(driver.page_source, 'html.parser')
+                            error = soup.find('div', {'class': 'validationError error'})
                             if error:
                                 if num_of_options == index:
                                     driver.quit()
@@ -392,15 +373,31 @@ class Etix(Scraper):
                                 continue
                             else:
                                 break
-        time.sleep(5)
 
+                                
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        if soup.find('div', {'class': 'g-recaptcha'}):
-                if self.cap == "Capmonster":  # solve this capmonster
-                    capmonster = NoCaptchaTaskProxyless(
-                        client_key=capmonster_key)
-                    taskId = capmonster.createTask(
-                        website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+        try:
+            origin_content = soup.find(
+                'div', {'class': 'grecaptcha-logo'}).find_next({'iframe'})['src']
+        except:
+            pass
+        
+        # Solve the captcha area(fake and real)
+        if origin_content:
+            if 'invisible' in origin_content:
+                # solve the fake captcha, but there is not code yet maybe add fake captcha solver
+                print('this is fake captcha.')
+                pass
+        else:
+            # solve the real captcha
+            print('this is real captcha.')
+            if soup.find('div', {'class': 'g-recaptcha'}):
+                if self.cap == "Capmonster":  
+                    capmonster = NoCaptchaTaskProxyless(client_key=capmonster_key)
+                    try:
+                        taskId = capmonster.createTask(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+                    except:
+                        taskId = capmonster.createTask(website_key='VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg', website_url=self.ticket_url)
                     print("Waiting to solution by capmonster workers")
                     try:
                         response = capmonster.joinTaskResult(taskId=taskId)
@@ -410,8 +407,10 @@ class Etix(Scraper):
                         return 0
                 else:                         # solve this anticapcha
                     client = AnticaptchaClient(anticaptch_key)
-                    task = NoCaptchaTaskProxylessTask(
-                        self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+                    try:
+                        task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+                    except:
+                        task = NoCaptchaTaskProxylessTask(self.ticket_url, 'VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg')
                     try:
                         job = client.createTask(task)
                         print("Waiting to solution by Anticaptcha workers")
@@ -429,22 +428,20 @@ class Etix(Scraper):
                 driver.execute_script(
                     'document.getElementById("submitBtn").removeAttribute("disabled")')
                 time.sleep(0.5)
+            
+        time.sleep(2)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
-            opt_qty = driver.find_element_by_xpath(
-                '//*[@id="cartForm"]/div[1]/div/table/tbody/tr/td[6]').text.split('×')[1].strip()
+            opt_qty = driver.find_element_by_xpath('//*[@id="cartForm"]/div[1]/div/table/tbody/tr/td[6]').text.split('×')[1].strip()
             if(opt_qty < 10):
-                opt_qty = len(soup.find('table', {
-                    'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
+                opt_qty = len(soup.find('table', {'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
         except:
-            # we add capchat solve area on here.
-            # time.sleep(3000)
-            # driver.quit()
+            # we add fake captcha solve area on here.
             # print('It occur techiqual error(can\'t solve the fake captcha)')
+            # driver.quit()
             # return 0
             pass
-        time.sleep(3)
 
         driver.quit()
         print(opt_qty, 'Tickets added')
@@ -1737,7 +1734,7 @@ class Prekindle(Scraper):
                 'tbody')[int(self.ticket_row)]
             if sold:
                 if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-                    print('tickets is solded out.')
+                    print('tickets is sold out.')
                     driver.quit()
                     return 0
         except:
@@ -1784,11 +1781,11 @@ class Prekindle(Scraper):
         error = soup.find('li', {'class': 'feedbackPanelERROR'})
         if error:
             if 'Capacity for this section has been reached. Please make another section.' in error.text:
-                print('tickets is solded out by scraper.')
+                print('tickets is sold out by scraper.')
                 driver.quit()
                 return 0
             if 'section \"General Admission\" was reached prior to purchase' in error.text:
-                print('tickets is solded out by scraper and can\'t reach tickets')
+                print('tickets is sold out by scraper and can\'t reach tickets')
                 driver.quit()
                 return 0
 
@@ -1805,7 +1802,7 @@ class Prekindle(Scraper):
             sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
                 'tbody')[int(self.ticket_row)]
             if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-                print('tickets is solded out.')
+                print('tickets is sold out.')
                 driver.quit()
                 return '-', False
             error = soup.find('div', {'class': 'headline'})
@@ -1827,7 +1824,7 @@ class Prekindle(Scraper):
             sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
                 'tbody')[int(self.ticket_row)]
             if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-                print('tickets is solded out.')
+                print('tickets is sold out.')
                 driver.quit()
                 return '-', False
             error = soup.find('div', {'class': 'headline'})
@@ -1890,7 +1887,7 @@ class Tixr(Scraper):
             sold = item['data-product-state']
             if sold:
                 if 'SOLD_OUT' in sold.text:
-                    print('tickets is solded out.')
+                    print('tickets is sold out.')
                     driver.quit()
                     return 0
         except:
@@ -1916,7 +1913,7 @@ class Tixr(Scraper):
                     print(sold)
                     if sold:
                         if 'SOLD_OUT' in sold.text:
-                            print('tickets is solded out.')
+                            print('tickets is sold out.')
                             driver.quit()
                             return 0
                 except:
@@ -1994,7 +1991,7 @@ class Tixr(Scraper):
             # sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
             #     'tbody')[int(self.ticket_row)]
             # if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-            #     print('tickets is solded out.')
+            #     print('tickets is sold out.')
             #     driver.quit()
             #     return '-', False
             # error = soup.find('div', {'class': 'headline'})
@@ -2013,7 +2010,7 @@ class Tixr(Scraper):
             sold = soup.find_all('div', {'class':'ticket'})[int(self.ticket_row)-1]
             _id = sold['data-product-id']
             if 'SOLD_OUT' in sold['data-product-state']:
-                print('tickets is solded out.')
+                print('tickets is sold out.')
                 driver.quit()
                 return '-', False
         except Exception as e:
