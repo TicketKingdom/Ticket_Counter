@@ -1874,13 +1874,19 @@ class Tixr(Scraper):
     def get_qty(self, _id):
         driver = self.open_driver()
         driver.get(self.ticket_url)
+        time.sleep(5)
 
-        try:
-            driver.find_element_by_xpath('//*[@id="overlay"]/div[2]/div[2]/div/div/a[1]').click()
-        except: 
-            pass
-        time.sleep(3)
-
+        ticket_index, collection_index = None, None
+        if '/' in self.ticket_row:
+            collection_index, ticket_index = self.ticket_row.split('/')
+            try:
+                driver.find_element_by_xpath('//*[@id="page"]/div/div[3]/div[1]/div[1]/div[3]/div/ul/li['+collection_index+']/a[1]').click()
+            except:
+                driver.find_element_by_xpath('//*[@id="page"]/div/div[2]/div[1]/div[1]/div[3]/div/ul/li['+collection_index+']/a[1]').click()
+            time.sleep(5)
+        else:
+            ticket_index = self.ticket_row
+            
         item = driver.find_element_by_xpath('//*[@data-product-id="{}"]'.format(_id))
         # add sold out case or another case on first screen
         try:
@@ -1923,7 +1929,7 @@ class Tixr(Scraper):
                 opt.click()
                 opt_qty_temp =  int(driver.find_element_by_xpath('//p[@class="quantity"]').text)
                 break
-        time.sleep(1)
+        time.sleep(3000)
 
         # click purchase button        
         driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
@@ -1940,7 +1946,7 @@ class Tixr(Scraper):
                 if(len(overlay) > 0):
                     opt_qty = opt_qty_temp
                     break
-               
+                
                 if self.wait_for_element(driver, '//div[@id="loading-spinner"]', By.XPATH):
                     # decrease amount and purchase
                     opt_qty_temp = opt_qty_temp - 1
@@ -1978,36 +1984,23 @@ class Tixr(Scraper):
     def check_ticket_qty(self, cap):
         driver = self.open_driver()
         driver.get(self.ticket_url)
-
-        # click accept cookie button
-        try:
-            driver.find_element_by_xpath('//*[@id="overlay"]/div[2]/div[2]/div/div/a[1]').click()
-        except: 
-            pass
-
-        # add sold out or inactive action in whole site 
+        time.sleep(5)
+        
+        ticket_index, collection_index = None, None
+        if '/' in self.ticket_row:
+            collection_index, ticket_index = self.ticket_row.split('/')
+            try:
+                driver.find_element_by_xpath('//*[@id="page"]/div/div[3]/div[1]/div[1]/div[3]/div/ul/li['+collection_index+']/a[1]').click()
+            except:
+                driver.find_element_by_xpath('//*[@id="page"]/div/div[2]/div[1]/div[1]/div[3]/div/ul/li['+collection_index+']/a[1]').click()
+            time.sleep(5)
+        else:
+            ticket_index = self.ticket_row
+        
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+        _id = None
         try:
-            # sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next(
-            #     'tbody')[int(self.ticket_row)]
-            # if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-            #     print('tickets is sold out.')
-            #     driver.quit()
-            #     return '-', False
-            # error = soup.find('div', {'class': 'headline'})
-            # if error:
-            #     if 'Something went wrong.' in error.text:
-            #         print('ticket occre the errors')
-            #         driver.quit()
-            #         return 0
-            pass
-        except:
-            pass
-        time.sleep(3)
-
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        try:
-            sold = soup.find_all('div', {'class':'ticket'})[int(self.ticket_row)-1]
+            sold = soup.find_all('div', {'class':'ticket'})[int(ticket_index)-1]
             _id = sold['data-product-id']
             if 'SOLD_OUT' in sold['data-product-state']:
                 print('tickets is sold out.')
@@ -2016,9 +2009,8 @@ class Tixr(Scraper):
         except Exception as e:
             print('err', e)
             pass
-        
+                
         driver.quit()
-        # num_pool = 2
         # loop content
         lst = [_id for x in range(num_pool)]
         qty = 0
