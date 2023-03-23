@@ -1925,12 +1925,20 @@ class Tixr(Scraper):
                 opt_qty =  int(driver.find_element_by_xpath('//ul[@class="items"]/li[1]/div[1]/div[2]').text)
                 break
             except:
-                overlay = driver.find_element_by_xpath('//*[@id="overlay"]/div[2]/div[2]/div/div[2]/div[2]')
-                if(len(overlay) > 0):
-                    opt_qty = opt_qty_temp
-                    break
-                
-                if self.wait_for_element(driver, '//div[@id="loading-spinner"]', By.XPATH):
+                time.sleep(3)
+                try:
+                    overlay = driver.find_element_by_xpath('//*[@id="overlay"]/div[2]/div[2]/div/div[2]/div[2]')
+                    if(len(overlay) > 0):
+                        opt_qty = opt_qty_temp
+                        break
+                except:
+                    pass
+                notify_len =  None
+                try:
+                    notify_len =  driver.find_elements_by_xpath('//*[@id="notify"]/li')
+                except:
+                    pass
+                if len(notify_len) > 0:
                     # decrease amount and purchase
                     opt_qty_temp = opt_qty_temp - 1
                     if opt_qty_temp == 0:
@@ -1941,6 +1949,7 @@ class Tixr(Scraper):
                     opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
                     for i in range(opt_qty_temp):
                         opt.click()
+                    time.sleep(3)
                     driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
                     time.sleep(3)
 
