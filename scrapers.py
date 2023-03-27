@@ -1918,6 +1918,39 @@ class Tixr(Scraper):
         driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
         time.sleep(3)
 
+        # add captcha area
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        captcha = soup.find('div', {'id': 'recaptcha'})
+        if captcha:
+            if self.cap == "Capmonster":
+                # using capmonster
+                capmonster = NoCaptchaTaskProxyless(
+                    client_key=capmonster_key)
+                # taskId = capmonster.createTask(
+                #     website_key='6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU', website_url=self.ticket_url)
+                taskId = capmonster.createTask(
+                    website_key='6LfF108UAAAAAL5DaIWx9JdmjfUiBjFRcSRc2s40', website_url=self.ticket_url)
+                print("Waiting to solution by capmonster workers")
+                response = capmonster.joinTaskResult(taskId=taskId)
+                print("Received solution", response)
+                driver.execute_script(
+                    'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+                time.sleep(1)
+            else:
+                # using anti_captcha
+                client = AnticaptchaClient(anticaptch_key)
+                task = NoCaptchaTaskProxylessTask(
+                    self.ticket_url, '6LfF108UAAAAAL5DaIWx9JdmjfUiBjFRcSRc2s40')
+                job = client.createTask(task)
+                print("Waiting to solution by Anticaptcha workers")
+                job.join()
+                response = job.get_solution_response()
+                print("Received solution", response)
+                driver.execute_script(
+                    'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+                time.sleep(1)
+        time.sleep(3000)
+
         while True:
             try:
                 opt_qty =  int(driver.find_element_by_xpath('//ul[@class="items"]/li[1]/div[1]/div[2]').text)
@@ -1957,6 +1990,7 @@ class Tixr(Scraper):
         return opt_qty
 
     def check_ticket_qty(self, cap):
+        self.cap = cap
         driver = self.open_driver()
         driver.get(self.ticket_url)
         time.sleep(5)
