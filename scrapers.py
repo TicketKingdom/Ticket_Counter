@@ -1915,7 +1915,6 @@ class Tixr(Scraper):
                 opt.click()
                 opt_qty_temp =  int(driver.find_element_by_xpath('//p[@class="quantity"]').text)
                 break
-
         # click purchase button        
         driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
         time.sleep(3)
@@ -1927,12 +1926,14 @@ class Tixr(Scraper):
             except:
                 time.sleep(3)
                 try:
-                    overlay = driver.find_element_by_xpath('//*[@id="overlay"]/div[2]/div[2]/div/div[2]/div[2]')
-                    if(len(overlay) > 0):
+                    counterdown = driver.find_element_by_xpath('//*[@name="simple-countdown"]/span[2]').text
+
+                    if(counterdown != "0:00"):
                         opt_qty = opt_qty_temp
                         break
                 except:
                     pass
+
                 notify_len =  None
                 try:
                     notify_len =  driver.find_elements_by_xpath('//*[@id="notify"]/li')
