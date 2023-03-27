@@ -1886,18 +1886,16 @@ class Tixr(Scraper):
             time.sleep(5)
         else:
             ticket_index = self.ticket_row
-            
+
+        time.sleep(2)
         # add sold out case or another case on first screen
-        item = driver.find_element_by_xpath('//*[@data-product-id="{}"]'.format(_id))
-        try:
-            sold = item['data-product-state']
-            if sold:
-                if 'SOLD_OUT' in sold.text:
-                    print('tickets is sold out.')
-                    driver.quit()
-                    return 0
-        except:
-            pass
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        item = soup.find('div',{'data-product-id': _id})['data-product-state']
+
+        if 'SOLD_OUT' in item:
+            print('tickets is sold out.')
+            driver.quit()
+            return 0
 
         # input promo code
         self.input_password(driver)
@@ -1913,6 +1911,7 @@ class Tixr(Scraper):
             except Exception as e:
                 opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[1]'.format(_id))
                 opt.click()
+                time.sleep(0.5)
                 opt_qty_temp =  int(driver.find_element_by_xpath('//p[@class="quantity"]').text)
                 break
         # click purchase button        
@@ -1927,7 +1926,6 @@ class Tixr(Scraper):
                 time.sleep(3)
                 try:
                     counterdown = driver.find_element_by_xpath('//*[@name="simple-countdown"]/span[2]').text
-
                     if(counterdown != "0:00"):
                         opt_qty = opt_qty_temp
                         break
