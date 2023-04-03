@@ -12,6 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from capmonster_python import NoCaptchaTaskProxyless
+from anticaptchaofficial.recaptchav3proxyless import *
 from multiprocessing.pool import Pool
 from bs4 import BeautifulSoup
 
@@ -132,8 +133,8 @@ class Scraper(object):
         # chrome_options.add_experimental_option(
         #     'excludeSwitches', ['enable-logging'])
         if headless:
-            pass
-            # chrome_options.add_argument('--headless')
+            # pass
+            chrome_options.add_argument('--headless')
 
         if use_proxy:
             pluginfile = 'proxy_auth_plugin.zip'
@@ -277,43 +278,41 @@ class Etix(Scraper):
         # Solve the captcha area(fake and real)
         if origin_content:
             if 'invisible' in origin_content:
-                # solve the fake captcha, but there is not code yet maybe add fake captcha solver
-                # print('this is fake captcha.')
-                pass
-        else:
-            # solve the real captcha
-            # print('this is real captcha.')
-            pass
-            # if soup.find('div', {'class': 'g-recaptcha'}):
-            #     if self.cap == "Capmonster":  # solve this capmonster
-            #         capmonster = NoCaptchaTaskProxyless(client_key=capmonster_key)
-            #         taskId = capmonster.createTask(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
-            #         print("Waiting to solution by capmonster workers")
-            #         try:
-            #             response = capmonster.joinTaskResult(taskId=taskId)
-            #         except:
-            #             print(0, 'Tickets added....')
-            #             driver.quit()
-            #             return 0
-            #     else:                         # solve this anticapcha
-            #         client = AnticaptchaClient(anticaptch_key)
-            #         task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
-            #         try:
-            #             job = client.createTask(task)
-            #             print("Waiting to solution by Anticaptcha workers")
-            #             job.join()
-            #             response = job.get_solution_response()
-            #         except:
-            #             print(0, 'Tickets added....')
-            #             driver.quit()
-            #             return 0
-            #     print("Received solution--->", response)
+                # solve the fake captcha
+                print('this is fake captcha.')
+                if soup.find('div', {'class': 'g-recaptcha'}):
+                    if self.cap == "Capmonster":  # solve this capmonster
+                        capmonster = NoCaptchaTaskProxyless(client_key=capmonster_key)
+                        taskId = capmonster.createTask(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+                        print("Waiting to solution by capmonster workers")
+                        try:
+                            response = capmonster.joinTaskResult(taskId=taskId)
+                        except:
+                            print(0, 'Tickets added....')
+                            driver.quit()
+                            return 0
+                    else:                         # solve this anticapcha
+                        solver = recaptchaV3Proxyless()
+                        solver.set_verbose(1)
+                        solver.set_key(anticaptch_key)
+                        solver.set_website_url(self.ticket_url)
+                        solver.set_website_key("6LcEGVYlAAAAALvTZwcRVkUkRdAT6gYemM4QQEMv")
+                        solver.set_page_action("home_page")
+                        solver.set_min_score(0.9)
 
-            #     driver.execute_script(
-            #         'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-            #     driver.execute_script(
-            #         'document.getElementById("submitBtn").removeAttribute("disabled")')
-            #     time.sleep(0.5)
+                        solver.set_soft_id(0)
+
+                        g_response = solver.solve_and_return_solution()
+                        if g_response != 0:
+                            response = g_response
+                        else:
+                            print("task finished with error "+solver.error_code)
+
+                print("Received solution--->", response)
+
+                driver.execute_script(
+                    'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+                time.sleep(0.5)
 
         # click confirm button
         try:
@@ -373,8 +372,7 @@ class Etix(Scraper):
                                 continue
                             else:
                                 break
-
-                                
+                        
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             origin_content = soup.find(
@@ -382,13 +380,7 @@ class Etix(Scraper):
         except:
             pass
         
-        # Solve the captcha area(fake and real)
-        if origin_content:
-            if 'invisible' in origin_content:
-                # solve the fake captcha, but there is not code yet maybe add fake captcha solver
-                print('this is fake captcha.')
-                pass
-        else:
+        if not origin_content:
             # solve the real captcha
             print('this is real captcha.')
             if soup.find('div', {'class': 'g-recaptcha'}):
@@ -432,16 +424,9 @@ class Etix(Scraper):
         time.sleep(2)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        try:
-            opt_qty = driver.find_element_by_xpath('//*[@id="cartForm"]/div[1]/div/table/tbody/tr/td[6]').text.split('×')[1].strip()
-            if(opt_qty < 10):
-                opt_qty = len(soup.find('table', {'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
-        except:
-            # we add fake captcha solve area on here.
-            # print('It occur techiqual error(can\'t solve the fake captcha)')
-            # driver.quit()
-            # return 0
-            pass
+        opt_qty = driver.find_element_by_xpath('//*[@id="cartForm"]/div[1]/div/table/tbody/tr/td[6]').text.split('×')[1].strip()
+        if(opt_qty < 10):
+            opt_qty = len(soup.find('table', {'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
 
         driver.quit()
         print(opt_qty, 'Tickets added')
@@ -1949,7 +1934,6 @@ class Tixr(Scraper):
                 driver.execute_script(
                     'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
                 time.sleep(1)
-        time.sleep(3000)
 
         while True:
             try:
@@ -2018,7 +2002,7 @@ class Tixr(Scraper):
         except Exception as e:
             print('err', e)
             pass
-                
+        print("asdfasdf")
         driver.quit()
         # loop content
         lst = [_id for x in range(num_pool)]
