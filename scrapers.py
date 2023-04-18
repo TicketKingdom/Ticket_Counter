@@ -250,6 +250,12 @@ class Etix(Scraper):
             print('Can\'t scrap! It\' sold out all')
             return 0
         
+        if soup.find('div', {'class':'swal-text'}):
+            if 'no seats' in soup.find('div', {'class':'swal-text'}).text:
+                print('Tickets Currently Has no seat')
+                driver.quit()
+                return 0
+            
         # detect the two tabs works
         try:
             try:
@@ -374,6 +380,8 @@ class Etix(Scraper):
                             else:
                                 break
         
+        
+            
         if not origin_content:
             # solve the real captcha
             print('this is real captcha.')
