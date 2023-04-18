@@ -26,7 +26,7 @@ load_dotenv()
 
 anticaptch_key = os.getenv('anticaptch_key')
 capmonster_key = os.getenv('capmonster_key')
-capmonster_key = os.getenv('twocaptcha_key')
+twocaptcha_key = os.getenv('twocaptcha_key')
 
 num_pool = 2
 
@@ -288,54 +288,23 @@ class Etix(Scraper):
         except: 
             pass
 
-        # Solve the captcha area(fake and real)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        solver = TwoCaptcha(capmonster_key)
-        result = solver.recaptcha(
-                        sitekey='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG',
-                        url=self.ticket_url)
-        print("result", result)
-        if result:
-            driver.execute_script(
-                'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % result["code"])
-            time.sleep(0.5)
-
-        # if origin_content:
-        #     if 'invisible' in origin_content:
-        #         # solve the fake captcha
-        #         print('this is fake captcha.')
-        #         response = None
-        #         if soup.find('div', {'class': 'g-recaptcha'}):
-        #             if self.cap == "Capmonster":  # solve this capmonster
-        #                 capmonster = RecaptchaV2Task(client_key=capmonster_key)
-        #                 taskId = capmonster.create_task(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
-        #                 print("Waiting to solution by capmonster workers")
-        #                 try:
-        #                     response = capmonster.join_task_result(taskId=taskId)
-        #                 except:
-        #                     print(0, 'Tickets added....')
-        #                     driver.quit()
-        #                     return 0
-        #             else:                         # solve this anticapcha
-        #                 solver = recaptchaV3Proxyless()
-        #                 solver.set_verbose(1)
-        #                 solver.set_key(anticaptch_key)
-        #                 solver.set_website_url(self.ticket_url)
-        #                 solver.set_website_key("6LcEGVYlAAAAALvTZwcRVkUkRdAT6gYemM4QQEMv")
-        #                 solver.set_is_invisible(True)
-
-        #                 solver.set_soft_id(0)
-        #                 g_response = solver.solve_and_return_solution()
-        #                 if g_response != 0:
-        #                     response = g_response
-        #                 else:
-        #                     print("task finished with error "+solver.error_code)
-
-        #         print("Received solution--->", response)
-
-        #         driver.execute_script(
-        #             'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-        #         time.sleep(0.5)
+        if origin_content:
+            if 'invisible' in origin_content:
+                # solve the fake captcha
+                print('this is fake captcha.')
+                # Solve the captcha area(fake and real)
+                solver = TwoCaptcha(twocaptcha_key)
+                print('Solving invisiable recaptcha using 2captcha....')
+                result = solver.recaptcha(
+                                sitekey='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG',
+                                url=self.ticket_url,
+                                invisible=1)
+                print(result)
+                if result:
+                    driver.execute_script(
+                        'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % result["code"])
+                    time.sleep(0.5)
 
         # click email submit cancel butto, if it show it.
         try:
@@ -347,16 +316,16 @@ class Etix(Scraper):
         # click confirm button
         if origin_content:
             if 'invisible' in origin_content:
-                driver.execute_script("submitSelectSecReq();")
-            else:
-                try:
-                    driver.find_element_by_name("addSeatBtn").click()
-                    time.sleep(1.5)
+                driver.execute_script("gaSectionSubmitHandler();")
+        else:
+            try:
+                driver.find_element_by_name("addSeatBtn").click()
+                time.sleep(1.5)
 
-                except Exception as e:
-                    print('Submit button is different or disabled. 0 Tickets added....')
-                    driver.quit()
-                    return 0
+            except Exception as e:
+                print('Submit button is different or disabled. 0 Tickets added....')
+                driver.quit()
+                return 0
 
         # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -404,13 +373,6 @@ class Etix(Scraper):
                                 continue
                             else:
                                 break
-                        
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        try:
-            origin_content = soup.find(
-                'div', {'class': 'grecaptcha-logo'}).find_next({'iframe'})['src']
-        except:
-            pass
         
         if not origin_content:
             # solve the real captcha
@@ -455,13 +417,13 @@ class Etix(Scraper):
             
         time.sleep(2)
 
-        # try:
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        opt_qty = driver.find_element_by_xpath('//*[@id="cartForm"]/div[1]/div/table/tbody/tr/td[6]').text.split('×')[1].strip()
-        if(opt_qty < 10):
-            opt_qty = len(soup.find('table', {'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
-        # except:
-        #     pass
+        try:
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            opt_qty = driver.find_element_by_xpath('//*[@id="cartForm"]/div[1]/div/table/tbody/tr/td[6]').text.split('×')[1].strip()
+            if(opt_qty < 10):
+                opt_qty = len(soup.find('table', {'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
+        except:
+            pass
 
         driver.quit()
         print(opt_qty, 'Tickets added')
