@@ -208,6 +208,7 @@ class Etix(Scraper):
         driver = self.open_driver()
         driver.get(self.ticket_url)
         time.sleep(2)
+
         self.input_password(driver)
         time.sleep(0.5)
         origin_content = ''
@@ -228,9 +229,8 @@ class Etix(Scraper):
             pass
 
         # detect the ticket status
-        sold_out = soup.find('h2', {'class': 'header-message'})
-        if sold_out:
-            if 'sold out' in sold_out.text.lower():
+        if soup.find('h2', {'class': 'header-message'}):
+            if 'sold out' in soup.find('h2', {'class': 'header-message'}).text.lower():
                 print('the ticket is sold out')
                 driver.quit()
                 return 0
@@ -322,7 +322,11 @@ class Etix(Scraper):
         # click confirm button
         if origin_content:
             if 'invisible' in origin_content:
-                driver.execute_script("gaSectionSubmitHandler();")
+                try:
+                    driver.execute_script("gaSectionSubmitHandler();")
+                except:
+                    driver.execute_script("submitAddSeatRequest();")
+                    
         else:
             try:
                 driver.find_element_by_name("addSeatBtn").click()
@@ -332,6 +336,7 @@ class Etix(Scraper):
                 print('Submit button is different or disabled. 0 Tickets added....')
                 driver.quit()
                 return 0
+        time.sleep(3000)
 
         # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -380,8 +385,6 @@ class Etix(Scraper):
                             else:
                                 break
         
-        
-            
         if not origin_content:
             # solve the real captcha
             print('this is real captcha.')
