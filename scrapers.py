@@ -79,7 +79,7 @@ class Scraper(object):
             return True
 
     def open_driver(self,
-                    use_proxy=True,
+                    use_proxy=False,
                     user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36.',
                     headless=False):
         random_proxy = random.choice(self.proxies)
@@ -213,9 +213,11 @@ class Etix(Scraper):
         time.sleep(0.5)
         origin_content = ''
 
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             canvas_mode = driver.find_element_by_id('EtixOnlineManifestMapDivSection')
-            driver.execute_script('document.querySelector("#EtixOnlineManifestMapDivSection > map > area:nth-child(2)").click()')
+            if 'GA' in soup.find('map',{'name':'EtixOnlineManifestMap'}).find_all_next({'area'})[1]['name']:
+                driver.execute_script('document.querySelector("#EtixOnlineManifestMapDivSection > map > area:nth-child(2)").click()')
         except:
             pass
         time.sleep(2)
@@ -255,8 +257,6 @@ class Etix(Scraper):
                 print('Tickets Currently Has no seat')
                 driver.quit()
                 return 0
-
-
         # detect the two tabs works
         try:
             try:
@@ -338,7 +338,8 @@ class Etix(Scraper):
                         print(0, 'Tickets added....')
                         driver.quit()
                         return 0
-                else:                         # solve this anticapcha
+                else:                         
+                    # solve this anticapcha
                     client = AnticaptchaClient(anticaptch_key)
                     try:
                         task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
@@ -383,7 +384,6 @@ class Etix(Scraper):
 
         # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
-
         if new_soup.find('div', {'class': 'callout error'}):
             print('you due to the high volume of requests for the same seats or session expired')
             driver.quit()
