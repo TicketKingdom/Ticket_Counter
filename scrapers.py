@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
-from capmonster_python import RecaptchaV2Task
+from capmonster_python import NoCaptchaTaskProxyless
 from anticaptchaofficial.recaptchav3proxyless import *
 from anticaptchaofficial.recaptchav2proxyless import *
 from multiprocessing.pool import Pool
@@ -255,7 +255,8 @@ class Etix(Scraper):
                 print('Tickets Currently Has no seat')
                 driver.quit()
                 return 0
-            
+
+
         # detect the two tabs works
         try:
             try:
@@ -318,6 +319,48 @@ class Etix(Scraper):
             time.sleep(0.5)
         except:
             pass
+        time.sleep(2)
+
+        if not origin_content:
+            # solve the real captcha
+            print('this is real captcha.')
+            if soup.find('div', {'class': 'g-recaptcha'}):
+                if self.cap == "Capmonster":  
+                    capmonster = NoCaptchaTaskProxyless(capmonster_key)
+                    try:
+                        taskId = capmonster.createTask(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+                    except:
+                        taskId = capmonster.createTask(website_key='VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg', website_url=self.ticket_url)
+                    print("Waiting to solution by capmonster workers")
+                    try:
+                        response = capmonster.joinTaskResult(taskId)
+                    except:
+                        print(0, 'Tickets added....')
+                        driver.quit()
+                        return 0
+                else:                         # solve this anticapcha
+                    client = AnticaptchaClient(anticaptch_key)
+                    try:
+                        task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+                    except:
+                        task = NoCaptchaTaskProxylessTask(self.ticket_url, 'VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg')
+                    try:
+                        job = client.createTask(task)
+                        print("Waiting to solution by Anticaptcha workers")
+                        job.join()
+                        # Receive response
+                        response = job.get_solution_response()
+                    except:
+                        print(0, 'Tickets added....')
+                        driver.quit()
+                        return 0
+                print("Received solution--->", response)
+
+                driver.execute_script(
+                    'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+                driver.execute_script(
+                    'document.getElementById("submitBtn").removeAttribute("disabled")')
+                time.sleep(0.5)
 
         # click confirm button
         if origin_content:
@@ -325,7 +368,8 @@ class Etix(Scraper):
                 try:
                     driver.execute_script("gaSectionSubmitHandler();")
                 except:
-                    driver.execute_script("submitAddSeatRequest();")
+                    driver.execute_script("submitAddSeatRequest()")
+                    # driver.execute_script("function(){console.log('hi'); submitAddSeatRequest()}();")
                     
         else:
             try:
@@ -336,7 +380,6 @@ class Etix(Scraper):
                 print('Submit button is different or disabled. 0 Tickets added....')
                 driver.quit()
                 return 0
-        time.sleep(3000)
 
         # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -385,48 +428,7 @@ class Etix(Scraper):
                             else:
                                 break
         
-        if not origin_content:
-            # solve the real captcha
-            print('this is real captcha.')
-            if soup.find('div', {'class': 'g-recaptcha'}):
-                if self.cap == "Capmonster":  
-                    capmonster = RecaptchaV2Task(capmonster_key)
-                    try:
-                        taskId = capmonster.create_task(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
-                    except:
-                        taskId = capmonster.create_task(website_key='VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg', website_url=self.ticket_url)
-                    print("Waiting to solution by capmonster workers")
-                    try:
-                        response = capmonster.join_task_result(taskId=taskId)
-                    except:
-                        print(0, 'Tickets added....')
-                        driver.quit()
-                        return 0
-                else:                         # solve this anticapcha
-                    client = AnticaptchaClient(anticaptch_key)
-                    try:
-                        task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
-                    except:
-                        task = NoCaptchaTaskProxylessTask(self.ticket_url, 'VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg')
-                    try:
-                        job = client.create_task(task)
-                        print("Waiting to solution by Anticaptcha workers")
-                        job.join()
-                        # Receive response
-                        response = job.get_solution_response()
-                    except:
-                        print(0, 'Tickets added....')
-                        driver.quit()
-                        return 0
-                print("Received solution--->", response)
-
-                driver.execute_script(
-                    'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-                driver.execute_script(
-                    'document.getElementById("submitBtn").removeAttribute("disabled")')
-                time.sleep(0.5)
-            
-        time.sleep(2)
+        # time.sleep(20000)
 
         try:
             soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -852,13 +854,13 @@ class FrontGate(Scraper):
                 # using capmonster
                 driver.execute_script(
                     'document.getElementById("div-btn-modal-submit").removeAttribute("disabled")')
-                capmonster = RecaptchaV2Task(capmonster_key)
-                # taskId = capmonster.create_task(
+                capmonster = NoCaptchaTaskProxyless(capmonster_key)
+                # taskId = capmonster.createTask(
                 #     website_key='6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU', website_url=self.ticket_url)
-                taskId = capmonster.create_task(
+                taskId = capmonster.createTask(
                     website_key='6LeoXOodAAAAALfpnJFDs-revkub2Cr-anY0yBeL', website_url=self.ticket_url)
                 print("Waiting to solution by capmonster workers")
-                response = capmonster.join_task_result(taskId=taskId)
+                response = capmonster.joinTaskResult(taskId=taskId)
                 print("Received solution", response)
                 driver.execute_script(
                     'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
@@ -871,7 +873,7 @@ class FrontGate(Scraper):
                 client = AnticaptchaClient(anticaptch_key)
                 task = NoCaptchaTaskProxylessTask(
                     self.ticket_url, '6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU')
-                job = client.create_task(task)
+                job = client.createTask(task)
                 print("Waiting to solution by Anticaptcha workers")
                 job.join()
                 response = job.get_solution_response()
@@ -1023,24 +1025,24 @@ class TicketWeb(Scraper):
         captcha = soup.find('div', {'class': 'g-recaptcha'})
         if captcha:
             if self.cap == 'Capmonster':
-                capmonster = RecaptchaV2Task(capmonster_key)
+                capmonster = NoCaptchaTaskProxyless(capmonster_key)
                 try:
                     if '.ca' in self.ticket_url:
-                        taskId = capmonster.create_task(
+                        taskId = capmonster.createTask(
                             website_key='6LfW2FYUAAAAAJmlXoUhKpxRo7fufecPstaxMMvn', website_url=self.ticket_url)
                     else:
-                        taskId = capmonster.create_task(
+                        taskId = capmonster.createTask(
                             website_key='6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv', website_url=self.ticket_url)
                 except Exception as e:
                     print(e)
 
                 print("Waiting to solution by capmonster workers")
-                response = capmonster.join_task_result(taskId=taskId)
+                response = capmonster.joinTaskResult(taskId=taskId)
             else:
                 site_key = '6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv'
                 client = AnticaptchaClient(anticaptch_key)
                 task = NoCaptchaTaskProxylessTask(self.ticket_url, site_key)
-                job = client.create_task(task)
+                job = client.createTask(task)
                 print("Waiting to solution by Anticaptcha workers")
                 job.join()
                 # Receive response
@@ -1216,17 +1218,17 @@ class BigTicket(Scraper):
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('div', {'class': 'g-recaptcha'}):
             if self.cap == "Capmonster":  # solve this capmonster
-                capmonster = RecaptchaV2Task(capmonster_key)
+                capmonster = NoCaptchaTaskProxyless(capmonster_key)
                 # 6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu
                 try:
-                    taskId = capmonster.create_task(
+                    taskId = capmonster.createTask(
                         website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
                 except:
-                    taskId = capmonster.create_task(
+                    taskId = capmonster.createTask(
                         website_key='6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu', website_url=self.ticket_url)
                 print("Waiting to solution by capmonster workers")
                 try:
-                    response = capmonster.join_task_result(taskId=taskId)
+                    response = capmonster.joinTaskResult(taskId=taskId)
                 except:
                     print(0, 'Tickets added....')
                     driver.quit()
@@ -1241,7 +1243,7 @@ class BigTicket(Scraper):
                     task = NoCaptchaTaskProxylessTask(
                         self.ticket_url, '6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu')
                 try:
-                    job = client.create_task(task)
+                    job = client.createTask(task)
                     print("Waiting to solution by Anticaptcha workers")
                     job.join()
                     # Receive response
@@ -1576,7 +1578,7 @@ class Showclix(Scraper):
         #     client = AnticaptchaClient(api_key)
         #     task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
         #     try:
-        #         job = client.create_task(task)
+        #         job = client.createTask(task)
         #         print("Waiting to solution by Anticaptcha workers")
         #         job.join()
         #         # Receive response
@@ -1915,11 +1917,11 @@ class Tixr(Scraper):
         #     if self.cap == "Capmonster":
         #         # using capmonster
         #         capmonster = RecaptchaV3Task(capmonster_key)
-        #         # taskId = capmonster.create_task(
+        #         # taskId = capmonster.createTask(
         #         #     website_key='6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU', website_url=self.ticket_url)
-        #         taskId = capmonster.create_task(self.ticket_url, '6LfF108UAAAAAL5DaIWx9JdmjfUiBjFRcSRc2s40')
+        #         taskId = capmonster.createTask(self.ticket_url, '6LfF108UAAAAAL5DaIWx9JdmjfUiBjFRcSRc2s40')
         #         print("Waiting to solution by capmonster workers")
-        #         response = capmonster.join_task_result(taskId)
+        #         response = capmonster.joinTaskResult(taskId)
         #         print("Received solution", response.get("gRecaptchaResponse"))
         #         driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response.get("gRecaptchaResponse"))
         #         time.sleep(1)
@@ -1928,7 +1930,7 @@ class Tixr(Scraper):
         #         client = AnticaptchaClient(anticaptch_key)
         #         task = NoCaptchaTaskProxylessTask(
         #             self.ticket_url, '6LfF108UAAAAAL5DaIWx9JdmjfUiBjFRcSRc2s40')
-        #         job = client.create_task(task)
+        #         job = client.createTask(task)
         #         print("Waiting to solution by Anticaptcha workers")
         #         job.join()
         #         response = job.get_solution_response()
