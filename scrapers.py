@@ -294,23 +294,22 @@ class Etix(Scraper):
         except: 
             pass
 
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        if origin_content:
-            if 'invisible' in origin_content:
-                # solve the fake captcha
-                print('this is fake captcha.')
-                # Solve the captcha area(fake and real)
-                solver = TwoCaptcha(twocaptcha_key)
-                print('Solving invisiable recaptcha using 2captcha....')
-                result = solver.recaptcha(
-                                sitekey='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG',
-                                url=self.ticket_url,
-                                invisible=1)
-                print(result)
-                if result:
-                    driver.execute_script(
-                        'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % result["code"])
-                    time.sleep(0.5)
+        # if origin_content:
+        #     if 'invisible' in origin_content:
+        #         # solve the fake captcha
+        #         print('this is fake captcha.')
+        #         # Solve the captcha area(fake and real)
+        #         solver = TwoCaptcha(twocaptcha_key)
+        #         print('Solving invisiable recaptcha using 2captcha....')
+        #         result = solver.recaptcha(
+        #                         sitekey='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG',
+        #                         url=self.ticket_url,
+        #                         invisible=1)
+        #         print(result)
+        #         if result:
+        #             driver.execute_script(
+        #                 'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % result["code"])
+        #             time.sleep(0.5)
 
         # click email submit cancel butto, if it show it.
         try:
@@ -318,11 +317,13 @@ class Etix(Scraper):
             time.sleep(0.5)
         except:
             pass
-        time.sleep(2)
+        time.sleep(1)
 
-        if not origin_content:
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        # if not origin_content:
+        if origin_content:
             # solve the real captcha
-            print('this is real captcha.')
+            # print('this is real captcha.')
             if soup.find('div', {'class': 'g-recaptcha'}):
                 if self.cap == "Capmonster":  
                     capmonster = NoCaptchaTaskProxyless(capmonster_key)
@@ -362,24 +363,20 @@ class Etix(Scraper):
                     'document.getElementById("submitBtn").removeAttribute("disabled")')
                 time.sleep(0.5)
 
+        time.sleep(2)
+
         # click confirm button
-        if origin_content:
-            if 'invisible' in origin_content:
-                try:
-                    driver.execute_script("gaSectionSubmitHandler();")
-                except:
-                    driver.execute_script("submitAddSeatRequest()")
-                    # driver.execute_script("function(){console.log('hi'); submitAddSeatRequest()}();")
-                    
-        else:
+        try:
             try:
                 driver.find_element_by_name("addSeatBtn").click()
-                time.sleep(1.5)
+            except:
+                driver.execute_script("gaSectionSubmitHandler();")
+            time.sleep(1.5)
 
-            except Exception as e:
-                print('Submit button is different or disabled. 0 Tickets added....')
-                driver.quit()
-                return 0
+        except Exception as e:
+            print('Submit button is different or disabled. 0 Tickets added....')
+            driver.quit()
+            return 0
 
         # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -427,8 +424,6 @@ class Etix(Scraper):
                             else:
                                 break
         
-        # time.sleep(20000)
-
         try:
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             opt_qty = driver.find_element_by_xpath('//*[@id="cartForm"]/div[1]/div/table/tbody/tr/td[6]').text.split('×')[1].strip()
