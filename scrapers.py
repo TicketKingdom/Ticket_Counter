@@ -14,8 +14,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
 from capmonster_python import NoCaptchaTaskProxyless
-from anticaptchaofficial.recaptchav3proxyless import *
-from anticaptchaofficial.recaptchav2proxyless import *
 from multiprocessing.pool import Pool
 from bs4 import BeautifulSoup
 
@@ -79,7 +77,7 @@ class Scraper(object):
             return True
 
     def open_driver(self,
-                    use_proxy=False,
+                    use_proxy=True,
                     user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36.',
                     headless=False):
         random_proxy = random.choice(self.proxies)
@@ -257,6 +255,7 @@ class Etix(Scraper):
                 print('Tickets Currently Has no seat')
                 driver.quit()
                 return 0
+        
         # detect the two tabs works
         try:
             try:
