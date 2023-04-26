@@ -26,7 +26,7 @@ anticaptch_key = os.getenv('anticaptch_key')
 capmonster_key = os.getenv('capmonster_key')
 twocaptcha_key = os.getenv('twocaptcha_key')
 
-num_pool = 10
+num_pool = 6
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -288,17 +288,17 @@ class Etix(Scraper):
         opt_qty = int(opt.get_attribute('value'))
         opt.click()
 
+        # cookie allow
         try:
             driver.find_element_by_id("allow_cookies").click()
             time.sleep(1)
         except: 
             pass
 
+        # solve the fake captcha
         if origin_content:
             if 'invisible' in origin_content:
-                # solve the fake captcha
                 print('this is fake captcha.')
-                # Solve the captcha area(fake and real)
                 solver = TwoCaptcha(twocaptcha_key)
                 print('Solving invisiable recaptcha using 2captcha....')
                 result = solver.recaptcha(
@@ -311,14 +311,14 @@ class Etix(Scraper):
                         'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % result["code"])
                     time.sleep(0.5)
 
-        # click email submit cancel butto, if it show it.
+        # click email submit cancel button, if it show it.
         try:
             driver.find_element_by_css_selector("email-capture-button").click()
             time.sleep(0.5)
         except:
             pass
-        time.sleep(1)
 
+        # solve normal captcha
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if not origin_content:
             # solve the real captcha
@@ -363,22 +363,22 @@ class Etix(Scraper):
                         'document.getElementById("submitBtn").removeAttribute("disabled")')
                 except:
                     pass
-                time.sleep(0.5)
 
-        time.sleep(2)
+        time.sleep(1)
 
         # click confirm button
-        try:
+        if not origin_content:
             try:
-                driver.execute_script("gaSectionSubmitHandler();")
-            except:
                 driver.find_element_by_name("addSeatBtn").click()
-            time.sleep(1.5)
+                time.sleep(1.5)
 
-        except Exception as e:
-            print('Submit button is different or disabled. 0 Tickets added....')
-            driver.quit()
-            return 0
+            except Exception as e:
+                print('Submit button is different or disabled. 0 Tickets added....')
+                driver.quit()
+                return 0
+        else:
+            driver.execute_script("sessionStorage.setItem('automaticPopupMembershipUpsell', 'true');")
+            driver.execute_script("gaSectionSubmitHandler();")
 
         # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -393,10 +393,10 @@ class Etix(Scraper):
                 driver.quit()
                 return 0
 
+        # get amount is impossible, decrease the amount.
         if new_soup.find('div', {'class': 'validationError error'}):
             if new_soup.find('div', {'class', 'errorBox'}):
                 if 'the number of tickets you requested is over the per order limit' in new_soup.find('div', {'class': 'errorBox'}).text or ('Sorry, there are not enough' in new_soup.find('div', {'class': 'errorBox'}).text):
-                    # get amount is impossible, decrease the amount.
                     soup = BeautifulSoup(driver.page_source, 'html.parser')
                     try:
                         canvas_mode = driver.find_element_by_id('EtixOnlineManifestMapDivSection')
