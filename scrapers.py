@@ -26,7 +26,7 @@ anticaptch_key = os.getenv('anticaptch_key')
 capmonster_key = os.getenv('capmonster_key')
 twocaptcha_key = os.getenv('twocaptcha_key')
 
-num_pool = 2
+num_pool = 10
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -294,22 +294,22 @@ class Etix(Scraper):
         except: 
             pass
 
-        # if origin_content:
-        #     if 'invisible' in origin_content:
-        #         # solve the fake captcha
-        #         print('this is fake captcha.')
-        #         # Solve the captcha area(fake and real)
-        #         solver = TwoCaptcha(twocaptcha_key)
-        #         print('Solving invisiable recaptcha using 2captcha....')
-        #         result = solver.recaptcha(
-        #                         sitekey='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG',
-        #                         url=self.ticket_url,
-        #                         invisible=1)
-        #         print(result)
-        #         if result:
-        #             driver.execute_script(
-        #                 'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % result["code"])
-        #             time.sleep(0.5)
+        if origin_content:
+            if 'invisible' in origin_content:
+                # solve the fake captcha
+                print('this is fake captcha.')
+                # Solve the captcha area(fake and real)
+                solver = TwoCaptcha(twocaptcha_key)
+                print('Solving invisiable recaptcha using 2captcha....')
+                result = solver.recaptcha(
+                                sitekey='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG',
+                                url=self.ticket_url,
+                                invisible=1)
+                print(result)
+                if result:
+                    driver.execute_script(
+                        'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % result["code"])
+                    time.sleep(0.5)
 
         # click email submit cancel butto, if it show it.
         try:
@@ -320,10 +320,9 @@ class Etix(Scraper):
         time.sleep(1)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        # if not origin_content:
-        if origin_content:
+        if not origin_content:
             # solve the real captcha
-            # print('this is real captcha.')
+            print('this is real captcha.')
             if soup.find('div', {'class': 'g-recaptcha'}):
                 if self.cap == "Capmonster":  
                     capmonster = NoCaptchaTaskProxyless(capmonster_key)
@@ -359,8 +358,11 @@ class Etix(Scraper):
 
                 driver.execute_script(
                     'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-                driver.execute_script(
-                    'document.getElementById("submitBtn").removeAttribute("disabled")')
+                try:
+                    driver.execute_script(
+                        'document.getElementById("submitBtn").removeAttribute("disabled")')
+                except:
+                    pass
                 time.sleep(0.5)
 
         time.sleep(2)
@@ -368,9 +370,9 @@ class Etix(Scraper):
         # click confirm button
         try:
             try:
-                driver.find_element_by_name("addSeatBtn").click()
-            except:
                 driver.execute_script("gaSectionSubmitHandler();")
+            except:
+                driver.find_element_by_name("addSeatBtn").click()
             time.sleep(1.5)
 
         except Exception as e:
@@ -395,7 +397,15 @@ class Etix(Scraper):
             if new_soup.find('div', {'class', 'errorBox'}):
                 if 'the number of tickets you requested is over the per order limit' in new_soup.find('div', {'class': 'errorBox'}).text or ('Sorry, there are not enough' in new_soup.find('div', {'class': 'errorBox'}).text):
                     # get amount is impossible, decrease the amount.
+                    soup = BeautifulSoup(driver.page_source, 'html.parser')
+                    try:
+                        canvas_mode = driver.find_element_by_id('EtixOnlineManifestMapDivSection')
+                        if 'GA' in soup.find('map',{'name':'EtixOnlineManifestMap'}).find_all_next({'area'})[1]['name']:
+                            driver.execute_script('document.querySelector("#EtixOnlineManifestMapDivSection > map > area:nth-child(2)").click()')
+                    except:
+                        pass
                     error = soup.find('div', {'class': 'validationError error'})
+                    
                     num_of_options = len(driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id)))
                     if error:
                         index = 1
