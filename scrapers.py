@@ -26,7 +26,7 @@ anticaptch_key = os.getenv('anticaptch_key')
 capmonster_key = os.getenv('capmonster_key')
 twocaptcha_key = os.getenv('twocaptcha_key')
 
-num_pool = 6
+num_pool = 10
 
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
@@ -447,11 +447,12 @@ class Etix(Scraper):
         
         try:
             soup = BeautifulSoup(driver.page_source, 'html.parser')
-            opt_qty = driver.find_element_by_xpath('//*[@id="cartForm"]/div[1]/div/table/tbody/tr/td[6]').text.split('×')[1].strip()
-            if(opt_qty < 10):
+            try:
+                opt_qty = driver.find_element_by_xpath('//*[@id="cartForm"]/div[1]/div/table/tbody/tr/td[6]').text.split('×')[1].strip()
+            except:
                 opt_qty = len(soup.find('table', {'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
         except:
-            print('ticket didn\'t completely cart.')
+            print('ticket didn\'t completely cart. 0 ticket added')
             driver.quit()
             return 0 
 
