@@ -289,6 +289,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
     def update_gui(self):
         self.shutdown_event = threading.Event()
         captch_way = self.m_comboBox10.GetValue()
+        decrease_status = self.decrease_status
 
         while True:
             for key, value in self.event_data.items():
@@ -307,7 +308,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                 print('checking tickets for', value[0], url)
                 checker = check_website(
                     url, self.settings['Proxy'], value[6], value[10])
-                qty, timer = checker.check_ticket_qty(captch_way)
+                qty, timer = checker.check_ticket_qty(captch_way, decrease_status)
                 timer_str = "Yes" if timer else "No"
                 print(f">>>>>>>>>>>>>>>>>>{qty}<<<<<<<<<<<<<<<<<<{timer}")
                 evt_data = (value[0], value[1], str(qty), value[3], value[4], value[5], value[6], value[7],
@@ -342,7 +343,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     print('checking tickets for', value[0], url)
                     checker = check_website(
                         url, self.settings['Proxy'], value[6], value[10])
-                    qty, timer = checker.check_ticket_qty(captch_way)
+                    qty, timer = checker.check_ticket_qty(captch_way, decrease_status)
                     if timer is None:
                         timer_str = '-'
                     else:

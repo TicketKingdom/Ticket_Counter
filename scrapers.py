@@ -63,7 +63,7 @@ class Scraper(object):
     def log_message(self, msg):
         pass
 
-    def check_ticket_qty(self, cap):
+    def check_ticket_qty(self, cap, decrease_way):
         pass
 
     def wait_for_element(self, driver, element, type=By.ID):
@@ -378,7 +378,13 @@ class Etix(Scraper):
                 return 0
         else:
             driver.execute_script("sessionStorage.setItem('automaticPopupMembershipUpsell', 'true');")
-            driver.execute_script("gaSectionSubmitHandler();")
+            try:
+                driver.execute_script("gaSectionSubmitHandler();")
+            except:
+                # driver.execute_script("submitSelectSecReq();")
+                driver.find_element_by_name("addSeatBtn").click()
+
+        time.sleep(3)  
 
         # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -396,43 +402,48 @@ class Etix(Scraper):
         # get amount is impossible, decrease the amount.
         if new_soup.find('div', {'class': 'validationError error'}):
             if new_soup.find('div', {'class', 'errorBox'}):
-                if 'the number of tickets you requested is over the per order limit' in new_soup.find('div', {'class': 'errorBox'}).text or ('Sorry, there are not enough' in new_soup.find('div', {'class': 'errorBox'}).text):
-                    soup = BeautifulSoup(driver.page_source, 'html.parser')
-                    try:
-                        canvas_mode = driver.find_element_by_id('EtixOnlineManifestMapDivSection')
-                        if 'GA' in soup.find('map',{'name':'EtixOnlineManifestMap'}).find_all_next({'area'})[1]['name']:
-                            driver.execute_script('document.querySelector("#EtixOnlineManifestMapDivSection > map > area:nth-child(2)").click()')
-                    except:
-                        pass
-                    error = soup.find('div', {'class': 'validationError error'})
-                    
-                    num_of_options = len(driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id)))
-                    if error:
-                        index = 1
-                        while True:
-                            if tab_click:
-                                driver.find_element_by_xpath('//*[@id="ticket-type"]/li[2]/a').click()
-                                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                if self.decrease_way:
+                    if 'the number of tickets you requested is over the per order limit' in new_soup.find('div', {'class': 'errorBox'}).text or ('Sorry, there are not enough' in new_soup.find('div', {'class': 'errorBox'}).text):
+                        soup = BeautifulSoup(driver.page_source, 'html.parser')
+                        try:
+                            canvas_mode = driver.find_element_by_id('EtixOnlineManifestMapDivSection')
+                            if 'GA' in soup.find('map',{'name':'EtixOnlineManifestMap'}).find_all_next({'area'})[1]['name']:
+                                driver.execute_script('document.querySelector("#EtixOnlineManifestMapDivSection > map > area:nth-child(2)").click()')
+                        except:
+                            pass
+                        error = soup.find('div', {'class': 'validationError error'})
+                        
+                        num_of_options = len(driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id)))
+                        if error:
+                            index = 1
+                            while True:
+                                if tab_click:
+                                    driver.find_element_by_xpath('//*[@id="ticket-type"]/li[2]/a').click()
+                                    soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-                            opt = driver.find_elements_by_xpath(
-                                '//*[@id="{}"]/option'.format(id))[-1 - index]
-                            index += 1
-                            opt_qty = int(opt.get_attribute('value'))
-                            if opt_qty == 0:
-                                driver.quit()
-                                return 0
-                            opt.click()
-                            driver.find_element_by_xpath('//button[@type="submit"]').click()
-                            time.sleep(0.5)
-                            soup = BeautifulSoup(driver.page_source, 'html.parser')
-                            error = soup.find('div', {'class': 'validationError error'})
-                            if error:
-                                if num_of_options == index:
+                                opt = driver.find_elements_by_xpath(
+                                    '//*[@id="{}"]/option'.format(id))[-1 - index]
+                                index += 1
+                                opt_qty = int(opt.get_attribute('value'))
+                                if opt_qty == 0:
                                     driver.quit()
                                     return 0
-                                continue
-                            else:
-                                break
+                                opt.click()
+                                driver.find_element_by_name("addSeatBtn").click()
+                                time.sleep(0.5)
+                                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                                error = soup.find('div', {'class': 'validationError error'})
+                                if error:
+                                    if num_of_options == index:
+                                        driver.quit()
+                                        return 0
+                                    continue
+                                else:
+                                    break
+                else:
+                    print('ticket has low amount. For this one, you will active descrese way')
+                    driver.quit()
+                    return 0 
         
         try:
             soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -440,14 +451,17 @@ class Etix(Scraper):
             if(opt_qty < 10):
                 opt_qty = len(soup.find('table', {'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
         except:
-            pass
+            print('ticket didn\'t completely cart.')
+            driver.quit()
+            return 0 
 
         driver.quit()
         print(opt_qty, 'Tickets added')
         return int(opt_qty) 
 
-    def check_ticket_qty(self, cap):
+    def check_ticket_qty(self, cap, decrease_way):
         self.cap = cap
+        self.decrease_way = decrease_way
         driver = self.open_driver()
         if '?method=switchSelectionMethod&selection_method=byBest' not in self.ticket_url:
             if '?' in self.ticket_url:
@@ -717,7 +731,7 @@ class Eventbrite(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap):
+    def check_ticket_qty(self, cap, decrease_way):
         driver = self.open_driver()
         self.drivers = []
         qty = 0
@@ -922,7 +936,7 @@ class FrontGate(Scraper):
     def check_new_style(self, driver):
         pass
 
-    def check_ticket_qty(self, cap):
+    def check_ticket_qty(self, cap, decrease_way):
         self.cap = cap
         driver = self.open_driver()
         driver.get(self.ticket_url)
@@ -1085,7 +1099,7 @@ class TicketWeb(Scraper):
         print(qty, 'Tickets added')
         return qty
 
-    def check_ticket_qty(self, cap):
+    def check_ticket_qty(self, cap, decrease_way):
         if '?' in self.ticket_url:
             self.ticket_url = self.ticket_url[:self.ticket_url.find('?')]
         self.cap = cap
@@ -1296,7 +1310,7 @@ class BigTicket(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap):
+    def check_ticket_qty(self, cap, decrease_way):
         driver = self.open_driver()
         driver.get(self.ticket_url)
         self.cap = cap
@@ -1494,7 +1508,7 @@ class SeeTickets(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap):
+    def check_ticket_qty(self, cap, decrease_way):
         driver = self.open_driver()
         driver.get(self.ticket_url)
         self.input_password(driver)
@@ -1645,7 +1659,7 @@ class Showclix(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty  # driver
 
-    def check_ticket_qty(self, cap):
+    def check_ticket_qty(self, cap, decrease_way):
         driver = self.open_driver()
         driver.get(self.ticket_url)
         self.input_password(driver)
@@ -1789,7 +1803,7 @@ class Prekindle(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap):
+    def check_ticket_qty(self, cap, decrease_way):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 
@@ -1981,7 +1995,7 @@ class Tixr(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
-    def check_ticket_qty(self, cap):
+    def check_ticket_qty(self, cap, decrease_way):
         self.cap = cap
         driver = self.open_driver()
         driver.get(self.ticket_url)
