@@ -17,9 +17,6 @@ from capmonster_python import NoCaptchaTaskProxyless
 from multiprocessing.pool import Pool
 from bs4 import BeautifulSoup
 
-from twocaptcha import TwoCaptcha
-
-
 load_dotenv()
 
 anticaptch_key = os.getenv('anticaptch_key')
