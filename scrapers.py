@@ -225,7 +225,9 @@ class Etix(Scraper):
         try:
             origin_content = soup.find(
                 'div', {'class': 'grecaptcha-logo'}).find_next({'iframe'})['src']
+            print('This is fake captcha')
         except:
+            print('This is real captcha')
             pass
 
         # detect the ticket status
@@ -295,21 +297,21 @@ class Etix(Scraper):
         except: 
             pass
 
-        # solve the fake captcha
-        if origin_content:
-            if 'invisible' in origin_content:
-                print('this is fake captcha.')
-                solver = TwoCaptcha(twocaptcha_key)
-                print('Solving invisiable recaptcha using 2captcha....')
-                result = solver.recaptcha(
-                                sitekey='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG',
-                                url=self.ticket_url,
-                                invisible=1)
-                print(result)
-                if result:
-                    driver.execute_script(
-                        'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % result["code"])
-                    time.sleep(0.5)
+        # solve the fake captcha using 2captcha
+        # if origin_content:
+        #     if 'invisible' in origin_content:
+        #         print('this is fake captcha.')
+        #         solver = TwoCaptcha(twocaptcha_key)
+        #         print('Solving invisiable recaptcha using 2captcha....')
+        #         result = solver.recaptcha(
+        #                         sitekey='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG',
+        #                         url=self.ticket_url,
+        #                         invisible=1)
+        #         print(result)
+        #         if result:
+        #             driver.execute_script(
+        #                 'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % result["code"])
+        #             time.sleep(0.5)
 
         # click email submit cancel button, if it show it.
         try:
@@ -318,51 +320,52 @@ class Etix(Scraper):
         except:
             pass
 
-        # solve normal captcha
+        # solve captcha
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        if not origin_content:
-            # solve the real captcha
-            print('this is real captcha.')
-            if soup.find('div', {'class': 'g-recaptcha'}):
-                if self.cap == "Capmonster":  
-                    capmonster = NoCaptchaTaskProxyless(capmonster_key)
+        if soup.find('div', {'class': 'g-recaptcha'}):
+            if self.cap == "Capmonster":  
+                capmonster = NoCaptchaTaskProxyless(capmonster_key)
+                try:
+                    taskId = capmonster.createTask(website_key='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG', website_url=self.ticket_url)
+                except:
                     try:
                         taskId = capmonster.createTask(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
                     except:
                         taskId = capmonster.createTask(website_key='VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg', website_url=self.ticket_url)
-                    print("Waiting to solution by capmonster workers")
-                    try:
-                        response = capmonster.joinTaskResult(taskId)
-                    except:
-                        print(0, 'Tickets added....')
-                        driver.quit()
-                        return 0
-                else:                         
-                    # solve this anticapcha
-                    client = AnticaptchaClient(anticaptch_key)
-                    try:
-                        task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
-                    except:
-                        task = NoCaptchaTaskProxylessTask(self.ticket_url, 'VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg')
-                    try:
-                        job = client.createTask(task)
-                        print("Waiting to solution by Anticaptcha workers")
-                        job.join()
-                        # Receive response
-                        response = job.get_solution_response()
-                    except:
-                        print(0, 'Tickets added....')
-                        driver.quit()
-                        return 0
-                print("Received solution--->", response)
 
-                driver.execute_script(
-                    'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+                print("Waiting to solution by capmonster workers")
                 try:
-                    driver.execute_script(
-                        'document.getElementById("submitBtn").removeAttribute("disabled")')
+                    response = capmonster.joinTaskResult(taskId)
                 except:
-                    pass
+                    print(0, 'Tickets added....')
+                    driver.quit()
+                    return 0
+            else:                         
+                # solve this anticapcha
+                client = AnticaptchaClient(anticaptch_key)
+                try:
+                    task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+                except:
+                    task = NoCaptchaTaskProxylessTask(self.ticket_url, 'VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg')
+                try:
+                    job = client.createTask(task)
+                    print("Waiting to solution by Anticaptcha workers")
+                    job.join()
+                    # Receive response
+                    response = job.get_solution_response()
+                except:
+                    print(0, 'Tickets added....')
+                    driver.quit()
+                    return 0
+            print("Received solution--->", response)
+
+            driver.execute_script(
+                'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+            try:
+                driver.execute_script(
+                    'document.getElementById("submitBtn").removeAttribute("disabled")')
+            except:
+                pass
 
         time.sleep(1)
 
