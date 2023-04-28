@@ -387,7 +387,7 @@ class Etix(Scraper):
                 # driver.execute_script("submitSelectSecReq();")
                 driver.find_element_by_name("addSeatBtn").click()
 
-        time.sleep(3)  
+        time.sleep(5)  
 
         # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
