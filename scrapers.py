@@ -222,9 +222,7 @@ class Etix(Scraper):
         try:
             origin_content = soup.find(
                 'div', {'class': 'grecaptcha-logo'}).find_next({'iframe'})['src']
-            print('This is fake captcha')
         except:
-            print('This is real captcha')
             pass
 
         # detect the ticket status
@@ -294,22 +292,6 @@ class Etix(Scraper):
         except: 
             pass
 
-        # solve the fake captcha using 2captcha
-        # if origin_content:
-        #     if 'invisible' in origin_content:
-        #         print('this is fake captcha.')
-        #         solver = TwoCaptcha(twocaptcha_key)
-        #         print('Solving invisiable recaptcha using 2captcha....')
-        #         result = solver.recaptcha(
-        #                         sitekey='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG',
-        #                         url=self.ticket_url,
-        #                         invisible=1)
-        #         print(result)
-        #         if result:
-        #             driver.execute_script(
-        #                 'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % result["code"])
-        #             time.sleep(0.5)
-
         # click email submit cancel button, if it show it.
         try:
             driver.find_element_by_css_selector("email-capture-button").click()
@@ -320,6 +302,10 @@ class Etix(Scraper):
         # solve captcha
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('div', {'class': 'g-recaptcha'}):
+            if origin_content:
+                print("This is a fake captcha")
+            else:
+                print("This is a real captcha")
             if self.cap == "Capmonster":  
                 capmonster = NoCaptchaTaskProxyless(capmonster_key)
                 try:
@@ -354,8 +340,13 @@ class Etix(Scraper):
                     print(0, 'Tickets added....')
                     driver.quit()
                     return 0
+            driver.execute_script("console.log(widgetId)")
+            time.sleep(3000)
             print("Received solution--->", response)
-
+            try:
+                driver.execute_script("grecaptcha.reset(null);")
+            except:
+                pass
             driver.execute_script(
                 'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
             try:
@@ -381,10 +372,9 @@ class Etix(Scraper):
             try:
                 driver.execute_script("gaSectionSubmitHandler();")
             except:
-                # driver.execute_script("submitSelectSecReq();")
-                driver.find_element_by_name("addSeatBtn").click()
+                driver.execute_script("grecaptcha.execute();")
 
-        time.sleep(5)  
+        time.sleep(4)  
 
         # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -1233,7 +1223,7 @@ class BigTicket(Scraper):
             print(0, 'Tickets added....')
             driver.quit()
             return 0
-
+        time.sleep(2)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('div', {'class': 'g-recaptcha'}):
             if self.cap == "Capmonster":  # solve this capmonster
@@ -1241,10 +1231,10 @@ class BigTicket(Scraper):
                 # 6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu
                 try:
                     taskId = capmonster.createTask(
-                        website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+                        website_key='6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu', website_url=self.ticket_url)
                 except:
                     taskId = capmonster.createTask(
-                        website_key='6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu', website_url=self.ticket_url)
+                        website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
                 print("Waiting to solution by capmonster workers")
                 try:
                     response = capmonster.joinTaskResult(taskId=taskId)
@@ -1284,7 +1274,7 @@ class BigTicket(Scraper):
                 driver.find_element_by_class_name(
                     'btn btn-primary btn-submit').click()
 
-        time.sleep(1)
+        time.sleep(10000)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
