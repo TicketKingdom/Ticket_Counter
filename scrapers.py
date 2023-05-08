@@ -1274,7 +1274,7 @@ class BigTicket(Scraper):
                 driver.find_element_by_class_name(
                     'btn btn-primary btn-submit').click()
 
-        time.sleep(10000)
+        time.sleep(1)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
