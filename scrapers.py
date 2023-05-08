@@ -23,8 +23,6 @@ anticaptch_key = os.getenv('anticaptch_key')
 capmonster_key = os.getenv('capmonster_key')
 twocaptcha_key = os.getenv('twocaptcha_key')
 
-num_pool = 10
-
 def check_website(url, proxies, row, password, log=None):
     if '.etix.' in url:
         return Etix(url, proxies, row, log, password)
@@ -46,13 +44,14 @@ def check_website(url, proxies, row, password, log=None):
         return Tixr(url, proxies, row, log, password)
 
 class Scraper(object):
-    def __init__(self, url, proxies, row, log, password):
+    def __init__(self, url, proxies, row, log, password, thread_amount):
         self.log = log
         self.ticket_url = url
         self.ticket_row = row
         self.password = password
         with open(proxies.split('\\')[-1], 'r') as f:
             self.proxies = f.read().split('\n')
+        self.thread_amount = thread_amount
 
     def input_password(self, driver):
         pass
@@ -494,8 +493,8 @@ class Etix(Scraper):
                     timer_run_out = True
                     break
                 loop_qty = 0
-                with Pool(num_pool) as p:
-                    r = p.map(self.get_qty, list(range(num_pool)))
+                with Pool(self.thread_amount) as p:
+                    r = p.map(self.get_qty, list(range(self.thread_amount)))
                     for q in r:
                         loop_qty += q
                         # if q == 0:
@@ -793,7 +792,7 @@ class Eventbrite(Scraper):
 
         timer_run_out = False
         # num_pool = 1
-        lst = [_id for x in range(num_pool)]
+        lst = [_id for x in range(self.thread_amount)]
 
         oldtime = time.time()
         next_cycle = True
@@ -809,7 +808,7 @@ class Eventbrite(Scraper):
             if func == 0:
                 print("ticket amount is 0")
                 break
-            with Pool(num_pool) as p:
+            with Pool(self.thread_amount) as p:
                 r = p.map(func, lst)
                 for q in r:
                     loop_qty += q
@@ -960,7 +959,7 @@ class FrontGate(Scraper):
 
         timer_run_out = False
         # num_pool = 2
-        lst = [max_amount for x in range(num_pool)]
+        lst = [max_amount for x in range(self.thread_amount)]
         qty = 0
         oldtime = time.time()
         while True:
@@ -968,7 +967,7 @@ class FrontGate(Scraper):
                 timer_run_out = True
                 break
             loop_qty = 0
-            with Pool(num_pool) as p:
+            with Pool(self.thread_amount) as p:
                 r = p.map(self.get_qty, lst)
                 print(r)
                 for q in r:
@@ -1119,7 +1118,7 @@ class TicketWeb(Scraper):
 
         driver.quit()
         # num_pool = 10
-        lst = [x for x in range(num_pool)]
+        lst = [x for x in range(self.thread_amount)]
         qty = 0
         oldtime = time.time()
         timer_run_out = False
@@ -1128,7 +1127,7 @@ class TicketWeb(Scraper):
                 timer_run_out = True
                 break
             loop_qty = 0
-            with Pool(num_pool) as p:
+            with Pool(self.thread_amount) as p:
                 r = p.map(self.get_qty, lst)
                 for q in r:
                     loop_qty += q
@@ -1326,8 +1325,8 @@ class BigTicket(Scraper):
                 timer_run_out = True
                 break
             loop_qty = 0
-            with Pool(num_pool) as p:
-                r = p.map(self.get_qty, list(range(num_pool)))
+            with Pool(self.thread_amount) as p:
+                r = p.map(self.get_qty, list(range(self.thread_amount)))
                 for q in r:
                     if q != '-':
                         loop_qty += int(q)
@@ -1524,8 +1523,8 @@ class SeeTickets(Scraper):
                 timer_run_out = True
                 break
             loop_qty = 0
-            with Pool(num_pool) as p:
-                r = p.map(self.get_qty, list(range(num_pool)))
+            with Pool(self.thread_amount) as p:
+                r = p.map(self.get_qty, list(range(self.thread_amount)))
                 for q in r:
                     loop_qty += q
             qty += loop_qty
@@ -1698,8 +1697,8 @@ class Showclix(Scraper):
                 timer_run_out = True
                 break
             loop_qty = 0
-            with Pool(num_pool) as p:
-                r = p.map(self.get_qty, list(range(num_pool)))
+            with Pool(self.thread_amount) as p:
+                r = p.map(self.get_qty, list(range(self.thread_amount)))
                 for q in r:
                     loop_qty += q
             qty += loop_qty
@@ -1839,7 +1838,7 @@ class Prekindle(Scraper):
 
         # loop content
         driver.quit()
-        lst = [x for x in range(num_pool)]
+        lst = [x for x in range(self.thread_amount)]
         qty = 0
         oldtime = time.time()
         timer_run_out = False
@@ -1848,7 +1847,7 @@ class Prekindle(Scraper):
                 timer_run_out = True
                 break
             loop_qty = 0
-            with Pool(num_pool) as p:
+            with Pool(self.thread_amount) as p:
                 r = p.map(self.get_qty, lst)
                 for q in r:
                     loop_qty += q
@@ -2018,7 +2017,7 @@ class Tixr(Scraper):
 
         driver.quit()
         # loop content
-        lst = [_id for x in range(num_pool)]
+        lst = [_id for x in range(self.thread_amount)]
         qty = 0
         oldtime = time.time()
         timer_run_out = False
@@ -2027,7 +2026,7 @@ class Tixr(Scraper):
                 timer_run_out = True
                 break
             loop_qty = 0
-            with Pool(num_pool) as p:
+            with Pool(self.thread_amount) as p:
                 r = p.map(self.get_qty, lst)
                 for q in r:
                     loop_qty += q

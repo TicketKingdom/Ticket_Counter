@@ -11,7 +11,7 @@ class SettingsDialog(wx.Dialog):
 
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
-                           size=wx.Size(308, 246), style=wx.DEFAULT_DIALOG_STYLE)
+                           size=wx.Size(308, 284), style=wx.DEFAULT_DIALOG_STYLE)
 
         with open('settings.pickle', 'rb') as f:
             self.saved_settings = pickle.load(f)
@@ -86,11 +86,26 @@ class SettingsDialog(wx.Dialog):
 
         self.m_master_list_input = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(300, -1), 0)
         bSizer3.Add(self.m_master_list_input, 0, wx.ALL, 5)
-
+        
         bSizer10.Add(bSizer3, 1, wx.EXPAND, 5)
 
         bSizer1.Add(bSizer10, 1, wx.EXPAND, 5)
+        
+        bSizer20 = wx.BoxSizer(wx.HORIZONTAL)
+        
+        self.m_staticText20 = wx.StaticText(self, wx.ID_ANY, u"Thread amount:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText20.Wrap(-1)
+        bSizer20.Add(self.m_staticText20, 0, wx.ALL, 5)
+        
+        self.slidebar = wx.Slider(self, wx.ID_ANY, value=10, minValue=1, maxValue=25,
+            pos = wx.DefaultPosition, size=wx.Size(300, -1), style=wx.HORIZONTAL|wx.SL_LABELS,
+            name="slidebar")
+        self.slidebar.Center()
+        self.slidebar.Bind(wx.EVT_SLIDER, self.OnSliderScroll) 
 
+        bSizer20.Add(self.slidebar, 0, wx.ALL, 5)
+        bSizer1.Add(bSizer20, 1, wx.EXPAND, 5)
+        
         bSizer12 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.m_save_button = wx.Button(self, wx.ID_OK, u"Save Settings", wx.DefaultPosition, wx.Size(130, -1), 0)
@@ -117,6 +132,11 @@ class SettingsDialog(wx.Dialog):
 
         openFileDialog.Destroy()
 
+    def OnSliderScroll(self, e): 
+        obj = e.GetEventObject() 
+        val = obj.GetValue() 
+        self.thread_amount = val
+        
     def load_settings(self):
         self.m_gmail_email_input.SetValue(self.saved_settings['GmailEmail'])
         self.m_gmail_pass_input.SetValue(self.saved_settings['GmailPass'])
@@ -132,7 +152,8 @@ class SettingsDialog(wx.Dialog):
             'GmailPass': self.m_gmail_pass_input.GetValue(),
             'NotifyEmail': self.m_notify_email_input.GetValue(),
             'MasterURL': self.m_master_list_input.GetValue(),
-            'Proxy': self.proxy
+            'Proxy': self.proxy,
+            'Thread_amount': self.thread_amount
         }
 
     def __del__(self):
@@ -532,4 +553,6 @@ class EditEventDialog(wx.Dialog):
 
     def __del__(self):
         pass
+    
+    
 
