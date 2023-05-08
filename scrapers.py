@@ -23,25 +23,25 @@ anticaptch_key = os.getenv('anticaptch_key')
 capmonster_key = os.getenv('capmonster_key')
 twocaptcha_key = os.getenv('twocaptcha_key')
 
-def check_website(url, proxies, row, password, log=None):
+def check_website(url, proxies, row, password, log, thread_amount):
     if '.etix.' in url:
-        return Etix(url, proxies, row, log, password)
+        return Etix(url, proxies, row, log, password, thread_amount)
     elif '.eventbrite.' in url:
-        return Eventbrite(url, proxies, row, log, password)
+        return Eventbrite(url, proxies, row, log, password, thread_amount)
     elif '.bigtickets.' in url:
-        return BigTicket(url, proxies, row, log, password)
+        return BigTicket(url, proxies, row, log, password, thread_amount)
     elif '.frontgatetickets.' in url:
-        return FrontGate(url, proxies, row, log, password)
+        return FrontGate(url, proxies, row, log, password, thread_amount)
     elif '.ticketweb.' in url:
-        return TicketWeb(url, proxies, row, log, password)
+        return TicketWeb(url, proxies, row, log, password, thread_amount)
     elif 'seetickets.us' in url:
-        return SeeTickets(url, proxies, row, log, password)
+        return SeeTickets(url, proxies, row, log, password, thread_amount)
     elif 'showclix.' in url or '.thecomplexslc.' in url:
-        return Showclix(url, proxies, row, log, password)
+        return Showclix(url, proxies, row, log, password, thread_amount)
     elif 'prekindle.' in url:
-        return Prekindle(url, proxies, row, log, password)
+        return Prekindle(url, proxies, row, log, password, thread_amount)
     elif '.tixr.' in url:
-        return Tixr(url, proxies, row, log, password)
+        return Tixr(url, proxies, row, log, password, thread_amount)
 
 class Scraper(object):
     def __init__(self, url, proxies, row, log, password, thread_amount):
