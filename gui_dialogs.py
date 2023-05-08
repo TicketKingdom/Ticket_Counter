@@ -145,6 +145,7 @@ class SettingsDialog(wx.Dialog):
         proxies_label_text = self.saved_settings['Proxy']
         print(proxies_label_text)
         self.m_proxies_label.SetLabel(proxies_label_text)
+        self.slidebar.SetValue(self.saved_settings['Thread_amount'])
 
     def get_data(self):
         return {
