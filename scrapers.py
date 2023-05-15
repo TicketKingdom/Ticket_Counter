@@ -1146,7 +1146,14 @@ class BigTicket(Scraper):
 
     def get_qty(self, max_amount):
         driver = self.open_driver()
-        driver.get(self.ticket_url)
+        try:
+            driver.get(self.ticket_url)
+        except:
+            print("Web broswer tunnel error")
+            driver.quit()
+            return 0
+        if self.thread_amount > 10:
+            time.sleep(3)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 

@@ -134,8 +134,7 @@ class SettingsDialog(wx.Dialog):
 
     def OnSliderScroll(self, e): 
         obj = e.GetEventObject() 
-        val = obj.GetValue() 
-        self.thread_amount = val
+        self.thread_amount = obj.GetValue() 
         
     def load_settings(self):
         self.m_gmail_email_input.SetValue(self.saved_settings['GmailEmail'])
@@ -143,9 +142,9 @@ class SettingsDialog(wx.Dialog):
         self.m_notify_email_input.SetValue(self.saved_settings['NotifyEmail'])
         self.m_master_list_input.SetValue(self.saved_settings['MasterURL'])
         proxies_label_text = self.saved_settings['Proxy']
-        print(proxies_label_text)
         self.m_proxies_label.SetLabel(proxies_label_text)
         self.slidebar.SetValue(self.saved_settings['Thread_amount'])
+        print(self.saved_settings['Thread_amount'])
 
     def get_data(self):
         return {
@@ -154,7 +153,7 @@ class SettingsDialog(wx.Dialog):
             'NotifyEmail': self.m_notify_email_input.GetValue(),
             'MasterURL': self.m_master_list_input.GetValue(),
             'Proxy': self.proxy,
-            'Thread_amount': self.thread_amount
+            'Thread_amount': self.slidebar.GetValue()
         }
 
     def __del__(self):
