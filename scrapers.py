@@ -200,8 +200,16 @@ class Etix(Scraper):
 
     def get_qty(self, box_id):
         driver = self.open_driver()
-        driver.get(self.ticket_url)
-        time.sleep(2)
+        try:
+            driver.get(self.ticket_url)
+        except:
+            print("Web broswer tunnel error")
+            driver.quit()
+            return 0
+        
+        if self.thread_amount > 15:
+            time.sleep(3)
+        time.sleep(1)
 
         self.input_password(driver)
         time.sleep(0.5)
@@ -536,7 +544,15 @@ class Eventbrite(Scraper):
     def get_qty(self, _id):
         driver = self.open_driver(headless=True)
         self.drivers.append(driver)
-        driver.get(self.ticket_url)
+        try:
+            driver.get(self.ticket_url)
+        except:
+            print("Web broswer tunnel error")
+            driver.quit()
+            return 0
+        
+        if self.thread_amount > 15:
+            time.sleep(3)
         self.input_password(driver)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -605,7 +621,15 @@ class Eventbrite(Scraper):
     def get_qty_new(self, _id):
         driver = self.open_driver(headless=True)
         self.drivers.append(driver)
-        driver.get(self.ticket_url)
+        try:
+            driver.get(self.ticket_url)
+        except:
+            print("Web broswer tunnel error")
+            driver.quit()
+            return 0
+        
+        if self.thread_amount > 15:
+            time.sleep(3)
         time.sleep(0.5)
 
         main_id = driver.find_element_by_tag_name(
@@ -840,7 +864,15 @@ class FrontGate(Scraper):
         driver = self.open_driver()
         time.sleep(2)
         self.input_password(driver)
-        driver.get(self.ticket_url)
+        try:
+            driver.get(self.ticket_url)
+        except:
+            print("Web broswer tunnel error")
+            driver.quit()
+            return 0
+        
+        if self.thread_amount > 15:
+            time.sleep(3)
 
         # check the connection
 
@@ -996,7 +1028,16 @@ class TicketWeb(Scraper):
     def get_qty(self, x):
         qty = 0
         driver = self.open_driver()
-        driver.get(self.ticket_url)
+        try:
+            driver.get(self.ticket_url)
+        except:
+            print("Web broswer tunnel error")
+            driver.quit()
+            return 0
+        
+        if self.thread_amount > 15:
+            time.sleep(3)
+
         self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
@@ -1152,6 +1193,7 @@ class BigTicket(Scraper):
             print("Web broswer tunnel error")
             driver.quit()
             return 0
+        
         if self.thread_amount > 10:
             time.sleep(3)
 
@@ -1357,9 +1399,16 @@ class SeeTickets(Scraper):
 
     def get_qty(self, box_id):
         driver = self.open_driver()
-        driver.get(self.ticket_url)
+        try:
+            driver.get(self.ticket_url)
+        except:
+            print("Web broswer tunnel error")
+            driver.quit()
+            return 0
+        
+        if self.thread_amount > 15:
+            time.sleep(3)
 
-        time.sleep(5)
         self.input_password(driver)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -1558,8 +1607,17 @@ class Showclix(Scraper):
 
     def get_qty(self, box_id):
         driver = self.open_driver()
-        driver.get(self.ticket_url)
-        time.sleep(3)
+        try:
+            driver.get(self.ticket_url)
+        except:
+            print("Web broswer tunnel error")
+            driver.quit()
+            return 0
+        
+        if self.thread_amount > 15:
+            time.sleep(3)
+
+        time.sleep(1)
 
         self.input_password(driver)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -1727,7 +1785,15 @@ class Prekindle(Scraper):
 
     def get_qty(self, box_id):
         driver = self.open_driver()
-        driver.get(self.ticket_url)
+        try:
+            driver.get(self.ticket_url)
+        except:
+            print("Web broswer tunnel error")
+            driver.quit()
+            return 0
+        
+        if self.thread_amount > 15:
+            time.sleep(3)
 
         driver.find_element_by_xpath(
             '//a[@class="action-bar-button buybutton"]').click()
@@ -1880,8 +1946,17 @@ class Tixr(Scraper):
 
     def get_qty(self, _id):
         driver = self.open_driver()
-        driver.get(self.ticket_url)
-        time.sleep(5)
+        try:
+            driver.get(self.ticket_url)
+        except:
+            print("Web broswer tunnel error")
+            driver.quit()
+            return 0
+        
+        if self.thread_amount > 15:
+            time.sleep(3)
+
+        time.sleep(2)
 
         ticket_index, collection_index = None, None
         if '/' in self.ticket_row:
