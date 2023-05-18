@@ -190,7 +190,6 @@ class Etix(Scraper):
             main_pwd_no = int(self.ticket_row) - max_ticket_row + pwd_num
 
             driver.find_elements_by_xpath('//*[@placeholder="Password"]')[main_pwd_no - 1].send_keys(self.password)
-            #driver.find_elements_by_xpath('//*[@placeholder="Password"]')[int(pwd_num) - 1].send_keys(self.password)
 
     def get_qty(self, box_id):
         driver = self.open_driver()
@@ -202,7 +201,7 @@ class Etix(Scraper):
             return 0
         
         if self.thread_amount > 15:
-            time.sleep(3)
+            time.sleep(2)
         time.sleep(1)
 
         self.input_password(driver)
@@ -1000,8 +999,9 @@ class TicketWeb(Scraper):
             time.sleep(3)
 
         self.input_password(driver)
+        WebDriverWait(driver, 6).until(EC.presence_of_element_located((By.ID, "edp_checkout_btn"))) 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-
+        
         sold_out = soup.find('div', {'class': 'section section-status theme-mod eventStatusCustomMessage'})
         if sold_out:
             if 'This screening is currently sold out' in sold_out.text.strip():
@@ -1040,7 +1040,11 @@ class TicketWeb(Scraper):
                     print(e)
 
                 print("Waiting to solution by capmonster workers")
-                response = capmonster.joinTaskResult(taskId=taskId)
+                try:
+                    response = capmonster.joinTaskResult(taskId=taskId)
+                except:
+                    time.sleep(2)
+                    response = capmonster.joinTaskResult(taskId=taskId)
             else:
                 site_key = '6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv'
                 client = AnticaptchaClient(anticaptch_key)
@@ -1054,8 +1058,12 @@ class TicketWeb(Scraper):
             print("Received solution", response)
             driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
             time.sleep(2)
+        try:
+            driver.find_element_by_id('edp_checkout_btn').click()
+        except:    
+            time.sleep(2)
+            driver.find_element_by_id('edp_checkout_btn').click()
 
-        driver.find_element_by_id('edp_checkout_btn').click()
         time.sleep(1)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
