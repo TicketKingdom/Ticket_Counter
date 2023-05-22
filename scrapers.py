@@ -999,7 +999,7 @@ class TicketWeb(Scraper):
             time.sleep(3)
 
         self.input_password(driver)
-        WebDriverWait(driver, 6).until(EC.presence_of_element_located((By.ID, "edp_checkout_btn"))) 
+        WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "edp_checkout_btn"))) 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         
         sold_out = soup.find('div', {'class': 'section section-status theme-mod eventStatusCustomMessage'})
@@ -1058,13 +1058,9 @@ class TicketWeb(Scraper):
             print("Received solution", response)
             driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
             time.sleep(2)
-        try:
-            driver.find_element_by_id('edp_checkout_btn').click()
-        except:    
-            time.sleep(2)
-            driver.find_element_by_id('edp_checkout_btn').click()
+        driver.find_element_by_id('edp_checkout_btn').click()
 
-        time.sleep(1)
+        time.sleep(3)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('div', {'class': 'error-message theme-mod-bd theme-error-color ng-scope'}):
