@@ -1037,14 +1037,11 @@ class TicketWeb(Scraper):
                     else:
                         taskId = capmonster.createTask(website_key='6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv', website_url=self.ticket_url)
                 except Exception as e:
-                    print(e)
+                    print('err', e)
 
                 print("Waiting to solution by capmonster workers")
-                try:
-                    response = capmonster.joinTaskResult(taskId=taskId)
-                except:
-                    time.sleep(2)
-                    response = capmonster.joinTaskResult(taskId=taskId)
+                response = capmonster.joinTaskResult(taskId=taskId)
+                
             else:
                 site_key = '6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv'
                 client = AnticaptchaClient(anticaptch_key)
@@ -1056,10 +1053,15 @@ class TicketWeb(Scraper):
                 response = job.get_solution_response()
 
             print("Received solution", response)
-            driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
             time.sleep(2)
+            try:
+                driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+            except Exception as e:
+                print("eee", e)
+            for i in range(3):
+                driver.execute_script("window.scrollBy(0, 150)")
+            time.sleep(5)
         driver.find_element_by_id('edp_checkout_btn').click()
-
         time.sleep(3)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
