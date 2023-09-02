@@ -1,4 +1,4 @@
-__pycache__
+__pycache__/
 *.zip
 ./proxies_bunchs.txt
 captcha_key.py
