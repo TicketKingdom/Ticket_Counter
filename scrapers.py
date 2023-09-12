@@ -207,7 +207,7 @@ class Etix(Scraper):
         self.input_password(driver)
         time.sleep(0.5)
         origin_content = ''
-
+        time.sleep(3000)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             canvas_mode = driver.find_element_by_id('EtixOnlineManifestMapDivSection')
