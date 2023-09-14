@@ -207,7 +207,6 @@ class Etix(Scraper):
         self.input_password(driver)
         time.sleep(0.5)
         origin_content = ''
-        time.sleep(3000)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             canvas_mode = driver.find_element_by_id('EtixOnlineManifestMapDivSection')
@@ -295,7 +294,7 @@ class Etix(Scraper):
             time.sleep(0.5)
         except:
             pass
-
+        
         # solve captcha
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('div', {'class': 'g-recaptcha'}):
@@ -303,6 +302,7 @@ class Etix(Scraper):
                 print("This is a fake captcha")
             else:
                 print("This is a real captcha")
+            
             if self.cap == "Capmonster":  
                 capmonster = NoCaptchaTaskProxyless(capmonster_key)
                 try:
@@ -324,9 +324,9 @@ class Etix(Scraper):
                 # solve this anticapcha
                 client = AnticaptchaClient(anticaptch_key)
                 try:
-                    task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j')
+                    task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', is_invisible=True)
                 except:
-                    task = NoCaptchaTaskProxylessTask(self.ticket_url, 'VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg')
+                    task = NoCaptchaTaskProxylessTask(self.ticket_url, 'VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg', is_invisible=True)
                 try:
                     job = client.createTask(task)
                     print("Waiting to solution by Anticaptcha workers")
@@ -337,9 +337,8 @@ class Etix(Scraper):
                     print(0, 'Tickets added....')
                     driver.quit()
                     return 0
-            driver.execute_script("console.log(widgetId)")
-            time.sleep(3000)
             print("Received solution--->", response)
+            
             try:
                 driver.execute_script("grecaptcha.reset(null);")
             except:
@@ -350,7 +349,6 @@ class Etix(Scraper):
             except:
                 pass
 
-        time.sleep(1)
 
         # click confirm button
         if not origin_content:
@@ -359,15 +357,12 @@ class Etix(Scraper):
                 time.sleep(1.5)
 
             except Exception as e:
-                print('Submit button is different or disabled. 0 Tickets added....')
+                print('Submit button is different or disabled.')
                 driver.quit()
                 return 0
         else:
             driver.execute_script("sessionStorage.setItem('automaticPopupMembershipUpsell', 'true');")
-            try:
-                driver.execute_script("gaSectionSubmitHandler();")
-            except:
-                driver.execute_script("grecaptcha.execute();")
+            driver.execute_script("grecaptcha.execute();")
 
         time.sleep(4)  
 
@@ -383,7 +378,7 @@ class Etix(Scraper):
                 print('Tickets Currently Not Available')
                 driver.quit()
                 return 0
-
+        time.sleep(2)
         # get amount is impossible, decrease the amount.
         if new_soup.find('div', {'class': 'validationError error'}):
             if new_soup.find('div', {'class', 'errorBox'}):
