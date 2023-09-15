@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 
 from python_anticaptcha import AnticaptchaClient, NoCaptchaTaskProxylessTask
-from capmonster_python import NoCaptchaTaskProxyless
+from capmonster_python import RecaptchaV2Task
 from multiprocessing.pool import Pool
 from bs4 import BeautifulSoup
 
@@ -304,18 +304,18 @@ class Etix(Scraper):
                 print("This is a real captcha")
             
             if self.cap == "Capmonster":  
-                capmonster = NoCaptchaTaskProxyless(capmonster_key)
+                capmonster = RecaptchaV2Task(capmonster_key)
                 try:
-                    taskId = capmonster.createTask(website_key='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG', website_url=self.ticket_url)
+                    taskId = capmonster.create_task(website_key='6LedR4IUAAAAAN1WFw_JWomeQEZbfo75LAPLvMQG', website_url=self.ticket_url)
                 except:
                     try:
-                        taskId = capmonster.createTask(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+                        taskId = capmonster.create_task(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
                     except:
-                        taskId = capmonster.createTask(website_key='VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg', website_url=self.ticket_url)
+                        taskId = capmonster.create_task(website_key='VrOjEG7Q9bH68iiToO2zR_W968OZCZP6amelBHxT1rg', website_url=self.ticket_url)
 
                 print("Waiting to solution by capmonster workers")
                 try:
-                    response = capmonster.joinTaskResult(taskId)
+                    response = capmonster.join_task_result(taskId).get("gRecaptchaResponse")
                 except:
                     print(0, 'Tickets added....')
                     driver.quit()
@@ -339,10 +339,6 @@ class Etix(Scraper):
                     return 0
             print("Received solution--->", response)
             
-            try:
-                driver.execute_script("grecaptcha.reset(null);")
-            except:
-                pass
             driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
             try:
                 driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
@@ -362,9 +358,10 @@ class Etix(Scraper):
                 return 0
         else:
             driver.execute_script("sessionStorage.setItem('automaticPopupMembershipUpsell', 'true');")
-            driver.execute_script("grecaptcha.execute();")
+            # driver.execute_script("grecaptcha.execute();")
+            driver.execute_script("$('#submitBtn').parents('form:first').trigger('submit');")
 
-        time.sleep(4)  
+        time.sleep(4000)  
 
         # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -858,11 +855,11 @@ class FrontGate(Scraper):
             if self.cap == "Capmonster":
                 # using capmonster
                 driver.execute_script('document.getElementById("div-btn-modal-submit").removeAttribute("disabled")')
-                capmonster = NoCaptchaTaskProxyless(capmonster_key)
+                capmonster = RecaptchaV2Task(capmonster_key)
                 # taskId = capmonster.createTask(website_key='6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU', website_url=self.ticket_url)
-                taskId = capmonster.createTask(website_key='6LeoXOodAAAAALfpnJFDs-revkub2Cr-anY0yBeL', website_url=self.ticket_url)
+                taskId = capmonster.create_task(website_key='6LeoXOodAAAAALfpnJFDs-revkub2Cr-anY0yBeL', website_url=self.ticket_url)
                 print("Waiting to solution by capmonster workers")
-                response = capmonster.joinTaskResult(taskId=taskId)
+                response = capmonster.join_task_result(taskId=taskId).get("gRecaptchaResponse")
                 print("Received solution", response)
                 driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
                 time.sleep(1)
@@ -1208,15 +1205,15 @@ class BigTicket(Scraper):
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         if soup.find('div', {'class': 'g-recaptcha'}):
             if self.cap == "Capmonster":  # solve this capmonster
-                capmonster = NoCaptchaTaskProxyless(capmonster_key)
+                capmonster = RecaptchaV2Task(capmonster_key)
                 # 6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu
                 try:
-                    taskId = capmonster.createTask(website_key='6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu', website_url=self.ticket_url)
+                    taskId = capmonster.create_task(website_key='6LcdVyATAAAAAOTYsW8XAd8LFzRlgZ1faAQUqabu', website_url=self.ticket_url)
                 except:
-                    taskId = capmonster.createTask(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
+                    taskId = capmonster.create_task(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
                 print("Waiting to solution by capmonster workers")
                 try:
-                    response = capmonster.joinTaskResult(taskId=taskId)
+                    response = capmonster.join_task_result(taskId=taskId).get("gRecaptchaResponse")
                 except:
                     print(0, 'Tickets added....')
                     driver.quit()
