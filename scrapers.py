@@ -361,7 +361,7 @@ class Etix(Scraper):
             # driver.execute_script("grecaptcha.execute();")
             driver.execute_script("$('#submitBtn').parents('form:first').trigger('submit');")
 
-        time.sleep(4000)  
+        time.sleep(3)  
 
         # detect the errors
         new_soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -405,7 +405,19 @@ class Etix(Scraper):
                                     driver.quit()
                                     return 0
                                 opt.click()
-                                driver.find_element_by_name("addSeatBtn").click()
+                                if not origin_content:
+                                    try:
+                                        driver.find_element_by_name("addSeatBtn").click()
+                                        time.sleep(1.5)
+
+                                    except Exception as e:
+                                        print('Submit button is different or disabled.')
+                                        driver.quit()
+                                        return 0
+                                else:
+                                    driver.execute_script("sessionStorage.setItem('automaticPopupMembershipUpsell', 'true');")
+                                    # driver.execute_script("grecaptcha.execute();")
+                                    driver.execute_script("$('#submitBtn').parents('form:first').trigger('submit');")
                                 time.sleep(0.5)
                                 soup = BeautifulSoup(driver.page_source, 'html.parser')
                                 error = soup.find('div', {'class': 'validationError error'})
@@ -429,6 +441,7 @@ class Etix(Scraper):
                 opt_qty = len(soup.find('table', {'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
         except:
             print('ticket didn\'t completely cart. 0 ticket added')
+            time.sleep(3000)
             driver.quit()
             return 0 
 
