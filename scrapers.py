@@ -441,7 +441,6 @@ class Etix(Scraper):
                 opt_qty = len(soup.find('table', {'class': 'table table--bordered table-shopping-cart'}).findChildren(['tbody', 'tr']))-2
         except:
             print('ticket didn\'t completely cart. 0 ticket added')
-            time.sleep(3000)
             driver.quit()
             return 0 
 
