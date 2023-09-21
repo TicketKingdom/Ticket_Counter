@@ -339,7 +339,7 @@ class Etix(Scraper):
                     driver.quit()
                     return 0
             print("Received solution--->", response)
-            time.sleep(3)
+            time.sleep(4)
             driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
             try:
                 driver.execute_script('document.getElementById("submitBtn").removeAttribute("disabled")')
