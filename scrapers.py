@@ -207,6 +207,7 @@ class Etix(Scraper):
         self.input_password(driver)
         time.sleep(0.5)
         origin_content = ''
+        canvas_mode = ""
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             canvas_mode = driver.find_element_by_id('EtixOnlineManifestMapDivSection')
@@ -360,7 +361,10 @@ class Etix(Scraper):
             driver.execute_script("sessionStorage.setItem('automaticPopupMembershipUpsell', 'true');")
             # driver.execute_script("grecaptcha.execute();")
             driver.execute_script("$('#submitBtn').parents('form:first').trigger('submit');")
-
+        
+        if canvas_mode:
+            driver.execute_script("$('#gaSectionAddSeatForm').trigger('submit');")
+                 
         time.sleep(3)  
 
         # detect the errors
