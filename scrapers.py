@@ -1877,7 +1877,7 @@ class Tixr(Scraper):
         else:
             ticket_index = self.ticket_row
 
-        time.sleep(2)
+        time.sleep(3)
         # add sold out case or another case on first screen
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         item = soup.find('div',{'data-product-id': _id})['data-product-state']
@@ -1902,12 +1902,13 @@ class Tixr(Scraper):
                 opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[1]'.format(_id))
                 opt.click()
                 time.sleep(0.5)
-                opt_qty_temp =  int(driver.find_element_by_xpath('//p[@class="quantity"]').text)
+                opt_qty_temp =  int(driver.find_element_by_xpath('//span[@class="quantity-value"]').text)
                 break
 
         # click purchase button        
         driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
         time.sleep(3)
+
         # # add captcha area
         # soup = BeautifulSoup(driver.page_source, 'html.parser')
         # captcha = soup.find('div', {'id': 'recaptcha'})
