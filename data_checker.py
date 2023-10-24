@@ -171,8 +171,8 @@ def check_seetickets(url):
     # except:
     #     name = soup.find('title').text.strip()
     #     name = name.split('Buy Tickets to')
-    print(name)
-    time.sleep(3000)
+    # print(name)
+    # time.sleep(3000)
     date = soup.find('time', {'itemprop': 'startDate'})['datetime']
     date = parser.parse(date).strftime('%Y-%m-%d')
 
