@@ -620,12 +620,11 @@ class Eventbrite(Scraper):
         main_id = driver.find_element_by_tag_name('body').get_attribute('data-event-id')
         xpath = '//*[@id="eventbrite-widget-modal-{}"]'.format(main_id)
         try:
-            iframe = driver.find_element_by_xpath(xpath)
+            iframe = driver.find_elements_by_xpath(xpath)[1]
         except:
             print('0 Tickets added and can\'t open the iframe')
             driver.quit()
             return 0
-
         driver.switch_to.frame(iframe)
 
         page_content = BeautifulSoup(driver.page_source, 'html.parser')
@@ -656,7 +655,13 @@ class Eventbrite(Scraper):
         time.sleep(2)
 
         try:
-            opt = driver.find_elements_by_class_name('tiered-ticket-display-content-root')[int(self.ticket_row)-1]
+            if ".ca" in self.ticket_url:
+                # select_len = driver.find_elements_by_tag_name('select')
+                # print(len(select_len))
+                opt = driver.find_element_by_xpath('//*[@id="{}"]'.format(_id))
+            else:
+                opt = driver.find_elements_by_class_name('tiered-ticket-display-content-root')[int(self.ticket_row)-1]
+
             try:
                 opt = opt.find_elements_by_tag_name('option')[-1]
             except:
@@ -691,8 +696,11 @@ class Eventbrite(Scraper):
             driver.quit()
             return 0
 
-        opt.click()
-
+        try:
+            driver.find_element_by_xpath("//*[@id='{}']/option[@value='{}']".format(_id, opt_qty)).click()
+        except: 
+            opt.click()
+        time.sleep(3000)
         try:
             driver.find_element_by_xpath('//*[@data-automation="eds-modal__primary-button"]').click()
         except:
@@ -700,7 +708,7 @@ class Eventbrite(Scraper):
             driver.quit()
             return 0
 
-        time.sleep(2)
+        time.sleep(3000)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         alert = soup.find('div', {'class': 'eds-notification-bar__content'})
         if alert:
