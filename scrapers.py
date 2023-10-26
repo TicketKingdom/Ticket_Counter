@@ -1040,17 +1040,17 @@ class TicketWeb(Scraper):
         captcha = soup.find('div', {'class': 'g-recaptcha'})
         if captcha:
             if self.cap == 'Capmonster':
-                capmonster = NoCaptchaTaskProxyless(capmonster_key)
+                capmonster = RecaptchaV2Task(capmonster_key)
                 try:
                     if '.ca' in self.ticket_url:
-                        taskId = capmonster.createTask(website_key='6LfW2FYUAAAAAJmlXoUhKpxRo7fufecPstaxMMvn', website_url=self.ticket_url)
+                        taskId = capmonster.create_task(website_key='6LfW2FYUAAAAAJmlXoUhKpxRo7fufecPstaxMMvn', website_url=self.ticket_url)
                     else:
-                        taskId = capmonster.createTask(website_key='6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv', website_url=self.ticket_url)
+                        taskId = capmonster.create_task(website_key='6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv', website_url=self.ticket_url)
                 except Exception as e:
                     print('err', e)
 
                 print("Waiting to solution by capmonster workers")
-                response = capmonster.joinTaskResult(taskId=taskId)
+                response = capmonster.join_task_result(taskId).get("gRecaptchaResponse")
                 
             else:
                 site_key = '6LfQ2VYUAAAAACEJaznob8RVoWsBEFTec2zDPJwv'
