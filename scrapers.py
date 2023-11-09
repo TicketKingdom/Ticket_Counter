@@ -1856,8 +1856,7 @@ class Tixr(Scraper):
             # print('password area')
             driver.find_element_by_xpath('//div[@name="accessCode"]/input[@type="text"]').send_keys(self.password)
             driver.find_element_by_xpath('//div[@name="form"]/a[@action="submit"]').click()
-
-            # driver.find_element_by_id('applyPromoCode').click()
+            time.sleep(3)
 
     def get_qty(self, _id):
         driver = self.open_driver()
@@ -1871,7 +1870,7 @@ class Tixr(Scraper):
         if self.thread_amount > 15:
             time.sleep(3)
 
-        time.sleep(2)
+        time.sleep(3)
 
         ticket_index, collection_index = None, None
         if '/' in self.ticket_row:
@@ -1884,7 +1883,10 @@ class Tixr(Scraper):
         else:
             ticket_index = self.ticket_row
 
-        time.sleep(3)
+        
+        # input promo code
+        self.input_password(driver, _id)
+
         # add sold out case or another case on first screen
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         item = soup.find('div',{'data-product-id': _id})['data-product-state']
@@ -1894,23 +1896,26 @@ class Tixr(Scraper):
             driver.quit()
             return 0
         
-        opt_qty_temp = 0
-
-         # input promo code
-        self.input_password(driver, _id)
-        
-        time.sleep(3)
         # click possible amount.
+        try:
+            opt = driver.find_element_by_xpath('//div[@class="countdown"]')
+            # soup = BeautifulSoup(driver.page_source, 'html.parser')
+            # qty = soup.find('div', {'class': 'countdown'}).text
+            print(opt)
+            time.sleep(3000)
+        except:
+            pass
+            
+        opt_qty_temp = 0
         while True:
             try:
                 # case of normal type(direclty select the select option)
-                opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
+                time.sleep(3)
+                opt = driver.find_element_by_xpath('//div[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
                 opt.click()
         
             except Exception as e:
-                opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[1]'.format(_id))
-                opt.click()
-                time.sleep(0.5)
+                time.sleep(2)
                 opt_qty_temp =  int(driver.find_element_by_xpath('//span[@class="quantity-value"]').text)
                 break
 
@@ -1942,14 +1947,18 @@ class Tixr(Scraper):
             driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
             time.sleep(2)
 
-        time.sleep(3000)
-
+        # skip additional order
+        try:
+            driver.find_element_by_xpath('//a[@action="skip"]').click()
+            time.sleep(3)
+        except: 
+            pass
+        
         while True:
             try:
                 opt_qty =  int(driver.find_element_by_xpath('//ul[@class="items"]/li[1]/div[1]/div[2]').text)
                 break
             except:
-                time.sleep(3)
                 try:
                     counterdown = driver.find_element_by_xpath('//*[@name="simple-countdown"]/span[2]').text
                     if(counterdown != "0:00"):
@@ -2004,7 +2013,13 @@ class Tixr(Scraper):
         try:
             sold = soup.find_all('div', {'class':'ticket'})[int(ticket_index)-1]
             _id = sold['data-product-id']
-            if 'SOLD_OUT' in sold['data-product-state']:
+
+            self.input_password(driver, _id)
+
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            item = soup.find('div',{'data-product-id': _id})['data-product-state']
+
+            if 'SOLD_OUT' in item:
                 print('tickets is sold out.')
                 driver.quit()
                 return 0, False
