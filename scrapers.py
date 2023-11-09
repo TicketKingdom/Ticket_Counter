@@ -1848,10 +1848,15 @@ class Prekindle(Scraper):
 
 # in progress
 class Tixr(Scraper):
-    def input_password(self, driver):
+    def input_password(self, driver, _id):
         if self.password:
-            print('password area')
-            # driver.find_element_by_id('promoCode').send_keys(self.password)
+            opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
+            opt.click()
+            time.sleep(3)
+            # print('password area')
+            driver.find_element_by_xpath('//div[@name="accessCode"]/input[@type="text"]').send_keys(self.password)
+            driver.find_element_by_xpath('//div[@name="form"]/a[@action="submit"]').click()
+
             # driver.find_element_by_id('applyPromoCode').click()
 
     def get_qty(self, _id):
@@ -1888,11 +1893,13 @@ class Tixr(Scraper):
             print('tickets is sold out.')
             driver.quit()
             return 0
-
-        # input promo code
-        self.input_password(driver)
-        opt_qty_temp = 0
         
+        opt_qty_temp = 0
+
+         # input promo code
+        self.input_password(driver, _id)
+        
+        time.sleep(3)
         # click possible amount.
         while True:
             try:
@@ -1906,6 +1913,10 @@ class Tixr(Scraper):
                 time.sleep(0.5)
                 opt_qty_temp =  int(driver.find_element_by_xpath('//span[@class="quantity-value"]').text)
                 break
+
+        # click purchase button        
+        driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
+        time.sleep(3)
 
         # add captcha area
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -1931,11 +1942,7 @@ class Tixr(Scraper):
             driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
             time.sleep(2)
 
-        # time.sleep(3000)
-
-        # click purchase button        
-        driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
-        time.sleep(3)
+        time.sleep(3000)
 
         while True:
             try:
