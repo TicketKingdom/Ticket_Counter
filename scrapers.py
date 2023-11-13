@@ -1895,8 +1895,8 @@ class Tixr(Scraper):
             print('tickets is sold out.')
             driver.quit()
             return 0
-        
-        # click possible amount.
+
+        # check limited amount        
         try:
             opt = driver.find_element_by_xpath('//div[@class="countdown"]')
             # soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -1905,7 +1905,8 @@ class Tixr(Scraper):
             time.sleep(3000)
         except:
             pass
-            
+
+        # click possible amount.
         opt_qty_temp = 0
         while True:
             try:
@@ -1919,11 +1920,14 @@ class Tixr(Scraper):
                 opt_qty_temp =  int(driver.find_element_by_xpath('//span[@class="quantity-value"]').text)
                 break
 
-        # click purchase button        
-        driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
-        time.sleep(3)
-
+        
         # add captcha area
+
+        # driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
+        # time.sleep(3)
+        driver.execute_async_script("eval(await (await fetch('https://static.tixr.com/static/202311011849/js/Captcha.js')).text())")
+        # driver.execute_async_script('var scriptTag = document.createElement("script");scriptTag.setAttribute("src", "https://static.tixr.com/static/202311011849/js/Captcha.js");document.body.appendChild(scriptTag);')
+        #  <script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="Captcha" src="https://static.tixr.com/static/202311011849/js/Captcha.js"></script>
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         captcha = soup.find('div', {'id': 'recaptcha'})
         if captcha:
@@ -1945,8 +1949,19 @@ class Tixr(Scraper):
 
             print("Received solution", response)
             driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-            time.sleep(2)
+            time.sleep(3)
+        
+        
+        # click purchase button        
+        try:
+            driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
+            time.sleep(3)
 
+        except Exception as e:
+            print('Submit button is different or disabled.')
+            driver.quit()
+            return 0
+           
         # skip additional order
         try:
             driver.find_element_by_xpath('//a[@action="skip"]').click()
