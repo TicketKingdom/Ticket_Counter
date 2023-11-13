@@ -1920,14 +1920,16 @@ class Tixr(Scraper):
                 opt_qty_temp =  int(driver.find_element_by_xpath('//span[@class="quantity-value"]').text)
                 break
 
-        
-        # add captcha area
+        # click purchase button        
+        try:
+            driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
+            time.sleep(3)
 
-        # driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
-        # time.sleep(3)
-        driver.execute_async_script("eval(await (await fetch('https://static.tixr.com/static/202311011849/js/Captcha.js')).text())")
-        # driver.execute_async_script('var scriptTag = document.createElement("script");scriptTag.setAttribute("src", "https://static.tixr.com/static/202311011849/js/Captcha.js");document.body.appendChild(scriptTag);')
-        #  <script type="text/javascript" charset="utf-8" async="" data-requirecontext="_" data-requiremodule="Captcha" src="https://static.tixr.com/static/202311011849/js/Captcha.js"></script>
+        except Exception as e:
+            print('Submit button is different or disabled.')
+            driver.quit()
+            return 0
+           
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         captcha = soup.find('div', {'id': 'recaptcha'})
         if captcha:
@@ -1950,18 +1952,9 @@ class Tixr(Scraper):
             print("Received solution", response)
             driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
             time.sleep(3)
-        
-        
-        # click purchase button        
-        try:
-            driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
-            time.sleep(3)
 
-        except Exception as e:
-            print('Submit button is different or disabled.')
-            driver.quit()
-            return 0
-           
+            self.solve_captche(driver, response)
+        
         # skip additional order
         try:
             driver.find_element_by_xpath('//a[@action="skip"]').click()
@@ -2006,6 +1999,59 @@ class Tixr(Scraper):
         print(opt_qty, 'Tickets added')
         return opt_qty
 
+    def solve_captche(self, driver, token):
+        self.browser = driver
+        self.browser.execute_script("""
+                    window.findRecaptchaClients = function(){
+
+                    if (typeof (___grecaptcha_cfg) !== 'undefined') {
+
+                    return Object.entries(___grecaptcha_cfg.clients).map(([cid, client]) => {
+                        const data = { id: cid, version: cid >= 10000 ? 'V3' : 'V2' };
+                        const objects = Object.entries(client).filter(([_, value]) => value && typeof value === 'object');
+
+                        objects.forEach(([toplevelKey, toplevel]) => {
+                        const found = Object.entries(toplevel).find(([_, value]) => (
+                            value && typeof value === 'object' && 'sitekey' in value && 'size' in value
+                        ));
+
+                        if (typeof toplevel === 'object' && toplevel instanceof HTMLElement && toplevel['tagName'] === 'DIV'){
+                            data.pageurl = toplevel.baseURI;
+                        }
+
+                        if (found) {
+                            const [sublevelKey, sublevel] = found;
+
+                            data.sitekey = sublevel.sitekey;
+                            const callbackKey = data.version === 'V2' ? 'callback' : 'promise-callback';
+                            const callback = sublevel[callbackKey];
+                            data.topKey = toplevelKey;
+                            data.subKey = sublevelKey;
+                            if (!callback) {
+                            data.callback = null;
+                            data.function = null;
+                            } else {
+                            data.function = callback;
+                            const keys = [cid, toplevelKey, sublevelKey, callbackKey].map((key) => `['${key}']`).join('');
+                            data.callback = `___grecaptcha_cfg.clients${keys}`;
+                            }
+                        }
+                        });
+                        return data;
+                    });
+                    }
+                    return [];
+                }
+
+                window.callbackRes = findRecaptchaClients();
+                """)
+
+        self.browser.execute_script("""
+                    let rTopKey = window.callbackRes[0].topKey
+                    let rSubKey = window.callbackRes[0].subKey
+                    window.___grecaptcha_cfg.clients[0][rTopKey][rSubKey]['callback']('{}')
+                """.format(token))
+    
     def check_ticket_qty(self, cap, decrease_way):
         self.cap = cap
         driver = self.open_driver()
