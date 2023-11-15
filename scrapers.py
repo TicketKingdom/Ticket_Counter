@@ -1870,7 +1870,7 @@ class Tixr(Scraper):
         if self.thread_amount > 15:
             time.sleep(3)
 
-        time.sleep(3)
+        time.sleep(2)
 
         ticket_index, collection_index = None, None
         if '/' in self.ticket_row:
@@ -1879,10 +1879,9 @@ class Tixr(Scraper):
                 driver.find_element_by_xpath('//*[@id="page"]/div/div[3]/div[1]/div[1]/div[3]/div/ul/li['+collection_index+']/a[1]').click()
             except:
                 driver.find_element_by_xpath('//*[@id="page"]/div/div[2]/div[1]/div[1]/div[3]/div/ul/li['+collection_index+']/a[1]').click()
-            time.sleep(5)
+            time.sleep(3)
         else:
             ticket_index = self.ticket_row
-
         
         # input promo code
         self.input_password(driver, _id)
@@ -1902,7 +1901,6 @@ class Tixr(Scraper):
             # soup = BeautifulSoup(driver.page_source, 'html.parser')
             # qty = soup.find('div', {'class': 'countdown'}).text
             print(opt)
-            time.sleep(3000)
         except:
             pass
 
@@ -1911,7 +1909,6 @@ class Tixr(Scraper):
         while True:
             try:
                 # case of normal type(direclty select the select option)
-                time.sleep(3)
                 opt = driver.find_element_by_xpath('//div[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
                 opt.click()
         
@@ -1951,20 +1948,21 @@ class Tixr(Scraper):
 
             print("Received solution", response)
             driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
-            time.sleep(3)
+            time.sleep(1)
 
             self.solve_captche(driver, response)
         
         # skip additional order
         try:
             driver.find_element_by_xpath('//a[@action="skip"]').click()
-            time.sleep(3)
+            time.sleep(2)
         except: 
             pass
         
         while True:
             try:
                 opt_qty =  int(driver.find_element_by_xpath('//ul[@class="items"]/li[1]/div[1]/div[2]').text)
+                print("opt_qty", opt_qty)
                 break
             except:
                 try:
@@ -1991,10 +1989,46 @@ class Tixr(Scraper):
                     opt = driver.find_element_by_xpath('//*[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
                     for i in range(opt_qty_temp):
                         opt.click()
-                    time.sleep(3)
-                    driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
-                    time.sleep(3)
+                    try:
+                        driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
+                        time.sleep(3)
 
+                    except Exception as e:
+                        pass
+
+                    soup = BeautifulSoup(driver.page_source, 'html.parser')
+                    captcha = soup.find('div', {'id': 'recaptcha'})
+                    if captcha:
+                        if self.cap == "Capmonster":
+                            # using capmonster
+                            capmonster = RecaptchaV2Task(capmonster_key)
+                            taskId = capmonster.create_task(website_key='6LfF108UAAAAAL5DaIWx9JdmjfUiBjFRcSRc2s40', website_url=self.ticket_url)
+                            print("Waiting to solution by capmonster workers")
+                            response = capmonster.join_task_result(taskId).get("gRecaptchaResponse")
+                            
+                        else:
+                            # using anti_captcha
+                            client = AnticaptchaClient(anticaptch_key)
+                            task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LfF108UAAAAAL5DaIWx9JdmjfUiBjFRcSRc2s40')
+                            job = client.createTask(task)
+                            print("Waiting to solution by Anticaptcha workers")
+                            job.join()
+                            response = job.get_solution_response()
+
+                        print("Received solution", response)
+                        driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
+                        time.sleep(1)
+
+                        self.solve_captche(driver, response)
+                    
+                    # skip additional order
+                    try:
+                        driver.find_element_by_xpath('//a[@action="skip"]').click()
+                        time.sleep(2)
+                    except: 
+                        pass
+
+        time.sleep(3)
         driver.quit()
         print(opt_qty, 'Tickets added')
         return opt_qty
