@@ -1870,18 +1870,17 @@ class Tixr(Scraper):
         if self.thread_amount > 15:
             time.sleep(3)
 
-        time.sleep(2)
-
-        ticket_index, collection_index = None, None
-        if '/' in self.ticket_row:
-            collection_index, ticket_index = self.ticket_row.split('/')
-            try:
-                driver.find_element_by_xpath('//*[@id="page"]/div/div[3]/div[1]/div[1]/div[3]/div/ul/li['+collection_index+']/a[1]').click()
-            except:
-                driver.find_element_by_xpath('//*[@id="page"]/div/div[2]/div[1]/div[1]/div[3]/div/ul/li['+collection_index+']/a[1]').click()
-            time.sleep(3)
-        else:
-            ticket_index = self.ticket_row
+        if self.wait_for_element(driver, '//*[@id="page"]/div/', By.XPATH):
+            ticket_index, collection_index = None, None
+            if '/' in self.ticket_row:
+                collection_index, ticket_index = self.ticket_row.split('/')
+                try:
+                    driver.find_element_by_xpath('//*[@id="page"]/div/div[3]/div[1]/div[1]/div[3]/div/ul/li['+collection_index+']/a[1]').click()
+                except:
+                    driver.find_element_by_xpath('//*[@id="page"]/div/div[2]/div[1]/div[1]/div[3]/div/ul/li['+collection_index+']/a[1]').click()
+                time.sleep(3)
+            else:
+                ticket_index = self.ticket_row
         
         # input promo code
         self.input_password(driver, _id)
@@ -1909,19 +1908,23 @@ class Tixr(Scraper):
         while True:
             try:
                 # case of normal type(direclty select the select option)
-                opt = driver.find_element_by_xpath('//div[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
-                opt.click()
+                if self.wait_for_element(driver, '//div[@data-product-id="{}"]/div[3]/a[2]'.format(_id), By.XPATH):
+                    opt = driver.find_element_by_xpath('//div[@data-product-id="{}"]/div[3]/a[2]'.format(_id))
+                    opt.click()
         
             except Exception as e:
-                time.sleep(2)
-                opt_qty_temp =  int(driver.find_element_by_xpath('//span[@class="quantity-value"]').text)
-                break
+                if self.wait_for_element(driver, '//span[@class="quantity-value"]', By.XPATH):
+                    opt_qty_temp =  driver.find_elements_by_xpath('//span[@class="quantity-value"]')[0].text
+                    print(opt_qty_temp, type(opt_qty_temp))
+                    if opt_qty_temp:
+                        opt_qty_temp = int(opt_qty_temp)
+                        break
 
         # click purchase button        
         try:
-            driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
-            time.sleep(3)
-
+            if self.wait_for_element(driver, '//div[@name="checkout-button"]/a', By.XPATH):
+                driver.find_element_by_xpath('//div[@name="checkout-button"]/a').click()
+                time.sleep(3)
         except Exception as e:
             print('Submit button is different or disabled.')
             driver.quit()
@@ -1955,14 +1958,12 @@ class Tixr(Scraper):
         # skip additional order
         try:
             driver.find_element_by_xpath('//a[@action="skip"]').click()
-            time.sleep(2)
         except: 
             pass
         
         while True:
             try:
                 opt_qty =  int(driver.find_element_by_xpath('//ul[@class="items"]/li[1]/div[1]/div[2]').text)
-                print("opt_qty", opt_qty)
                 break
             except:
                 try:
@@ -1978,6 +1979,7 @@ class Tixr(Scraper):
                     notify_len =  driver.find_elements_by_xpath('//*[@id="notify"]/li')
                 except:
                     pass
+                
                 if len(notify_len) > 0:
                     # decrease amount and purchase
                     opt_qty_temp = opt_qty_temp - 1
@@ -2028,7 +2030,7 @@ class Tixr(Scraper):
                     except: 
                         pass
 
-        time.sleep(3)
+        time.sleep(1)
         driver.quit()
         print(opt_qty, 'Tickets added')
         return opt_qty
