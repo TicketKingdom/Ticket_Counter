@@ -877,7 +877,7 @@ class FrontGate(Scraper):
                 # taskId = capmonster.createTask(website_key='6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU', website_url=self.ticket_url)
                 taskId = capmonster.create_task(website_key='6LeoXOodAAAAALfpnJFDs-revkub2Cr-anY0yBeL', website_url=self.ticket_url)
                 print("Waiting to solution by capmonster workers")
-                response = capmonster.join_task_result(taskId=taskId).get("gRecaptchaResponse")
+                response = capmonster.join_task_result(taskId).get("gRecaptchaResponse")
                 print("Received solution", response)
                 driver.execute_script('document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
                 time.sleep(1)
@@ -886,7 +886,8 @@ class FrontGate(Scraper):
                 # using anti_captcha
                 driver.execute_script('document.getElementById("div-btn-modal-submit").removeAttribute("disabled")')
                 client = AnticaptchaClient(anticaptch_key)
-                task = NoCaptchaTaskProxylessTask(self.ticket_url, '6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU')
+                # task = NoCaptchaTaskProxylessTask(self.ticket_url, '6Lev0AsTAAAAALtgxP66tIWfiNJRSNolwoIx25RU')
+                task = NoCaptchaTaskProxylessTask(self.ticket_url, '6LeoXOodAAAAALfpnJFDs-revkub2Cr-anY0yBeL')
                 job = client.createTask(task)
                 print("Waiting to solution by Anticaptcha workers")
                 job.join()
@@ -919,7 +920,7 @@ class FrontGate(Scraper):
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             real_amount = soup.find('span', {'class': 'cartTotal badge'}).decode_contents()
             qty = int(real_amount)
-            print(f"succesed>>>>>>>>>>{real_amount}")
+            # print(f"succesed>>>>>>>>>>{real_amount}")
             time.sleep(3)
         # time.sleep(3000)
         driver.quit()
@@ -1231,7 +1232,7 @@ class BigTicket(Scraper):
                     taskId = capmonster.create_task(website_key='6LdoyhATAAAAAFdJKnwGwNBma9_mKK_iwaZRSw4j', website_url=self.ticket_url)
                 print("Waiting to solution by capmonster workers")
                 try:
-                    response = capmonster.join_task_result(taskId=taskId).get("gRecaptchaResponse")
+                    response = capmonster.join_task_result(taskId).get("gRecaptchaResponse")
                 except:
                     print(0, 'Tickets added....')
                     driver.quit()
