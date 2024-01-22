@@ -1,6 +1,6 @@
 beautifulsoup4==4.9.3
 selenium==3.141.0
-wxpython==4.2.0
+wxpython==4.1.1
 capmonster-python==2.4.1
 gspread==3.7.0
 oauth2client==4.1.3
