@@ -69,6 +69,59 @@ class Scraper(object):
             return False
         finally:
             return True
+    
+    def solve_captche(self, driver, token):
+        self.browser = driver
+        self.browser.execute_script("""
+                    window.findRecaptchaClients = function(){
+
+                    if (typeof (___grecaptcha_cfg) !== 'undefined') {
+
+                    return Object.entries(___grecaptcha_cfg.clients).map(([cid, client]) => {
+                        const data = { id: cid, version: cid >= 10000 ? 'V3' : 'V2' };
+                        const objects = Object.entries(client).filter(([_, value]) => value && typeof value === 'object');
+
+                        objects.forEach(([toplevelKey, toplevel]) => {
+                        const found = Object.entries(toplevel).find(([_, value]) => (
+                            value && typeof value === 'object' && 'sitekey' in value && 'size' in value
+                        ));
+
+                        if (typeof toplevel === 'object' && toplevel instanceof HTMLElement && toplevel['tagName'] === 'DIV'){
+                            data.pageurl = toplevel.baseURI;
+                        }
+
+                        if (found) {
+                            const [sublevelKey, sublevel] = found;
+
+                            data.sitekey = sublevel.sitekey;
+                            const callbackKey = data.version === 'V2' ? 'callback' : 'promise-callback';
+                            const callback = sublevel[callbackKey];
+                            data.topKey = toplevelKey;
+                            data.subKey = sublevelKey;
+                            if (!callback) {
+                            data.callback = null;
+                            data.function = null;
+                            } else {
+                            data.function = callback;
+                            const keys = [cid, toplevelKey, sublevelKey, callbackKey].map((key) => `['${key}']`).join('');
+                            data.callback = `___grecaptcha_cfg.clients${keys}`;
+                            }
+                        }
+                        });
+                        return data;
+                    });
+                    }
+                    return [];
+                }
+
+                window.callbackRes = findRecaptchaClients();
+                """)
+
+        self.browser.execute_script("""
+                    let rTopKey = window.callbackRes[0].topKey
+                    let rSubKey = window.callbackRes[0].subKey
+                    window.___grecaptcha_cfg.clients[0][rTopKey][rSubKey]['callback']('{}')
+                """.format(token))
 
     def open_driver(self,
                     use_proxy=True,
@@ -208,22 +261,8 @@ class Etix(Scraper):
         time.sleep(0.5)
         origin_content = ''
         canvas_mode = ""
+        
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        try:
-            canvas_mode = driver.find_element_by_id('EtixOnlineManifestMapDivSection')
-            if 'GA' in soup.find('map',{'name':'EtixOnlineManifestMap'}).find_all_next({'area'})[1]['name']:
-                driver.execute_script('document.querySelector("#EtixOnlineManifestMapDivSection > map > area:nth-child(2)").click()')
-        except:
-            pass
-        time.sleep(2)
-
-        # detect the fake captcha using url
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        try:
-            origin_content = soup.find('div', {'class': 'grecaptcha-logo'}).find_next({'iframe'})['src']
-        except:
-            pass
-
         # detect the ticket status
         if soup.find('h2', {'class': 'header-message'}):
             if 'sold out' in soup.find('h2', {'class': 'header-message'}).text.lower():
@@ -277,6 +316,23 @@ class Etix(Scraper):
             except:
                 print('Can\'t select the Tickets on tab click...')
                 return 0
+            
+        # detect canvas mode or not
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        try:
+            canvas_mode = driver.find_element_by_id('EtixOnlineManifestMapDivSection')
+            if 'GA' in soup.find('map',{'name':'EtixOnlineManifestMap'}).find_all_next({'area'})[1]['name']:
+                driver.execute_script('document.querySelector("#EtixOnlineManifestMapDivSection > map > area:nth-child(2)").click()')
+        except:
+            pass
+        time.sleep(2)
+
+        # detect the fake captcha using url
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        try:
+            origin_content = soup.find('div', {'class': 'grecaptcha-logo'}).find_next({'iframe'})['src']
+        except:
+            pass
             
         opt = driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id))[-1]
         opt_qty = int(opt.get_attribute('value'))
@@ -346,7 +402,6 @@ class Etix(Scraper):
             except:
                 pass
 
-
         # click confirm button
         if not origin_content:
             try:
@@ -358,11 +413,14 @@ class Etix(Scraper):
                 driver.quit()
                 return 0
         else:
+            # click fake-recaptcha
             driver.execute_script("sessionStorage.setItem('automaticPopupMembershipUpsell', 'true');")
-            # driver.execute_script("grecaptcha.execute();")
+            # # driver.execute_script("grecaptcha.execute();")
             driver.execute_script("$('#submitBtn').parents('form:first').trigger('submit');")
+            # self.solve_captche(driver, response)
         
         if canvas_mode:
+            # self.solve_captche(driver, response)
             driver.execute_script("$('#gaSectionAddSeatForm').trigger('submit');")
                  
         time.sleep(3)  
@@ -393,7 +451,7 @@ class Etix(Scraper):
                         except:
                             pass
                         error = soup.find('div', {'class': 'validationError error'})
-                        
+
                         num_of_options = len(driver.find_elements_by_xpath('//*[@id="{}"]/option'.format(id)))
                         if error:
                             index = 1
@@ -419,9 +477,12 @@ class Etix(Scraper):
                                         driver.quit()
                                         return 0
                                 else:
+                                    # self.solve_captche(driver, response)
+                                    # click fake-reptcha
                                     driver.execute_script("sessionStorage.setItem('automaticPopupMembershipUpsell', 'true');")
                                     # driver.execute_script("grecaptcha.execute();")
                                     driver.execute_script("$('#submitBtn').parents('form:first').trigger('submit');")
+
                                 time.sleep(0.5)
                                 soup = BeautifulSoup(driver.page_source, 'html.parser')
                                 error = soup.find('div', {'class': 'validationError error'})
@@ -2035,59 +2096,6 @@ class Tixr(Scraper):
         driver.quit()
         print(opt_qty, 'Tickets added')
         return opt_qty
-
-    def solve_captche(self, driver, token):
-        self.browser = driver
-        self.browser.execute_script("""
-                    window.findRecaptchaClients = function(){
-
-                    if (typeof (___grecaptcha_cfg) !== 'undefined') {
-
-                    return Object.entries(___grecaptcha_cfg.clients).map(([cid, client]) => {
-                        const data = { id: cid, version: cid >= 10000 ? 'V3' : 'V2' };
-                        const objects = Object.entries(client).filter(([_, value]) => value && typeof value === 'object');
-
-                        objects.forEach(([toplevelKey, toplevel]) => {
-                        const found = Object.entries(toplevel).find(([_, value]) => (
-                            value && typeof value === 'object' && 'sitekey' in value && 'size' in value
-                        ));
-
-                        if (typeof toplevel === 'object' && toplevel instanceof HTMLElement && toplevel['tagName'] === 'DIV'){
-                            data.pageurl = toplevel.baseURI;
-                        }
-
-                        if (found) {
-                            const [sublevelKey, sublevel] = found;
-
-                            data.sitekey = sublevel.sitekey;
-                            const callbackKey = data.version === 'V2' ? 'callback' : 'promise-callback';
-                            const callback = sublevel[callbackKey];
-                            data.topKey = toplevelKey;
-                            data.subKey = sublevelKey;
-                            if (!callback) {
-                            data.callback = null;
-                            data.function = null;
-                            } else {
-                            data.function = callback;
-                            const keys = [cid, toplevelKey, sublevelKey, callbackKey].map((key) => `['${key}']`).join('');
-                            data.callback = `___grecaptcha_cfg.clients${keys}`;
-                            }
-                        }
-                        });
-                        return data;
-                    });
-                    }
-                    return [];
-                }
-
-                window.callbackRes = findRecaptchaClients();
-                """)
-
-        self.browser.execute_script("""
-                    let rTopKey = window.callbackRes[0].topKey
-                    let rSubKey = window.callbackRes[0].subKey
-                    window.___grecaptcha_cfg.clients[0][rTopKey][rSubKey]['callback']('{}')
-                """.format(token))
     
     def check_ticket_qty(self, cap, decrease_way):
         self.cap = cap
