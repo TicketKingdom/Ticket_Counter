@@ -257,8 +257,6 @@ class Etix(Scraper):
             time.sleep(2)
         time.sleep(1)
 
-        self.input_password(driver)
-        time.sleep(0.5)
         origin_content = ''
         canvas_mode = ""
         
@@ -317,6 +315,9 @@ class Etix(Scraper):
                 print('Can\'t select the Tickets on tab click...')
                 return 0
             
+        self.input_password(driver)
+        time.sleep(0.5)
+        
         # detect canvas mode or not
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
