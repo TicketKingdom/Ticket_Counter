@@ -24,6 +24,10 @@ def get_event_name_and_date(url):
         return check_prekindle(url)
     elif '.tixr.' in url:
         return check_tixr(url)
+    elif '.24tix.com' in url:
+        return check_tix24(url)
+    elif '.admitone' in url:
+        return check_admitone(url)
 
 
 def make_request(url):
@@ -211,6 +215,7 @@ def check_prekindle(url):
 
     return name, date
 
+
 def check_tixr(url):
     soup = make_request(url)
     name =  soup.find('title').text.strip()
@@ -220,6 +225,40 @@ def check_tixr(url):
         pass
 
     return name, date
+
+
+def check_tix24(url):
+    soup = make_request(url)
+    name =  soup.find('title').text.strip()
+    try:
+        date = parser.parse(soup.find('meta', {'itemprop': 'startDate'})["content"]).strftime('%Y-%m-%d')
+    except:
+        pass
+
+    return name, date
+
+
+def check_admitone(url):
+    soup = make_request(url)
+    try:
+        name =  soup.find('div', {'class': 'SingleEvent_sep_event_title__e6eS4'}).text.strip()
+    except:
+        try:
+            name =  soup.find('h1', {'class': 'showtitle'}).text.strip()    
+        except:
+            print("this is another speical type")
+            pass
+
+    try:
+        date = parser.parse(soup.find('p', {'class': 'SingleEvent_sep_text_after_icon__erTt4'}).text.strip()).strftime('%Y-%m-%d')
+    except:
+        try:
+            date = parser.parse(soup.find('div', {'class': 'event_date'}).text.strip()).strftime('%Y-%m-%d')
+        except:
+            pass
+
+    return name, date
+
 #
 # for url in ['https://basscanyonfestival.frontgatetickets.com/event/i8co6kruzz405we8',
 #             'https://www.ticketfly.com/purchase/event/1803134/tfly',
