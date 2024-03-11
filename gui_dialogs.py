@@ -6,7 +6,6 @@ import wx.xrc
 
 from data_checker import get_event_name_and_date
 
-
 class SettingsDialog(wx.Dialog):
 
     def __init__(self, parent):
@@ -249,8 +248,6 @@ class AddEventDialog(wx.Dialog):
 
 
 
-
-
         fgSizer5 = wx.FlexGridSizer(0, 2, 0, 0)
         fgSizer5.SetFlexibleDirection(wx.BOTH)
         fgSizer5.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
@@ -305,7 +302,6 @@ class AddEventDialog(wx.Dialog):
         self.m_button2 = wx.Button(self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer6.Add(self.m_button2, 0, wx.ALIGN_CENTER, 1000)
 
-        # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         bSizer5.Add(bSizer6, 1, wx.EXPAND, 5)
 
         bSizer1.Add(bSizer5, 1, wx.EXPAND, 5)
@@ -553,6 +549,3 @@ class EditEventDialog(wx.Dialog):
 
     def __del__(self):
         pass
-    
-    
-

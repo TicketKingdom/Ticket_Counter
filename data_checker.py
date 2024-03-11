@@ -258,12 +258,3 @@ def check_admitone(url):
             pass
 
     return name, date
-
-#
-# for url in ['https://basscanyonfestival.frontgatetickets.com/event/i8co6kruzz405we8',
-#             'https://www.ticketfly.com/purchase/event/1803134/tfly',
-#             'https://www.eventbrite.com/e/casablanca-the-montalban-rooftop-movies-tickets-54783106747?aff=erelexpmlt#tickets',
-#             'https://www.etix.com/ticket/p/3379234/hartmut-sauers-musikkabinettduosassoninocturne-wandel-durch-die-nacht-dresdensch%C3%B6nfeld-deutschlands-zauberschloss?partner_id=430',
-#             'https://www.ticketweb.com/event/lords-of-acid-with-special-brick-by-brick-tickets/9072935?REFERRAL_ID=twflash']:
-#     print('for url', url)
-#     print(get_event_name_and_date(url))

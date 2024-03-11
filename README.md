@@ -1,1 +1,3 @@
 # Ticket Counter APP
+
+### This is Python app for to get ticket from 10 sites using python selenium, BS4 and etc...
