@@ -18,18 +18,12 @@ from gui_dialogs import AddEventDialog, SettingsDialog, EditEventDialog
 from scrapers import check_website
 
 
-###########################################################################
-
-
 class TestListCtrl(wx.ListCtrl):
-
-    # ----------------------------------------------------------------------
     def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
-                size=wx.DefaultSize, style=0):
+                 size=wx.DefaultSize, style=0):
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
 
 
-###########################################################################
 class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
     def __init__(self, parent):
@@ -46,7 +40,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
         #     self.event_timestamps = pickle.loads(f)
         self.event_timestamps = {}
         wx.Frame.__init__(self, parent, id=wx.ID_ANY, title=wx.EmptyString, pos=wx.DefaultPosition,
-                            size=wx.Size(1000, 1000), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
+                          size=wx.Size(1000, 1000), style=wx.DEFAULT_FRAME_STYLE | wx.TAB_TRAVERSAL)
 
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
         self.SetTitle('Ticket Counter')
@@ -300,7 +294,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     last_time_check = self.event_timestamps[url]
                     if current_time - last_time_check <= interval:
                         continue
-                
+
                 if self.m_button_start.LabelText == "Start":
                     self.shutdown_event.set()
                     break
@@ -308,7 +302,8 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                 print('checking tickets for', value[0], url)
                 checker = check_website(
                     url, self.settings['Proxy'], value[6], value[10], None, self.settings['Thread_amount'])
-                qty, timer = checker.check_ticket_qty(captch_way, decrease_status)
+                qty, timer = checker.check_ticket_qty(
+                    captch_way, decrease_status)
                 timer_str = "Yes" if timer else "No"
                 print(f">>>>>>>>>>>>>>>>>>{qty}<<<<<<<<<<<<<<<<<<{timer}")
                 evt_data = (value[0], value[1], str(qty), value[3], value[4], value[5], value[6], value[7],
@@ -343,7 +338,8 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     print('checking tickets for', value[0], url)
                     checker = check_website(
                         url, self.settings['Proxy'], value[6], value[10], None, self.settings['Thread_amount'])
-                    qty, timer = checker.check_ticket_qty(captch_way, decrease_status)
+                    qty, timer = checker.check_ticket_qty(
+                        captch_way, decrease_status)
                     if timer is None:
                         timer_str = '-'
                     else:
@@ -444,8 +440,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
     def master_list(self, event):
         webbrowser.open(self.settings['MasterURL'])
 
-    #############################################
-
     def load_event_data(self):
         # with open('data.pickle', 'wb') as f:
         #     pickle.dump({}, f)
@@ -465,7 +459,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
         index = 0
         for key, data in self.event_data.items():
-           # index = key - 1
+            # index = key - 1
             self.list_ctrl.SetItem(index, 0, data[0])
             self.list_ctrl.SetItem(index, 1, data[1])
             self.list_ctrl.SetItem(index, 2, data[2])
@@ -486,8 +480,6 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
 
     def GetListCtrl(self):
         return self.list_ctrl
-
-        # ----------------------------------------------------------------------
 
     def OnColClick(self, event):
         event.Skip()
@@ -618,7 +610,6 @@ class MasterList(object):
 
 
 if __name__ == "__main__":
-
     app = wx.App(False)
     frame = LowNumberApp(None)
     frame.Show(True)

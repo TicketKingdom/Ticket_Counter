@@ -6,6 +6,7 @@ import wx.xrc
 
 from data_checker import get_event_name_and_date
 
+
 class SettingsDialog(wx.Dialog):
 
     def __init__(self, parent):
@@ -17,16 +18,16 @@ class SettingsDialog(wx.Dialog):
             self.proxy = self.saved_settings['Proxy']
             print(self.proxy)
 
-
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 
         bSizer1 = wx.BoxSizer(wx.VERTICAL)
- 
+
         bSizer2 = wx.BoxSizer(wx.VERTICAL)
 
         bSizer11 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_proxies_button = wx.Button(self, wx.ID_ANY, u"Select Proxies", wx.DefaultPosition, wx.Size(150, -1), 0)
+        self.m_proxies_button = wx.Button(
+            self, wx.ID_ANY, u"Select Proxies", wx.DefaultPosition, wx.Size(150, -1), 0)
         self.m_proxies_button.Bind(wx.EVT_BUTTON, self.select_proxies)
         bSizer11.Add(self.m_proxies_button, 0, wx.ALL, 5)
 
@@ -44,18 +45,21 @@ class SettingsDialog(wx.Dialog):
 
         bSizer4 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"Gmail Email:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText2 = wx.StaticText(
+            self, wx.ID_ANY, u"Gmail Email:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText2.Wrap(-1)
         bSizer4.Add(self.m_staticText2, 0, wx.ALL, 5)
 
-        self.m_gmail_email_input = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(300, -1), 0)
+        self.m_gmail_email_input = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(300, -1), 0)
         bSizer4.Add(self.m_gmail_email_input, 0, wx.ALL, 5)
 
         bSizer10.Add(bSizer4, 1, wx.EXPAND, 5)
 
         bSizer41 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText21 = wx.StaticText(self, wx.ID_ANY, u"Gmail Pass:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText21 = wx.StaticText(
+            self, wx.ID_ANY, u"Gmail Pass:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText21.Wrap(-1)
         bSizer41.Add(self.m_staticText21, 0, wx.ALL, 5)
 
@@ -67,7 +71,8 @@ class SettingsDialog(wx.Dialog):
 
         bSizer42 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText22 = wx.StaticText(self, wx.ID_ANY, u"Notify Email:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText22 = wx.StaticText(
+            self, wx.ID_ANY, u"Notify Email:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText22.Wrap(-1)
         bSizer42.Add(self.m_staticText22, 0, wx.ALL, 5)
 
@@ -79,38 +84,43 @@ class SettingsDialog(wx.Dialog):
 
         bSizer3 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Master list url:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText1 = wx.StaticText(
+            self, wx.ID_ANY, u"Master list url:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText1.Wrap(-1)
         bSizer3.Add(self.m_staticText1, 0, wx.ALL, 5)
 
-        self.m_master_list_input = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(300, -1), 0)
+        self.m_master_list_input = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(300, -1), 0)
         bSizer3.Add(self.m_master_list_input, 0, wx.ALL, 5)
-        
+
         bSizer10.Add(bSizer3, 1, wx.EXPAND, 5)
 
         bSizer1.Add(bSizer10, 1, wx.EXPAND, 5)
-        
+
         bSizer20 = wx.BoxSizer(wx.HORIZONTAL)
-        
-        self.m_staticText20 = wx.StaticText(self, wx.ID_ANY, u"Thread amount:", wx.DefaultPosition, wx.DefaultSize, 0)
+
+        self.m_staticText20 = wx.StaticText(
+            self, wx.ID_ANY, u"Thread amount:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText20.Wrap(-1)
         bSizer20.Add(self.m_staticText20, 0, wx.ALL, 5)
-        
+
         self.slidebar = wx.Slider(self, wx.ID_ANY, value=10, minValue=1, maxValue=25,
-            pos = wx.DefaultPosition, size=wx.Size(300, -1), style=wx.HORIZONTAL|wx.SL_LABELS,
-            name="slidebar")
+                                  pos=wx.DefaultPosition, size=wx.Size(300, -1), style=wx.HORIZONTAL | wx.SL_LABELS,
+                                  name="slidebar")
         self.slidebar.Center()
-        self.slidebar.Bind(wx.EVT_SLIDER, self.OnSliderScroll) 
+        self.slidebar.Bind(wx.EVT_SLIDER, self.OnSliderScroll)
 
         bSizer20.Add(self.slidebar, 0, wx.ALL, 5)
         bSizer1.Add(bSizer20, 1, wx.EXPAND, 5)
-        
+
         bSizer12 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_save_button = wx.Button(self, wx.ID_OK, u"Save Settings", wx.DefaultPosition, wx.Size(130, -1), 0)
+        self.m_save_button = wx.Button(
+            self, wx.ID_OK, u"Save Settings", wx.DefaultPosition, wx.Size(130, -1), 0)
         bSizer12.Add(self.m_save_button, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
-        self.m_cancel_button = wx.Button(self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.Size(154, -1), 0)
+        self.m_cancel_button = wx.Button(
+            self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.Size(154, -1), 0)
         bSizer12.Add(self.m_cancel_button, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
         bSizer1.Add(bSizer12, 1, wx.EXPAND, 5)
@@ -131,10 +141,10 @@ class SettingsDialog(wx.Dialog):
 
         openFileDialog.Destroy()
 
-    def OnSliderScroll(self, e): 
-        obj = e.GetEventObject() 
-        self.thread_amount = obj.GetValue() 
-        
+    def OnSliderScroll(self, e):
+        obj = e.GetEventObject()
+        self.thread_amount = obj.GetValue()
+
     def load_settings(self):
         self.m_gmail_email_input.SetValue(self.saved_settings['GmailEmail'])
         self.m_gmail_pass_input.SetValue(self.saved_settings['GmailPass'])
@@ -173,16 +183,17 @@ class AddEventDialog(wx.Dialog):
 
         bSizer2 = wx.BoxSizer(wx.VERTICAL)
 
-
         fgSizer1 = wx.FlexGridSizer(0, 2, 0, 0)
         fgSizer1.SetFlexibleDirection(wx.BOTH)
         fgSizer1.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
 
-        self.m_staticText4 = wx.StaticText(self, wx.ID_ANY, u"URL:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText4 = wx.StaticText(
+            self, wx.ID_ANY, u"URL:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText4.Wrap(-1)
         fgSizer1.Add(self.m_staticText4, 0, wx.ALL, 5)
 
-        self.m_url = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(200, -1), 0)
+        self.m_url = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(200, -1), 0)
         fgSizer1.Add(self.m_url, 0, wx.ALL | wx.EXPAND, 5)
 
         bSizer2.Add(fgSizer1, 1, wx.EXPAND, 5)
@@ -223,7 +234,8 @@ class AddEventDialog(wx.Dialog):
         self.m_staticText7.Wrap(-1)
         fgSizer4.Add(self.m_staticText7, 0, wx.ALL, 5)
 
-        self.m_textCtrl7 = wx.TextCtrl(self, wx.ID_ANY, u'259200', wx.DefaultPosition, wx.Size(120, -1), 0)
+        self.m_textCtrl7 = wx.TextCtrl(
+            self, wx.ID_ANY, u'259200', wx.DefaultPosition, wx.Size(120, -1), 0)
         fgSizer4.Add(self.m_textCtrl7, 0, wx.ALL, 5)
 
         bSizer2.Add(fgSizer4, 1, wx.EXPAND, 5)
@@ -232,11 +244,10 @@ class AddEventDialog(wx.Dialog):
         fgSizer4a.SetFlexibleDirection(wx.BOTH)
         fgSizer4a.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
 
-
-        self.m_add_sec_button = wx.Button(self, wx.ID_ANY, u"Add Seconds", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_add_sec_button = wx.Button(
+            self, wx.ID_ANY, u"Add Seconds", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_add_sec_button.Bind(wx.EVT_BUTTON, self.add_seconds)
         fgSizer4a.Add(self.m_add_sec_button, 0, wx.ALL, 5)
-
 
         m_comboBox1Choices = [u"1 hour", u"12 hours", u"1 day", u"2 days", u"3 days", u"4 days", u"5 days", u"7 days",
                               u"14 days", u"30 days"]
@@ -245,8 +256,6 @@ class AddEventDialog(wx.Dialog):
         fgSizer4a.Add(self.m_comboBox1, 0, wx.ALL, 5)
 
         bSizer2.Add(fgSizer4a, 1, wx.EXPAND, 5)
-
-
 
         fgSizer5 = wx.FlexGridSizer(0, 2, 0, 0)
         fgSizer5.SetFlexibleDirection(wx.BOTH)
@@ -257,7 +266,8 @@ class AddEventDialog(wx.Dialog):
         self.m_staticText8.Wrap(-1)
         fgSizer5.Add(self.m_staticText8, 0, wx.ALL, 5)
 
-        self.m_textCtrl8 = wx.TextCtrl(self, wx.ID_ANY, u'5000', wx.DefaultPosition, wx.Size(120, -1), 0)
+        self.m_textCtrl8 = wx.TextCtrl(
+            self, wx.ID_ANY, u'5000', wx.DefaultPosition, wx.Size(120, -1), 0)
         fgSizer5.Add(self.m_textCtrl8, 0, wx.ALL, 5)
 
         bSizer2.Add(fgSizer5, 1, wx.EXPAND, 5)
@@ -271,7 +281,8 @@ class AddEventDialog(wx.Dialog):
         self.m_staticText9.Wrap(-1)
         fgSizer6.Add(self.m_staticText9, 0, wx.ALL, 5)
 
-        self.m_textCtrl9 = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
+        self.m_textCtrl9 = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
         fgSizer6.Add(self.m_textCtrl9, 0, wx.ALL, 5)
 
         bSizer2.Add(fgSizer6, 1, wx.EXPAND, 5)
@@ -281,25 +292,26 @@ class AddEventDialog(wx.Dialog):
         fgSizer_pass.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
 
         self.m_staticText_pass = wx.StaticText(self, wx.ID_ANY, u"Pre-sale pass", wx.DefaultPosition, wx.DefaultSize,
-                                           0)
+                                               0)
         self.m_staticText_pass.Wrap(-1)
         fgSizer_pass.Add(self.m_staticText_pass, 0, wx.ALL, 5)
 
-        self.m_textCtrl_pass = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
+        self.m_textCtrl_pass = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
         fgSizer_pass.Add(self.m_textCtrl_pass, 0, wx.ALL, 5)
 
         bSizer2.Add(fgSizer_pass, 1, wx.EXPAND, 5)
-
-
 
         bSizer5.Add(bSizer2, 1, wx.EXPAND, 5)
 
         bSizer6 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_button1 = wx.Button(self, wx.ID_OK, u"Add", wx.DefaultPosition, wx.DefaultSize, 0)
-        bSizer6.Add(self.m_button1, 0, wx.ALIGN_CENTER , 1000)
+        self.m_button1 = wx.Button(
+            self, wx.ID_OK, u"Add", wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer6.Add(self.m_button1, 0, wx.ALIGN_CENTER, 1000)
 
-        self.m_button2 = wx.Button(self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button2 = wx.Button(
+            self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer6.Add(self.m_button2, 0, wx.ALIGN_CENTER, 1000)
 
         bSizer5.Add(bSizer6, 1, wx.EXPAND, 5)
@@ -327,13 +339,13 @@ class AddEventDialog(wx.Dialog):
 
         }
         self.m_textCtrl7.Clear()
-        self.m_textCtrl7.SetValue(str(seconds_data[self.m_comboBox1.GetValue()]))
-
+        self.m_textCtrl7.SetValue(
+            str(seconds_data[self.m_comboBox1.GetValue()]))
 
     def add_event(self):
         url = self.m_url.GetValue()
-        #date = self.m_textCtrl5.GetValue()
-        #name = self.m_textCtrl6.GetValue()
+        # date = self.m_textCtrl5.GetValue()
+        # name = self.m_textCtrl6.GetValue()
         name, date = get_event_name_and_date(url)
         interval = self.m_textCtrl7.GetValue()
         notif = self.m_textCtrl8.GetValue()
@@ -342,9 +354,9 @@ class AddEventDialog(wx.Dialog):
         self.Destroy()
         return {
             'url': url,
-            'date':date,
-            'name':name,
-            'interval':interval,
+            'date': date,
+            'name': name,
+            'interval': interval,
             'notif_number': notif,
             'row': row,
             'pass': pwd
@@ -352,6 +364,7 @@ class AddEventDialog(wx.Dialog):
 
     def __del__(self):
         pass
+
 
 class EditEventDialog(wx.Dialog):
 
@@ -372,11 +385,13 @@ class EditEventDialog(wx.Dialog):
         fgSizer1.SetFlexibleDirection(wx.BOTH)
         fgSizer1.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
 
-        self.m_staticText4 = wx.StaticText(self, wx.ID_ANY, u"URL:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText4 = wx.StaticText(
+            self, wx.ID_ANY, u"URL:", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText4.Wrap(-1)
         fgSizer1.Add(self.m_staticText4, 0, wx.ALL, 5)
 
-        self.m_url = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(200, -1), 0)
+        self.m_url = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(200, -1), 0)
         fgSizer1.Add(self.m_url, 0, wx.ALL | wx.EXPAND, 5)
 
         bSizer2.Add(fgSizer1, 1, wx.EXPAND, 5)
@@ -390,7 +405,8 @@ class EditEventDialog(wx.Dialog):
         self.m_staticText5.Wrap(-1)
         fgSizer2.Add(self.m_staticText5, 0, wx.ALL, 5)
 
-        self.m_textCtrl5 = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(200, -1), 0)
+        self.m_textCtrl5 = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(200, -1), 0)
         fgSizer2.Add(self.m_textCtrl5, 0, wx.ALL | wx.EXPAND, 5)
 
         bSizer2.Add(fgSizer2, 1, wx.EXPAND, 5)
@@ -399,11 +415,13 @@ class EditEventDialog(wx.Dialog):
         fgSizer3.SetFlexibleDirection(wx.BOTH)
         fgSizer3.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
 
-        self.m_staticText6 = wx.StaticText(self, wx.ID_ANY, u"Event Name", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText6 = wx.StaticText(
+            self, wx.ID_ANY, u"Event Name", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText6.Wrap(-1)
         fgSizer3.Add(self.m_staticText6, 0, wx.ALL, 5)
 
-        self.m_textCtrl6 = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(200, -1), 0)
+        self.m_textCtrl6 = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(200, -1), 0)
         fgSizer3.Add(self.m_textCtrl6, 0, wx.ALL | wx.EXPAND, 5)
 
         bSizer2.Add(fgSizer3, 1, wx.EXPAND, 5)
@@ -417,7 +435,8 @@ class EditEventDialog(wx.Dialog):
         self.m_staticText7.Wrap(-1)
         fgSizer4.Add(self.m_staticText7, 0, wx.ALL, 5)
 
-        self.m_textCtrl7 = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
+        self.m_textCtrl7 = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
         fgSizer4.Add(self.m_textCtrl7, 0, wx.ALL, 5)
 
         bSizer2.Add(fgSizer4, 1, wx.EXPAND, 5)
@@ -426,7 +445,8 @@ class EditEventDialog(wx.Dialog):
         fgSizer4a.SetFlexibleDirection(wx.BOTH)
         fgSizer4a.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_SPECIFIED)
 
-        self.m_add_sec_button = wx.Button(self, wx.ID_ANY, u"Add Seconds", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_add_sec_button = wx.Button(
+            self, wx.ID_ANY, u"Add Seconds", wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_add_sec_button.Bind(wx.EVT_BUTTON, self.add_seconds)
         fgSizer4a.Add(self.m_add_sec_button, 0, wx.ALL, 5)
 
@@ -447,7 +467,8 @@ class EditEventDialog(wx.Dialog):
         self.m_staticText8.Wrap(-1)
         fgSizer5.Add(self.m_staticText8, 0, wx.ALL, 5)
 
-        self.m_textCtrl8 = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
+        self.m_textCtrl8 = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
         fgSizer5.Add(self.m_textCtrl8, 0, wx.ALL, 5)
 
         bSizer2.Add(fgSizer5, 1, wx.EXPAND, 5)
@@ -461,7 +482,8 @@ class EditEventDialog(wx.Dialog):
         self.m_staticText9.Wrap(-1)
         fgSizer6.Add(self.m_staticText9, 0, wx.ALL, 5)
 
-        self.m_textCtrl9 = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
+        self.m_textCtrl9 = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
         fgSizer6.Add(self.m_textCtrl9, 0, wx.ALL, 5)
 
         bSizer2.Add(fgSizer6, 1, wx.EXPAND, 5)
@@ -475,20 +497,22 @@ class EditEventDialog(wx.Dialog):
         self.m_staticText_pass.Wrap(-1)
         fgSizer_pass.Add(self.m_staticText_pass, 0, wx.ALL, 5)
 
-        self.m_textCtrl_pass = wx.TextCtrl(self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
+        self.m_textCtrl_pass = wx.TextCtrl(
+            self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size(120, -1), 0)
         fgSizer_pass.Add(self.m_textCtrl_pass, 0, wx.ALL, 5)
 
         bSizer2.Add(fgSizer_pass, 1, wx.EXPAND, 5)
-
 
         bSizer5.Add(bSizer2, 1, wx.EXPAND, 5)
 
         bSizer6 = wx.BoxSizer(wx.VERTICAL)
 
-        self.m_button1 = wx.Button(self, wx.ID_OK, u"Add", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button1 = wx.Button(
+            self, wx.ID_OK, u"Add", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer6.Add(self.m_button1, 0, wx.ALL, 5)
 
-        self.m_button2 = wx.Button(self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button2 = wx.Button(
+            self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0)
         bSizer6.Add(self.m_button2, 0, wx.ALL, 5)
 
         bSizer5.Add(bSizer6, 1, wx.EXPAND, 5)
@@ -526,7 +550,8 @@ class EditEventDialog(wx.Dialog):
 
         }
         self.m_textCtrl7.Clear()
-        self.m_textCtrl7.SetValue(str(seconds_data[self.m_comboBox1.GetValue()]))
+        self.m_textCtrl7.SetValue(
+            str(seconds_data[self.m_comboBox1.GetValue()]))
 
     def add_event(self):
         url = self.m_url.GetValue()
@@ -539,9 +564,9 @@ class EditEventDialog(wx.Dialog):
         self.Destroy()
         return {
             'url': url,
-            'date':date,
-            'name':name,
-            'interval':interval,
+            'date': date,
+            'name': name,
+            'interval': interval,
             'notif_number': notif,
             'row': row,
             'pass': pwd
