@@ -44,7 +44,8 @@ def check_website(url, proxies, row, password, log, thread_amount):
         return Tixr(url, proxies, row, log, password, thread_amount)
     elif '.24tix.' in url:
         return Tix24(url, proxies, row, log, password, thread_amount)
-    elif '.admitone.' in url or '.admitonelive.' in url:
+    elif 'admitone.' in url or 'admitonelive.' in url:
+        print(url)
         return AdmitOne(url, proxies, row, log, password, thread_amount)
 
 class Scraper(object):
@@ -2371,16 +2372,28 @@ class AdmitOne(Scraper):
         if self.thread_amount > 15:
             time.sleep(3)
 
-        driver.find_element_by_xpath('//a[@class="action-bar-button buybutton"]').click()
+        driver.find_element_by_xpath('//*[@id="buy-button-click-iframe"]').click()
         time.sleep(1)
+
+        iframe=""
+        try:
+            iframe = driver.find_element_by_xpath('//iframe[@class="event-iframe"]')
+        except:
+            print('0 Tickets added and can\'t open the iframe')
+            driver.quit()
+            return 0
+        
+        driver.switch_to.frame(iframe)
+
+        select_id = "select_level_"+box_id
 
         # add sold out case or another case on first screen
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
         try:
-            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
+            sold = soup.find('tr', {'data-level-id': box_id}).find_next('td', {'class':'qty-td'}).text
             if sold:
-                if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
+                if 'Sold Out' in sold:
                     print('tickets is sold out.')
                     driver.quit()
                     return 0
@@ -2392,93 +2405,97 @@ class AdmitOne(Scraper):
 
         try:
             # case of normal type(direclty select the select option)
-            opt = driver.find_elements_by_xpath(f'//*[@name="sectionListView:{str(int(self.ticket_row)-1)}:pricingListView:0:optionContainer:quantityDropDown"]/option')[-1]
+            opt = driver.find_elements_by_xpath(f'//*[@id="{select_id}"]/option')[-1]
             opt_qty = int(opt.get_attribute('value'))
             opt.click()
 
         except:
+            pass
             # case of select general adminsion and get the ticket.
-            opt = driver.find_elements_by_xpath('//*[@name="howManyPanel:generalAdmissionContainer:sectionsDropDown"]/option')[-1]
-            opt.click()
-            time.sleep(0.5)
-            opt = driver.find_elements_by_xpath(f'//*[@name="pricingListView:{str(int(self.ticket_row)-1)}:quantityDropDown"]/option')[-1]
-            opt_qty = int(opt.get_attribute('value'))
-            opt.click()
+            # opt = driver.find_elements_by_xpath(f'//*[@id="{select_id}"]/option')[-1]
+            # opt.click()
+            # opt_qty = int(opt.get_attribute('value'))
 
         time.sleep(0.5)
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-        error = soup.find('div', {'class': 'headline'})
-        if error:
-            if 'Something went wrong.' in error.text:
-                print('ticket occre the errors')
-                driver.quit()
-                return 0
         # click the submit
-        driver.find_element_by_xpath('//input[@class="purchasebutton greenbutton"]').click()
+        driver.find_element_by_xpath('//input[@id="submit_ticket_request"]').click()
 
         # duel the erros or sold out
         time.sleep(2)
+
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-
-        error = soup.find('li', {'class': 'feedbackPanelERROR'})
+        error = soup.find('div', {'class': 'copy'})
         if error:
-            if 'Capacity for this section has been reached. Please make another section.' in error.text:
-                print('tickets is sold out by scraper.')
+            if 'Bad Request' in error.text:
+                print('can not get the ticekt cause of 401 error.')
                 driver.quit()
                 return 0
-            if 'section \"General Admission\" was reached prior to purchase' in error.text:
-                print('tickets is sold out by scraper and can\'t reach tickets')
-                driver.quit()
-                return 0
-
-        driver.quit()
-        print(opt_qty, 'Tickets added')
-        return opt_qty
+            
+        if soup.find('span', {'class': 'countdown'}):
+            driver.quit()
+            print(opt_qty, 'Tickets added')
+            return opt_qty
 
     def check_ticket_qty(self, cap, decrease_way):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        try:
-            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
-            if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-                print('tickets is sold out.')
-                driver.quit()
-                return '-', False
-            error = soup.find('div', {'class': 'headline'})
-            if error:
-                if 'Something went wrong.' in error.text:
-                    print('ticket occre the errors')
-                    driver.quit()
-                    return 0
-        except:
-            pass
+        # # add sold out or another issues.
+        # soup = BeautifulSoup(driver.page_source, 'html.parser')
+        # try:
+        #     sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
+        #     if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
+        #         print('tickets is sold out.')
+        #         driver.quit()
+        #         return '-', False
+        #     error = soup.find('div', {'class': 'headline'})
+        #     if error:
+        #         if 'Something went wrong.' in error.text:
+        #             print('ticket occre the errors')
+        #             driver.quit()
+        #             return 0
+        # except:
+        #     pass
 
-        driver.find_element_by_xpath('//a[@class="action-bar-button buybutton"]').click()
+        driver.find_element_by_xpath('//*[@id="buy-button-click-iframe"]').click()
         time.sleep(0.5)
 
-        # add sold out case or another case on first screen
+        iframe = ""
+        try:
+            iframe = driver.find_element_by_xpath('//iframe[@class="event-iframe"]')
+        except:
+            print('0 Tickets added and can\'t open the iframe')
+            driver.quit()
+            return 0
+        
+        driver.switch_to.frame(iframe)
+        
+        selected_list_id = ""
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
-            sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
-            if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-                print('tickets is sold out.')
-                driver.quit()
-                return '-', False
-            error = soup.find('div', {'class': 'headline'})
-            if error:
-                if 'Something went wrong.' in error.text:
-                    print('ticket occre the errors')
+            selected_list_id = soup.find('table', {'id': 'ticket-selection-genad'}).find_next('tbody').find_all_next('tr')[int(self.ticket_row)-1]['data-level-id']
+        except:
+            print("can't get id")
+            print('Check this type.....')
+            driver.quit()
+            return '-', False
+        
+        print(selected_list_id)
+
+        try:
+            sold = soup.find('tr', {'data-level-id': selected_list_id}).find_next('td', {'class':'qty-td'}).text
+            if sold:
+                if 'Sold Out' in sold:
+                    print('tickets is sold out.')
                     driver.quit()
-                    return 0
+                    return '-', False
         except:
             pass
 
         # loop content
         driver.quit()
-        lst = [x for x in range(self.thread_amount)]
+        lst = [selected_list_id for x in range(self.thread_amount)]
         qty = 0
         oldtime = time.time()
         timer_run_out = False
@@ -2488,14 +2505,18 @@ class AdmitOne(Scraper):
                 break
             loop_qty = 0
             with Pool(self.thread_amount) as p:
+                flag = False
                 r = p.map(self.get_qty, lst)
                 for q in r:
                     loop_qty += q
-                    if q == 0:
-                        print("the tickets sold out by scrap!")
-                        break
+                    if(q > 0):
+                        flag = True
+                if not flag:
+                    print("the tickets sold out by scrap!")
+                    break
+
             qty += loop_qty
-            print('Total QTY:', qty)
+            print('Round Total QTY:', qty)
             if loop_qty == 0:
                 break
             time.sleep(2)
