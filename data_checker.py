@@ -22,11 +22,11 @@ def get_event_name_and_date(url):
         return check_showclix(url)
     elif 'prekindle.' in url:
         return check_prekindle(url)
-    elif '.tixr.' in url:
+    elif 'tixr.' in url:
         return check_tixr(url)
-    elif '.24tix.com' in url:
+    elif '24tix.' in url:
         return check_tix24(url)
-    elif '.admitone' in url:
+    elif 'admitone' in url:
         return check_admitone(url)
 
 

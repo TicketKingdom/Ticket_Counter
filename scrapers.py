@@ -25,15 +25,15 @@ twocaptcha_key = os.getenv('twocaptcha_key')
 
 
 def check_website(url, proxies, row, password, log, thread_amount):
-    if '.etix.' in url:
+    if 'etix.' in url:
         return Etix(url, proxies, row, log, password, thread_amount)
-    elif '.eventbrite.' in url:
+    elif 'eventbrite.' in url:
         return Eventbrite(url, proxies, row, log, password, thread_amount)
-    elif '.bigtickets.' in url:
+    elif 'bigtickets.' in url:
         return BigTicket(url, proxies, row, log, password, thread_amount)
-    elif '.frontgatetickets.' in url:
+    elif 'frontgatetickets.' in url:
         return FrontGate(url, proxies, row, log, password, thread_amount)
-    elif '.ticketweb.' in url:
+    elif 'ticketweb.' in url:
         return TicketWeb(url, proxies, row, log, password, thread_amount)
     elif 'seetickets.us' in url:
         return SeeTickets(url, proxies, row, log, password, thread_amount)
@@ -41,9 +41,9 @@ def check_website(url, proxies, row, password, log, thread_amount):
         return Showclix(url, proxies, row, log, password, thread_amount)
     elif 'prekindle.' in url:
         return Prekindle(url, proxies, row, log, password, thread_amount)
-    elif '.tixr.' in url:
+    elif 'tixr.' in url:
         return Tixr(url, proxies, row, log, password, thread_amount)
-    elif '.24tix.' in url:
+    elif '24tix.' in url:
         return Tix24(url, proxies, row, log, password, thread_amount)
     elif 'admitone.' in url or 'admitonelive.' in url:
         return AdmitOne(url, proxies, row, log, password, thread_amount)
