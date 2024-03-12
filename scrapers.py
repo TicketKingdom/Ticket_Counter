@@ -77,7 +77,7 @@ class Scraper(object):
         finally:
             return True
 
-    def solve_captche(self, driver, token):
+    def solve_captcha(self, driver, token):
         self.browser = driver
         self.browser.execute_script("""
                     window.findRecaptchaClients = function(){
@@ -189,13 +189,13 @@ class Scraper(object):
         );
         """ % (ip, port, user, pwd)
         chrome_options = webdriver.ChromeOptions()
-        # chrome_options.add_experimental_option(
-        #     'excludeSwitches', ['enable-logging'])
+
         if headless:
             chrome_options.add_argument('--headless')
-            # pass
+
         chrome_options.add_argument('--ignore-certificate-errors')
         chrome_options.add_argument('--ignore-ssl-errors')
+
         if use_proxy:
             pluginfile = 'proxy_auth_plugin.zip'
             try:
@@ -451,10 +451,10 @@ class Etix(Scraper):
             # # driver.execute_script("grecaptcha.execute();")
             driver.execute_script(
                 "$('#submitBtn').parents('form:first').trigger('submit');")
-            # self.solve_captche(driver, response)
+            # self.solve_captcha(driver, response)
 
         if canvas_mode:
-            # self.solve_captche(driver, response)
+            # self.solve_captcha(driver, response)
             driver.execute_script(
                 "$('#gaSectionAddSeatForm').trigger('submit');")
 
@@ -474,6 +474,7 @@ class Etix(Scraper):
                 driver.quit()
                 return 0
         time.sleep(2)
+
         # get amount is impossible, decrease the amount.
         if new_soup.find('div', {'class': 'validationError error'}):
             if new_soup.find('div', {'class', 'errorBox'}):
@@ -522,7 +523,7 @@ class Etix(Scraper):
                                         driver.quit()
                                         return 0
                                 else:
-                                    # self.solve_captche(driver, response)
+                                    # self.solve_captcha(driver, response)
                                     # click fake-reptcha
                                     driver.execute_script(
                                         "sessionStorage.setItem('automaticPopupMembershipUpsell', 'true');")
@@ -2168,7 +2169,7 @@ class Tixr(Scraper):
                 'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
             time.sleep(1)
 
-            self.solve_captche(driver, response)
+            self.solve_captcha(driver, response)
 
         # skip additional order
         try:
@@ -2245,7 +2246,7 @@ class Tixr(Scraper):
                             'document.getElementById("g-recaptcha-response").innerHTML = "%s"' % response)
                         time.sleep(1)
 
-                        self.solve_captche(driver, response)
+                        self.solve_captcha(driver, response)
 
                     # skip additional order
                     try:
@@ -2335,7 +2336,6 @@ class Tix24(Scraper):
             driver.execute_script(
                 "arguments[0].style.display = 'block';", promopanel)
             driver.find_element_by_id('promo-code').send_keys(self.password)
-
             driver.execute_script(
                 'document.querySelector("#promopanel > div > div > form > div.d-grid > button.btn").click()')
 
@@ -2343,8 +2343,8 @@ class Tix24(Scraper):
         driver = self.open_driver()
         try:
             driver.get(self.ticket_url)
-        except:
-            print("Web broswer tunnel error")
+        except Exception as e:
+            print("Web broswer tunnel error", e)
             driver.quit()
             return 0
 
@@ -2353,20 +2353,6 @@ class Tix24(Scraper):
 
         time.sleep(3)
         self.input_password(driver)
-        print("box_id", box_id)
-
-        # add sold out case or another case on first screen
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-
-        # try:
-        #     sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
-        #     if sold:
-        #         if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-        #             print('tickets is sold out.')
-        #             driver.quit()
-        #             return 0
-        # except:
-        #     pass
 
         try:
             opt = driver.find_elements_by_xpath(
@@ -2377,25 +2363,18 @@ class Tix24(Scraper):
         except Exception as e:
             print('err', e)
             print("selected row is disappeared")
-            # if can't click in last option with id
-            pass
+            driver.quit()
+            return 0
 
         time.sleep(0.5)
-
-        # soup = BeautifulSoup(driver.page_source, 'html.parser')
-
-        # error = soup.find('div', {'class': 'headline'})
-        # if error:
-        #     if 'Something went wrong.' in error.text:
-        #         print('ticket occre the errors')
-        #         driver.quit()
-        #         return 0
 
         # click the submit
         driver.find_element_by_xpath(
             '//*[@class="viewport-nav"]/div/button').click()
 
         time.sleep(4)
+
+        # check the status of sites for example(soldout or crash and etcs..)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             alert = soup.find('div', {"class": "alert"})
@@ -2411,16 +2390,10 @@ class Tix24(Scraper):
             print(opt_qty, 'Tickets added')
             return opt_qty
         else:
-            error = soup.find('li', {'class': 'feedbackPanelERROR'})
-            if error:
-                if 'Capacity for this section has been reached. Please make another section.' in error.text:
-                    print('tickets is sold out by scraper.')
-                    driver.quit()
-                    return 0
-                if 'section \"General Admission\" was reached prior to purchase' in error.text:
-                    print('tickets is sold out by scraper and can\'t reach tickets')
-                    driver.quit()
-                    return 0
+            # when it has error, return 0. Means when it's no timer, it has some issues to get amount.
+            driver.quit()
+            print("Can't reserve it")
+            return 0
 
     def check_ticket_qty(self, cap, decrease_way):
         driver = self.open_driver()
@@ -2428,6 +2401,7 @@ class Tix24(Scraper):
         self.input_password(driver)
         time.sleep(1)
 
+        # Check site status in first screen
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
             sold = soup.find_all(
@@ -2446,21 +2420,10 @@ class Tix24(Scraper):
         # total sold out
         try:
             sold = soup.find('div', {'class': 'banner'})
-            # if 'sold out' in sold.text:
-            #     print('tickets is sold out.')
-            #     driver.quit()
-            #     return '-', False
             if 'Online ticket sales for this event have ended.' in sold.text:
                 print('Online ticket sales for this event have ended.')
                 driver.quit()
                 return '-', False
-
-            error = soup.find('div', {'class': 'headline'})
-            if error:
-                if 'Something went wrong.' in error.text:
-                    print('ticket occre the errors')
-                    driver.quit()
-                    return 0
         except:
             pass
 
@@ -2474,24 +2437,10 @@ class Tix24(Scraper):
             driver.quit()
             return 0
 
-        # try:
-        #     sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
-        #     if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-        #         print('tickets is sold out.')
-        #         driver.quit()
-        #         return '-', False
-        #     error = soup.find('div', {'class': 'headline'})
-        #     if error:
-        #         if 'Something went wrong.' in error.text:
-        #             print('ticket occre the errors')
-        #             driver.quit()
-        #             return 0
-        # except:
-        #     pass
-
         print(selected_list_id)
-        # loop content
         driver.quit()
+
+        # loop content
         lst = [selected_list_id for x in range(self.thread_amount)]
         qty = 0
         oldtime = time.time()
@@ -2537,10 +2486,12 @@ class AdmitOne(Scraper):
         if self.thread_amount > 15:
             time.sleep(3)
 
+        # click buy the ticket button
         driver.find_element_by_xpath(
             '//*[@id="buy-button-click-iframe"]').click()
         time.sleep(1)
 
+        # switch iframe
         iframe = ""
         try:
             iframe = driver.find_element_by_xpath(
@@ -2549,14 +2500,12 @@ class AdmitOne(Scraper):
             print('0 Tickets added and can\'t open the iframe')
             driver.quit()
             return 0
-
         driver.switch_to.frame(iframe)
 
-        select_id = "select_level_"+box_id
+        select_id = "select_level_" + box_id
 
         # add sold out case or another case on first screen
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-
         try:
             sold = soup.find('tr', {'data-level-id': box_id}
                              ).find_next('td', {'class': 'qty-td'}).text
@@ -2572,18 +2521,14 @@ class AdmitOne(Scraper):
         self.input_password(driver)
 
         try:
-            # case of normal type(direclty select the select option)
             opt = driver.find_elements_by_xpath(
                 f'//*[@id="{select_id}"]/option')[-1]
             opt_qty = int(opt.get_attribute('value'))
             opt.click()
 
         except:
+            # when can't get opt_qty, need to find another way to get opt_qty
             pass
-            # case of select general adminsion and get the ticket.
-            # opt = driver.find_elements_by_xpath(f'//*[@id="{select_id}"]/option')[-1]
-            # opt.click()
-            # opt_qty = int(opt.get_attribute('value'))
 
         time.sleep(0.5)
 
@@ -2591,7 +2536,6 @@ class AdmitOne(Scraper):
         driver.find_element_by_xpath(
             '//input[@id="submit_ticket_request"]').click()
 
-        # duel the erros or sold out
         time.sleep(2)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -2611,27 +2555,12 @@ class AdmitOne(Scraper):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 
-        # # add sold out or another issues.
-        # soup = BeautifulSoup(driver.page_source, 'html.parser')
-        # try:
-        #     sold = soup.find('table', {'class': 'ticketoptiontable'}).find_all_next('tbody')[int(self.ticket_row)]
-        #     if 'Sold Out' in sold.find('td', {'class': 'pricecell'}).text:
-        #         print('tickets is sold out.')
-        #         driver.quit()
-        #         return '-', False
-        #     error = soup.find('div', {'class': 'headline'})
-        #     if error:
-        #         if 'Something went wrong.' in error.text:
-        #             print('ticket occre the errors')
-        #             driver.quit()
-        #             return 0
-        # except:
-        #     pass
-
+        # click the buy the ticket button
         driver.find_element_by_xpath(
             '//*[@id="buy-button-click-iframe"]').click()
         time.sleep(0.5)
 
+        # switch iframe
         iframe = ""
         try:
             iframe = driver.find_element_by_xpath(
@@ -2643,6 +2572,7 @@ class AdmitOne(Scraper):
 
         driver.switch_to.frame(iframe)
 
+        # get id to get ticket amount, when we get the id, it will process multi thread using unique id.
         selected_list_id = ""
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
@@ -2656,6 +2586,7 @@ class AdmitOne(Scraper):
 
         print(selected_list_id)
 
+        # get status for selected row. (add the code for soldout)
         try:
             sold = soup.find('tr', {'data-level-id': selected_list_id}
                              ).find_next('td', {'class': 'qty-td'}).text
@@ -2666,9 +2597,9 @@ class AdmitOne(Scraper):
                     return '-', False
         except:
             pass
+        driver.quit()
 
         # loop content
-        driver.quit()
         lst = [selected_list_id for x in range(self.thread_amount)]
         qty = 0
         oldtime = time.time()
@@ -2697,9 +2628,3 @@ class AdmitOne(Scraper):
 
         print('total qty', qty)
         return qty, timer_run_out
-
-# if __name__ == "__main__":
-#     proxies = r'D:\Programming\Work\Freelancer2\carrcocarr\low_price_warning\proxies.txt'
-#     t = TicketFly('https://www.ticketfly.com/purchase/event/1822963', proxies, 1, None)
-#     t.get_qty(10)
-#
