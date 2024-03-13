@@ -2520,22 +2520,44 @@ class AdmitOne(Scraper):
         # input promo code
         self.input_password(driver)
 
+        if box_id == "js-seated-amount":
+            try:
+                driver.find_element_by_id('best_available_btn').click()
+                time.sleep(2)
+            except:
+                print("Iframe is not response")
+                driver.quit()
+                return 0
+
         try:
             opt = driver.find_elements_by_xpath(
                 f'//*[@id="{select_id}"]/option')[-1]
             opt_qty = int(opt.get_attribute('value'))
             opt.click()
 
-        except:
-            # when can't get opt_qty, need to find another way to get opt_qty
-            pass
+        except Exception as e:
+            try:
+                opt = driver.find_elements_by_xpath(
+                    f'//*[@id="{box_id}"]/option')[-1]
+                opt_qty = int(opt.get_attribute('value'))
+                opt.click()
+            except Exception as e:
+                print(e)
+                driver.quit()
+                return 0
+
 
         time.sleep(0.5)
 
         # click the submit
-        driver.find_element_by_xpath(
-            '//input[@id="submit_ticket_request"]').click()
-
+        try:
+            driver.find_element_by_xpath(
+                '//input[@id="submit_ticket_request"]').click()
+        except:
+            print('IFrame is offline now.')
+            driver.quit()
+            return 0
+        
         time.sleep(2)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -2550,6 +2572,10 @@ class AdmitOne(Scraper):
             driver.quit()
             print(opt_qty, 'Tickets added')
             return opt_qty
+        else:
+            print("Iframe is not response")
+            driver.quit()
+            return 0
 
     def check_ticket_qty(self, cap, decrease_way):
         driver = self.open_driver()
@@ -2579,10 +2605,14 @@ class AdmitOne(Scraper):
             selected_list_id = soup.find('table', {'id': 'ticket-selection-genad'}).find_next(
                 'tbody').find_all_next('tr')[int(self.ticket_row)-1]['data-level-id']
         except:
-            print("can't get id")
-            print('Check this type.....')
-            driver.quit()
-            return '-', False
+            try:
+                driver.find_element_by_id('best_available_btn').click()
+                selected_list_id = "js-seated-amount"
+            except:
+                print("can't get id")
+                print('Check this type.....')
+                driver.quit()
+                return '-', False
 
         print(selected_list_id)
 
