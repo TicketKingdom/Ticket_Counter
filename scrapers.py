@@ -2470,9 +2470,16 @@ class Tix24(Scraper):
 class AdmitOne(Scraper):
     def input_password(self, driver):
         if self.password:
-            print('password area')
-            # driver.find_element_by_id('promoCode').send_keys(self.password)
-            # driver.find_element_by_id('applyPromoCode').click()
+            try:
+                driver.find_element_by_id('coupon').clear()
+                driver.find_element_by_id('coupon').send_keys(self.password)
+                driver.find_element_by_id('apply_coupon').click()
+                time.sleep(2)
+            except:
+                print("401 error")
+                driver.quit()
+                return "401"
+                
 
     def get_qty(self, box_id):
         driver = self.open_driver()
@@ -2486,6 +2493,8 @@ class AdmitOne(Scraper):
         if self.thread_amount > 15:
             time.sleep(3)
 
+        time.sleep(3000)
+
         # click buy the ticket button
         driver.find_element_by_xpath(
             '//*[@id="buy-button-click-iframe"]').click()
@@ -2496,11 +2505,16 @@ class AdmitOne(Scraper):
         try:
             iframe = driver.find_element_by_xpath(
                 '//iframe[@class="event-iframe"]')
+            driver.switch_to.frame(iframe)
         except:
             print('0 Tickets added and can\'t open the iframe')
             driver.quit()
             return 0
-        driver.switch_to.frame(iframe)
+        
+        result = self.input_password(driver)
+        if result == "401":
+            driver.quit()
+            return 0
 
         select_id = "select_level_" + box_id
 
@@ -2591,12 +2605,13 @@ class AdmitOne(Scraper):
         try:
             iframe = driver.find_element_by_xpath(
                 '//iframe[@class="event-iframe"]')
+            driver.switch_to.frame(iframe)
+
+            self.input_password(driver)
         except:
             print('0 Tickets added and can\'t open the iframe')
             driver.quit()
             return 0
-
-        driver.switch_to.frame(iframe)
 
         # get id to get ticket amount, when we get the id, it will process multi thread using unique id.
         selected_list_id = ""
