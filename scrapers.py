@@ -132,8 +132,9 @@ class Scraper(object):
 
     def open_driver(self,
                     use_proxy=True,
-                    user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36.',
+                    user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
                     headless=False):
+        
         random_proxy = random.choice(self.proxies)
         ip, port, user, pwd = random_proxy.split(':')
 
@@ -188,6 +189,7 @@ class Scraper(object):
                     ['blocking']
         );
         """ % (ip, port, user, pwd)
+        
         chrome_options = webdriver.ChromeOptions()
 
         if headless:
@@ -195,6 +197,7 @@ class Scraper(object):
 
         chrome_options.add_argument('--ignore-certificate-errors')
         chrome_options.add_argument('--ignore-ssl-errors')
+        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
         if use_proxy:
             pluginfile = 'proxy_auth_plugin.zip'
@@ -2470,15 +2473,10 @@ class Tix24(Scraper):
 class AdmitOne(Scraper):
     def input_password(self, driver):
         if self.password:
-            try:
-                driver.find_element_by_id('coupon').clear()
-                driver.find_element_by_id('coupon').send_keys(self.password)
-                driver.find_element_by_id('apply_coupon').click()
-                time.sleep(2)
-            except:
-                print("401 error")
-                driver.quit()
-                return "401"
+            driver.find_element_by_id('coupon').clear()
+            driver.find_element_by_id('coupon').send_keys(self.password)
+            driver.find_element_by_id('apply_coupon').click()
+            time.sleep(2)
                 
 
     def get_qty(self, box_id):
@@ -2493,7 +2491,7 @@ class AdmitOne(Scraper):
         if self.thread_amount > 15:
             time.sleep(3)
 
-        time.sleep(3000)
+        time.sleep(3)
 
         # click buy the ticket button
         driver.find_element_by_xpath(
@@ -2511,10 +2509,16 @@ class AdmitOne(Scraper):
             driver.quit()
             return 0
         
-        result = self.input_password(driver)
-        if result == "401":
-            driver.quit()
-            return 0
+        if self.password:
+            try:
+                driver.find_element_by_id('coupon').clear()
+                driver.find_element_by_id('coupon').send_keys(self.password)
+                driver.find_element_by_id('apply_coupon').click()
+                time.sleep(2)
+            except:
+                print("can't input presale code")
+                driver.quit()
+                return 0
 
         select_id = "select_level_" + box_id
 
@@ -2530,9 +2534,6 @@ class AdmitOne(Scraper):
                     return 0
         except:
             pass
-
-        # input promo code
-        self.input_password(driver)
 
         if box_id == "js-seated-amount":
             try:
@@ -2587,7 +2588,7 @@ class AdmitOne(Scraper):
             print(opt_qty, 'Tickets added')
             return opt_qty
         else:
-            print("Iframe is not response")
+            print("Iframe is not response or 401 error")
             driver.quit()
             return 0
 
@@ -2624,10 +2625,16 @@ class AdmitOne(Scraper):
                 driver.find_element_by_id('best_available_btn').click()
                 selected_list_id = "js-seated-amount"
             except:
-                print("can't get id")
-                print('Check this type.....')
-                driver.quit()
-                return '-', False
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                if 'have ended' in soup.find('div', {"class":"purchasesubtitle"}).text:
+                    print("Online sales have ended. Tickets are still available at the door.")
+                    driver.quit()
+                    return 0, False
+                else:
+                    print("can't get id")
+                    print('Check this type.....')
+                    driver.quit()
+                    return '-', False
 
         print(selected_list_id)
 
