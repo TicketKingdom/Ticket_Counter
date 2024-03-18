@@ -2493,6 +2493,12 @@ class AdmitOne(Scraper):
 
         time.sleep(3)
 
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        if 'This Event is Over' in soup.find('div', {'class':'event_page_global'}).find_next('h2').text:
+            print('Event is over')
+            driver.quit()
+            return 0
+
         # click buy the ticket button
         driver.find_element_by_xpath(
             '//*[@id="buy-button-click-iframe"]').click()
@@ -2595,6 +2601,12 @@ class AdmitOne(Scraper):
     def check_ticket_qty(self, cap, decrease_way):
         driver = self.open_driver()
         driver.get(self.ticket_url)
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        if 'This Event is Over' in soup.find('div', {'class':'event_page_global'}).find_next('h2').text:
+            print('Event is over')
+            driver.quit()
+            return '-', False
 
         # click the buy the ticket button
         driver.find_element_by_xpath(
