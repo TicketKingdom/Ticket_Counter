@@ -204,13 +204,14 @@ class Scraper(object):
             current_time = time.time()
             global g_index
             g_index = g_index+1
-            pluginfile = f'./proxy/{current_time}{g_index}.zip'
+            # print('g_index', f'{current_time}{g_index}{port}')
+            pluginfile = f'./proxy/{current_time}{g_index}{port}.zip'
             try:
                 with zipfile.ZipFile(pluginfile, 'w') as zp:
                     zp.writestr("manifest.json", manifest_json)
                     zp.writestr("background.js", background_js)
                 chrome_options.add_extension(pluginfile)
-                time.sleep(1)
+                time.sleep(2)
             except:
                 return self.open_driver()
 
@@ -2497,11 +2498,14 @@ class AdmitOne(Scraper):
 
         time.sleep(3)
 
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        if 'This Event is Over' in soup.find('div', {'class':'event_page_global'}).find_next('h2').text:
-            print('Event is over')
-            driver.quit()
-            return 0
+        try:
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            if 'This Event is Over' in soup.find('div', {'class':'event_page_global'}).find_next('h2').text:
+                print('Event is over')
+                driver.quit()
+                return 0
+        except:
+            pass
 
         # click buy the ticket button
         driver.find_element_by_xpath(
@@ -2613,11 +2617,14 @@ class AdmitOne(Scraper):
         driver = self.open_driver()
         driver.get(self.ticket_url)
 
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        if 'This Event is Over' in soup.find('div', {'class':'event_page_global'}).find_next('h2').text:
-            print('Event is over')
-            driver.quit()
-            return '-', False
+        try:
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            if 'This Event is Over' in soup.find('div', {'class':'event_page_global'}).find_next('h2').text:
+                print('Event is over')
+                driver.quit()
+                return '-', False
+        except:
+            pass
 
         # click the buy the ticket button
         driver.find_element_by_xpath(
