@@ -2592,6 +2592,13 @@ class AdmitOne(Scraper):
                 print('can not get the ticekt cause of 401 error.')
                 driver.quit()
                 return 0
+        try:
+            if 'Unable to reserve' in soup.find('div', {'class':'error'}).text:
+                print('need to decrease the ticket amount')
+                driver.quit()
+                return 0
+        except:
+            pass
 
         if soup.find('span', {'class': 'countdown'}):
             driver.quit()
