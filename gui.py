@@ -1,3 +1,4 @@
+import os
 import pickle
 import smtplib
 import threading
@@ -334,6 +335,7 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
             data_key = None
             for key, value in self.event_data.items():
                 if value[4] == url:
+                    self.delete_files_in_directory('./proxy')
                     data_key = key
                     print('checking tickets for', value[0], url)
                     checker = check_website(
@@ -354,7 +356,14 @@ class LowNumberApp(wx.Frame, listmix.ColumnSorterMixin):
                     #     self.m_button_update.Enable()
                     self.check_to_send_email(self.event_data[key])
                     self.master.add_to_list(evt_data)
+                    self.delete_files_in_directory('./proxy')
                     break
+
+    def delete_files_in_directory(self, directory):
+        for file_name in os.listdir(directory):
+            file_path = os.path.join(directory, file_name)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
 
     def edit_event(self, event):
         selected = self.list_ctrl.GetFirstSelected()

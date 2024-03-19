@@ -17,6 +17,8 @@ from capmonster_python import RecaptchaV2Task
 from multiprocessing.pool import Pool
 from bs4 import BeautifulSoup
 
+g_index = 0
+
 load_dotenv()
 
 anticaptch_key = os.getenv('anticaptch_key')
@@ -198,9 +200,11 @@ class Scraper(object):
         chrome_options.add_argument('--ignore-certificate-errors')
         chrome_options.add_argument('--ignore-ssl-errors')
         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
-
         if use_proxy:
-            pluginfile = 'proxy_auth_plugin.zip'
+            current_time = time.time()
+            global g_index
+            g_index = g_index+1
+            pluginfile = f'./proxy/{current_time}{g_index}.zip'
             try:
                 with zipfile.ZipFile(pluginfile, 'w') as zp:
                     zp.writestr("manifest.json", manifest_json)
