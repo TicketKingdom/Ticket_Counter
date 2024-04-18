@@ -2557,6 +2557,14 @@ class AdmitOne(Scraper):
                 print("Iframe is not response")
                 driver.quit()
                 return 0
+            
+        time.sleep(0.5)
+            
+        # if box_id == "js-seated-amount":
+        #     price_index = self.ticket_row.split('/')[1]
+        #     price_level_select = driver.find_elements_by_xpath(
+        #             f'//*[@id="js-seated-section"]/option')[int(price_index)]
+        #     price_level_select.click()
 
         try:
             opt = driver.find_elements_by_xpath(
@@ -2575,7 +2583,6 @@ class AdmitOne(Scraper):
                 driver.quit()
                 return 0
 
-
         time.sleep(0.5)
 
         # click the submit
@@ -2587,7 +2594,7 @@ class AdmitOne(Scraper):
             driver.quit()
             return 0
         
-        time.sleep(2)
+        time.sleep(5)
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         error = soup.find('div', {'class': 'copy'})
@@ -2597,21 +2604,24 @@ class AdmitOne(Scraper):
                 driver.quit()
                 return 0
         try:
-            if 'Unable to reserve' in soup.find('div', {'class':'error'}).text:
-                print('need to decrease the ticket amount')
+            if 'Unable to' in soup.find('div', {'class':'error'}).text:
+                print('need to decrease the ticket amount or reserve seat again.')
                 driver.quit()
                 return 0
         except:
             pass
-
-        if soup.find('span', {'class': 'countdown'}):
-            driver.quit()
-            print(opt_qty, 'Tickets added')
-            return opt_qty
-        else:
-            print("Iframe is not response or 401 error")
-            driver.quit()
-            return 0
+        
+        time.sleep(10)
+        if self.wait_for_element(driver, 'js-continue'):
+            soup = BeautifulSoup(driver.page_source, 'html.parser')
+            if soup.find('span', {'class': 'countdown'}):
+                driver.quit()
+                print(opt_qty, 'Tickets added')
+                return opt_qty
+            else:
+                print("Iframe is not response or 401 error")
+                driver.quit()
+                return 0
 
     def check_ticket_qty(self, cap, decrease_way):
         driver = self.open_driver()
@@ -2648,8 +2658,13 @@ class AdmitOne(Scraper):
         selected_list_id = ""
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         try:
-            selected_list_id = soup.find('table', {'id': 'ticket-selection-genad'}).find_next(
-                'tbody').find_all_next('tr')[int(self.ticket_row)-1]['data-level-id']
+            if '/' in self.ticket_row:
+                row_number = self.ticket_row.split('/')[0]
+                selected_list_id = soup.find('table', {'id': 'ticket-selection-genad'}).find_next(
+                    'tbody').find_all_next('tr')[int(row_number)-1]['data-level-id']
+            else:
+                selected_list_id = soup.find('table', {'id': 'ticket-selection-genad'}).find_next(
+                    'tbody').find_all_next('tr')[int(self.ticket_row)-1]['data-level-id']
         except:
             try:
                 driver.find_element_by_id('best_available_btn').click()
