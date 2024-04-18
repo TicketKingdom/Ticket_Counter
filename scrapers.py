@@ -2361,6 +2361,19 @@ class Tix24(Scraper):
 
         time.sleep(3)
         self.input_password(driver)
+        time.sleep(3)
+
+        # add sold out case or another case on first screen
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        try:
+            waiting = soup.find('div', {'id': 'waitingline'})
+            if waiting:
+                print('tickets is waiting.')
+                driver.quit()
+                return 0
+        except:
+            pass
 
         try:
             opt = driver.find_elements_by_xpath(
@@ -2463,7 +2476,7 @@ class Tix24(Scraper):
                 for q in r:
                     loop_qty += q
                     if q == 0:
-                        print("the tickets sold out by scrap!")
+                        # print("the tickets sold out by scrap!")
                         break
             qty += loop_qty
             print('Total QTY:', qty)
