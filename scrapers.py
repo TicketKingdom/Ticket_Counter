@@ -904,14 +904,17 @@ class FrontGate(Scraper):
                 return 0
         except:
             pass
+        
+        try:
+            if self.wait_for_element(driver, '//*[@id="cart-success-header"/h2]', By.XPATH) or self.wait_for_element(driver, '//div[@role="banner"]', By.XPATH):
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                real_amount = soup.find('a', {'id': 'menu-cart-link'}).find_next('span', {'class':'cart-badge'}).text.strip()
+                qty = int(real_amount)
+                print(f"succesed>>>>>>>>>>{real_amount}")
+                time.sleep(3)
+        except:
+            pass
 
-        if self.wait_for_element(driver, '//*[@id="cart-success-header"/h2]', By.XPATH) or self.wait_for_element(driver, '//div[@role="banner"]', By.XPATH):
-            soup = BeautifulSoup(driver.page_source, 'html.parser')
-            real_amount = soup.find('span', {'class': 'cartTotal badge'}).decode_contents()
-            qty = int(real_amount)
-            print(f"succesed>>>>>>>>>>{real_amount}")
-            time.sleep(3)
-        # time.sleep(3000)
         driver.quit()
         print(qty, 'Tickets added')
         return qty
